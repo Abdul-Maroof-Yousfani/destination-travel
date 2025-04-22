@@ -697,7 +697,7 @@ label.form-check-label small{font-size:10px;}
 .der-time ul{gap:9px;}
 .overflow-auto.infantCountBaggageBtn{text-align:center;}
 .fly ul li.last{justify-content:center !important;width:100%;}
-
+.modern-calendar{width:100% !important;}
 }
 @media (max-width:430px){.top-header{padding:10px 0px;background:#d7f3fb;display:block;}
 .menuWrap2.menuWrap3{display:block;}
@@ -829,7 +829,7 @@ label.form-check-label small{font-size:10px;}
 .der-time ul{gap:9px;}
 .overflow-auto.infantCountBaggageBtn{text-align:center;}
 .fly ul li.last{justify-content:center !important;width:100%;}
-
+.modern-calendar{width:100% !important;}
 }
 
 
