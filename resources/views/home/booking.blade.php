@@ -48,7 +48,7 @@
                   <!-- booking form -->
                   <fieldset>
                      <div class="form-card">
-                        <div class="row">
+                        <div class="row row2">
                            <div class="col-md-12 col-lg-8">
                               <div class="contact">
                                  <h2>Contact Details</h2>
@@ -91,7 +91,7 @@
                               </div>
                               @foreach ($data['passengerTypes'] as $key => $type)
                                   @if(isset($data['paxCount'][$key]) && $data['paxCount'][$key] > 0)
-                                      <div class="row m-3 paxDetails">
+                                      <div class=" paxDetails">
                                           @for ($i = 1; $i <= $data['paxCount'][$key]; $i++)
                                              <div class="contact contact2">
                                                 <h2>Traveler Details for {{ $type }} {{ $i }}</h2>

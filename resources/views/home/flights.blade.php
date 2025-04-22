@@ -212,8 +212,8 @@
                                 }
                             @endphp
                             @if (!empty($hasAvailableFlight))
-                                <li class="row">
-                                    <div class="col-sm-12 col-12 row">
+                                <li>
+                                    <!-- <div class="col-sm-12 col-12"> -->
                                         @foreach ($data as $index => $flightData)
                                             <div class="col-sm-{{ $isRoundTrip ? '6' : '12' }} col-12">
                                                 <div class="d-flex mb-3">
@@ -292,8 +292,8 @@
                                                 @endforeach
                                             </div>
                                         @endforeach
-                                    </div>
-                                    <div class="col-12 prices2 mt-3">
+                                    <!-- </div> -->
+                                    <div class="prices2 mt-3">
                                         <div class="select-flight">
                                             <button class="btn btn-b bundleModalBtn">
                                                 PKR <span id="totalPrice">0</span> - Select flight
@@ -313,7 +313,7 @@
                                         </div>
                                         <div class="modal-body">
                                             <!-- popup code -->
-                                            <div class="col-md-12 col-lg-12">
+                                            <!-- <div class="col-md-12 col-lg-12"> -->
                                                 <div class="tick modalFlights mb-4"></div>
                                                 <!-- tabs -->
                                                 <div class="col-12 mb-4">
@@ -361,7 +361,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            <!-- </div> -->
                                         </div>
                                     </div>
                                 </div>

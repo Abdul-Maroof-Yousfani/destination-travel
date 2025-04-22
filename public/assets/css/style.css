@@ -289,7 +289,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;hei
 .sugge-tab-time2{border:1px solid #d9d9d9;border-radius:7px;padding:10px 10px;margin-top:50px;align-items:center;}
 .weig2{margin-top:5px;}
 .prices2{padding-left:20px;}
-.prices2 .btn-b{width:145px;}
+.prices2 .btn-b{width:20%;}
 /* bookings */
 /* step body */
 .books ul{display:flex;align-items:center;justify-content:center;}
@@ -572,7 +572,7 @@ footer{padding:20px 0px;}
 .menuWrap2{display:none;}
 .menuWrap3{display:block;}
 .menuWrap2-top{display:block;}
-.menuWrap3 ul{justify-content:center !important;gap:8px !important;margin-top:-38px;}
+.menuWrap3 ul{justify-content:center !important;gap:15px !important;margin-top:-30px;}
 .menuWrap2 ul li a span{font-size:11px;}
 .menuWrap2 ul li a{font-size:11px;line-height:13px;text-align:left;}
 .menu-Bar{float:right;top:10px;}
@@ -605,7 +605,7 @@ div#shiva{font-size:35px;}
 #msform fieldset>input{width:44%;}
 .emr-adul{gap:70px;}
 section.mainBanner{height:70vh;}
-.banner{padding:20px 20px;}
+.banner{padding:20px 10px;}
 .packg ul{display:flex;justify-content:left;flex-wrap:wrap;}
 .departure-bo{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;}
 .hep2{padding:25px 0px;width:100%;margin-top:16px;}
@@ -627,16 +627,16 @@ section.mainBanner{height:70vh;}
 .select2-container{width:100% !important;}
 .hep ul{gap:8px;}
 .copy p{font-size:11px;}
-.menuWrap2-top ul{gap:20px;}
+.menuWrap2-top ul{gap:12px;}
 .select2-results__option{font-size:13px !important;}
 .icon-head-loc i{font-size:18px!important;margin-bottom:10px!important;}
 span.selected-country{font-size:14px;}
 .widget a h4{font-size:17px;}
 .plane p{font-size:11px;}
-.prices2{justify-content:center;padding-left:0;gap:18px;align-items:flex-start !important;}
+.prices2{justify-content:center;padding-left:0;gap:0px;align-items:flex-start !important;}
 .der-time ul li h2{font-size:17px !important;}
 .text-primary{color:#007bff !important;font-size:13px;}
-.prices2 .btn-b{width:67%;}
+.prices2 .btn-b{width:100%;}
 .flcul ul li{width:100%;}
 .plus-widh{width:98px;}
 .plus-widh p{font-size:11px;}
@@ -646,35 +646,54 @@ input#contactSubmit{padding:6px 5px;}
 input.previous.btn.btn.btn-b{padding:8px 0px;}
 input#paymentSendTest{padding:8px 0px;}
 .pays ul{gap:11px !important;}
-.tyous h2{font-size:27px;}
+.tyous h2{font-size:21px;}
 .der-time ul li h2{font-size:13px;}
 .banner ul{justify-content:space-between;}
-.dropdown-menu{left:50px !important;top:162px!important;}
+.dropdown-menu{left:26px !important;top:162px !important;}
 .icon-head-loc{margin-right:10px;display:none;}
-.select2-container .select2-selection--single{height:auto !important;padding:4px 2px !important;font-size:7px !important;}
+.select2-container .select2-selection--single{height:auto !important;padding:4px 2px !important;font-size:9px !important;}
 .select2-results__option{padding:10px 9px;font-size:11px !important;}
 .right-left.mob-hid{font-size:13px;}
 .select2-container--default .select2-selection--single .select2-selection__arrow{height:26px;position:absolute;top:0;right:0;width:inherit;}
-.select2-container .select2-selection--single .select2-selection__rendered{width:115px !important;}
-.dropdown-menu2{left:178px !important;}
-.modern-calendar{font-size:12px!important;}
+.select2-container .select2-selection--single .select2-selection__rendered{width:102px !important;}
+.dropdown-menu2{left:150px !important;}
+.modern-calendar{font-size:11px !important;}
 .calendar-wrapper label{font-size:10px !important;color:#333;}
 .tes-bo{margin-right:-18px;}
 .shop-check{display:flex;justify-content:space-between;border-top:1px solid #dddddddd;padding-top:22px;}
 .plane small{font-size:10px !important;}
 .modal-dialog{max-width:100%;}
-.sugge-tab{display:block;}
+.sugge-tab{display:block;margin-top:0px;}
 .pritik{width:100%;margin-left:0;margin-top:20px;text-align:center;}
 .pritik .bg-info{font-size:14px !important;padding:4px 11px;}
 .der-time{border-right:none;padding-right:0;}
 .dirx{text-align:center;}
+.radio-container label{font-size:12px;}
+.form-check-label{font-size:10px;}
+label.form-check-label small{font-size:10px;}
+.main-border{padding:15px 12px;}
+.contact2{margin-top:13px;}
+.row2{flex-direction:column-reverse;}
+.bokkings-bar{margin-top:20px;margin-bottom:40px;}
+.tyous p{font-size:11px;}
+.tyous h3 span{font-size:15px;}
+.setp-bult{padding:15px 10px;}
+.sugge-tab-tickes{padding:20px 13px;}
+.setp-bult{margin:0px 0;}
+.pays h2{font-size:18px;text-transform:capitalize;}
+.pri-pak h2{font-size:14px;font-weight:700;}
+.emr-adul p{font-size:12px;}
+.pri-pak p{font-size:14px;font-weight:700;}
+
+
+
 }
 @media (max-width:430px){.top-header{padding:10px 0px;background:#d7f3fb;display:block;}
 .menuWrap2.menuWrap3{display:block;}
 .menuWrap2{display:none;}
 .menuWrap3{display:block;}
 .menuWrap2-top{display:block;}
-.menuWrap3 ul{justify-content:center !important;gap:8px !important;margin-top:-38px;}
+.menuWrap3 ul{justify-content:center !important;gap:15px !important;margin-top:-30px;}
 .menuWrap2 ul li a span{font-size:11px;}
 .menuWrap2 ul li a{font-size:11px;line-height:13px;text-align:left;}
 .menu-Bar{float:right;top:10px;}
@@ -707,7 +726,7 @@ div#shiva{font-size:35px;}
 #msform fieldset>input{width:44%;}
 .emr-adul{gap:70px;}
 section.mainBanner{height:70vh;}
-.banner{padding:20px 20px;}
+.banner{padding:20px 10px;}
 .packg ul{display:flex;justify-content:left;flex-wrap:wrap;}
 .departure-bo{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;}
 .hep2{padding:25px 0px;width:100%;margin-top:16px;}
@@ -729,16 +748,16 @@ section.mainBanner{height:70vh;}
 .select2-container{width:100% !important;}
 .hep ul{gap:8px;}
 .copy p{font-size:11px;}
-.menuWrap2-top ul{gap:20px;}
+.menuWrap2-top ul{gap:12px;}
 .select2-results__option{font-size:13px !important;}
 .icon-head-loc i{font-size:18px!important;margin-bottom:10px!important;}
 span.selected-country{font-size:14px;}
 .widget a h4{font-size:17px;}
 .plane p{font-size:11px;}
-.prices2{justify-content:center;padding-left:0;gap:18px;align-items:flex-start !important;}
+.prices2{justify-content:center;padding-left:0;gap:0px;align-items:flex-start !important;}
 .der-time ul li h2{font-size:17px !important;}
 .text-primary{color:#007bff !important;font-size:13px;}
-.prices2 .btn-b{width:67%;}
+.prices2 .btn-b{width:100%;}
 .flcul ul li{width:100%;}
 .plus-widh{width:98px;}
 .plus-widh p{font-size:11px;}
@@ -748,31 +767,48 @@ input#contactSubmit{padding:6px 5px;}
 input.previous.btn.btn.btn-b{padding:8px 0px;}
 input#paymentSendTest{padding:8px 0px;}
 .pays ul{gap:11px !important;}
-.tyous h2{font-size:27px;}
+.tyous h2{font-size:21px;}
 .der-time ul li h2{font-size:13px;}
 .banner ul{justify-content:space-between;}
-.dropdown-menu{left:50px !important;top:162px!important;}
+.dropdown-menu{left:26px !important;top:162px !important;}
 .icon-head-loc{margin-right:10px;display:none;}
-.select2-container .select2-selection--single{height:auto !important;padding:4px 2px !important;font-size:7px !important;}
+.select2-container .select2-selection--single{height:auto !important;padding:4px 2px !important;font-size:9px !important;}
 .select2-results__option{padding:10px 9px;font-size:11px !important;}
 .right-left.mob-hid{font-size:13px;}
 .select2-container--default .select2-selection--single .select2-selection__arrow{height:26px;position:absolute;top:0;right:0;width:inherit;}
-.select2-container .select2-selection--single .select2-selection__rendered{width:115px !important;}
-.dropdown-menu2{left:178px !important;}
-.modern-calendar{font-size:12px!important;}
+.select2-container .select2-selection--single .select2-selection__rendered{width:102px !important;}
+.dropdown-menu2{left:150px !important;}
+.modern-calendar{font-size:11px !important;}
 .calendar-wrapper label{font-size:10px !important;color:#333;}
 .tes-bo{margin-right:-18px;}
 .shop-check{display:flex;justify-content:space-between;border-top:1px solid #dddddddd;padding-top:22px;}
 .plane small{font-size:10px !important;}
 .modal-dialog{max-width:100%;}
-.sugge-tab{display:block;}
+.sugge-tab{display:block;margin-top:0px;}
 .pritik{width:100%;margin-left:0;margin-top:20px;text-align:center;}
 .pritik .bg-info{font-size:14px !important;padding:4px 11px;}
 .der-time{border-right:none;padding-right:0;}
 .dirx{text-align:center;}
+.radio-container label{font-size:12px;}
+.form-check-label{font-size:10px;}
+label.form-check-label small{font-size:10px;}
+.main-border{padding:15px 12px;}
+.contact2{margin-top:13px;}
+.row2{flex-direction:column-reverse;}
+.bokkings-bar{margin-top:20px;margin-bottom:40px;}
+.tyous p{font-size:11px;}
+.tyous h3 span{font-size:15px;}
+.setp-bult{padding:15px 10px;}
+.sugge-tab-tickes{padding:20px 13px;}
+.setp-bult{margin:0px 0;}
+.pays h2{font-size:18px;text-transform:capitalize;}
+.pri-pak h2{font-size:14px;font-weight:700;}
+.emr-adul p{font-size:12px;}
+.pri-pak p{font-size:14px;font-weight:700;}
+
+
+
 }
-
-
 @media (max-width:700px) and (max-height:450px){}
 .pointer{cursor:pointer !important;}
 .z_inf{z-index:9999;}
