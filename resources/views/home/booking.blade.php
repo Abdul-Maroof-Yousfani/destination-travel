@@ -55,40 +55,14 @@
                                  <div class="row">
                                     <div class="col-md-12 col-lg-6">
                                        <div class="form-group">
-                                          <label for="">Select Title</label>
-                                          <div class="inline-flex">
-                                             <label for="userTitleMr" class="borlook d-flex p-3">
-                                                <input class="hidden-radio" type="radio" id="userTitleMr" value="Mr" name="userTitle" checked>
-                                                <span class="ml-2">Mr</span>
-                                             </label>
-                                             <label for="userTitleMrs" class="borlook d-flex p-3">
-                                                <input class="hidden-radio" type="radio" id="userTitleMrs" value="Mrs" name="userTitle">
-                                                <span class="ml-2">Mrs</span>
-                                             </label>
-                                             <label for="userTitleMs" class="borlook d-flex p-3">
-                                                <input class="hidden-radio" type="radio" id="userTitleMs" value="Ms" name="userTitle">
-                                                <span class="ml-2">Ms</span>
-                                             </label>
-                                         </div>
+                                          <label for="userFullName">Full name</label>
+                                          <input type="text" name="userFullName" id="userFullName" class="form-control" required placeholder="Enter your full name" aria-describedby="helpId" value="Syed Ali Moiz">
+                                          <small id="helpId" class="text-muted">e.g. Syed Ali Moiz</small>
                                        </div>
                                     </div>
                                     <div class="col-md-12 col-lg-6">
                                        <div class="form-group">
-                                          <label for="userFirstName">First name</label>
-                                          <input type="text" name="userFirstName" id="userFirstName" class="form-control" required placeholder="Enter your first name" aria-describedby="helpId" value="Syed">
-                                          <small id="helpId" class="text-muted">e.g. Syed</small>
-                                       </div>
-                                    </div>
-                                    <div class="col-md-12 col-lg-6">
-                                       <div class="form-group">
-                                          <label for="userLastName">Last name</label>
-                                          <input type="text" name="userLastName" id="userLastName" class="form-control" required placeholder="Enter your last name" aria-describedby="helpId" value="Ali Moiz">
-                                          <small id="helpId" class="text-muted">e.g. Ali Moiz</small>
-                                       </div>
-                                    </div>
-                                    <div class="col-md-12 col-lg-6">
-                                       <div class="form-group">
-                                          <label for="userEmail">Email <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="e.g. name@outlook.com"></i></label>
+                                          <label for="userEmail">Email <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="e.g. name@outlook.com"></i> <small class="text-black-50">( Your ticket details will be sent to this email address. )</small></label>
                                           <input type="text" name="userEmail" required id="userEmail" class="form-control" value="name@outlook.com" placeholder="Enter your email" aria-describedby="helpId">
                                           <small id="helpId" class="text-muted">e.g. name@outlook.com</small>
                                        </div>
@@ -105,130 +79,6 @@
                                           <label for="userPhone">Phone Number</label>
                                           <input type="text" name="userPhone" id="userPhone" class="form-control" required placeholder="Enter your phone number" value="3320234557" aria-describedby="helpId">
                                           <small id="helpId" class="text-muted">e.g. 3320234557</small>
-                                       </div>
-                                    </div>
-                                    <div class="col-md-12 col-lg-12">
-                                       <div class="form-group">
-                                          <label for="userCountry">Country</label>
-                                          {{-- data-code = country code --}}
-                                          <select class="form-control" aria-describedby="helpId" id="userCountry" name="userCountry">
-                                             <option disabled>Select one</option>
-                                             <option selected value="PK" data-code="+92">Pakistan</option>
-                                             <option value="AF" data-code="+93">Afghanistan</option>
-                                             <option value="AL" data-code="+355">Albania</option>
-                                             <option value="DZ" data-code="+213">Algeria</option>
-                                             <option value="US" data-code="+1">United States</option>
-                                             <option value="AD" data-code="+376">Andorra</option>
-                                             <option value="AO" data-code="+244">Angola</option>
-                                             <option value="AG" data-code="+1-268">Antigua and Barbuda</option>
-                                             <option value="AR" data-code="+54">Argentina</option>
-                                             <option value="AM" data-code="+374">Armenia</option>
-                                             <option value="AU" data-code="+61">Australia</option>
-                                             <option value="AT" data-code="+43">Austria</option>
-                                             <option value="AZ" data-code="+994">Azerbaijan</option>
-                                             <option value="BS" data-code="+1-242">Bahamas</option>
-                                             <option value="BH" data-code="+973">Bahrain</option>
-                                             <option value="BD" data-code="+880">Bangladesh</option>
-                                             <option value="BB" data-code="+1-246">Barbados</option>
-                                             <option value="BW" data-code="+267">Botswana</option>
-                                             <option value="BY" data-code="+375">Belarus</option>
-                                             <option value="BE" data-code="+32">Belgium</option>
-                                             <option value="BZ" data-code="+501">Belize</option>
-                                             <option value="BJ" data-code="+229">Benin</option>
-                                             <option value="BT" data-code="+975">Bhutan</option>
-                                             <option value="BO" data-code="+591">Bolivia</option>
-                                             <option value="BA" data-code="+387">Bosnia and Herzegovina</option>
-                                             <option value="BR" data-code="+55">Brazil</option>
-                                             <option value="GB" data-code="+44">United Kingdom</option>
-                                             <option value="BN" data-code="+673">Brunei</option>
-                                             <option value="BG" data-code="+359">Bulgaria</option>
-                                             <option value="BF" data-code="+226">Burkina Faso</option>
-                                             <option value="MM" data-code="+95">Myanmar</option>
-                                             <option value="BI" data-code="+257">Burundi</option>
-                                             <option value="KH" data-code="+855">Cambodia</option>
-                                             <option value="CM" data-code="+237">Cameroon</option>
-                                             <option value="CA" data-code="+1">Canada</option>
-                                             <option value="CV" data-code="+238">Cape Verde</option>
-                                             <option value="CF" data-code="+236">Central African Republic</option>
-                                             <option value="TD" data-code="+235">Chad</option>
-                                             <option value="CL" data-code="+56">Chile</option>
-                                             <option value="CN" data-code="+86">China</option>
-                                             <option value="CO" data-code="+57">Colombia</option>
-                                             <option value="KM" data-code="+269">Comoros</option>
-                                             <option value="CG" data-code="+242">Congo</option>
-                                             <option value="CR" data-code="+506">Costa Rica</option>
-                                             <option value="HR" data-code="+385">Croatia</option>
-                                             <option value="CU" data-code="+53">Cuba</option>
-                                             <option value="CY" data-code="+357">Cyprus</option>
-                                             <option value="CZ" data-code="+420">Czech Republic</option>
-                                             <option value="DK" data-code="+45">Denmark</option>
-                                             <option value="DJ" data-code="+253">Djibouti</option>
-                                             <option value="DO" data-code="+1-809">Dominican Republic</option>
-                                             <option value="NL" data-code="+31">Netherlands</option>
-                                             <option value="EC" data-code="+593">Ecuador</option>
-                                             <option value="EG" data-code="+20">Egypt</option>
-                                             <option value="AE" data-code="+971">United Arab Emirates</option>
-                                             <option value="ER" data-code="+291">Eritrea</option>
-                                             <option value="EE" data-code="+372">Estonia</option>
-                                             <option value="ET" data-code="+251">Ethiopia</option>
-                                             <option value="FJ" data-code="+679">Fiji</option>
-                                             <option value="FI" data-code="+358">Finland</option>
-                                             <option value="FR" data-code="+33">France</option>
-                                             <option value="DE" data-code="+49">Germany</option>
-                                             <option value="GH" data-code="+233">Ghana</option>
-                                             <option value="GR" data-code="+30">Greece</option>
-                                             <option value="GT" data-code="+502">Guatemala</option>
-                                             <option value="HT" data-code="+509">Haiti</option>
-                                             <option value="HN" data-code="+504">Honduras</option>
-                                             <option value="HU" data-code="+36">Hungary</option>
-                                             <option value="IS" data-code="+354">Iceland</option>
-                                             <option value="IN" data-code="+91">India</option>
-                                             <option value="ID" data-code="+62">Indonesia</option>
-                                             <option value="IR" data-code="+98">Iran</option>
-                                             <option value="IQ" data-code="+964">Iraq</option>
-                                             <option value="IE" data-code="+353">Ireland</option>
-                                             <option value="IT" data-code="+39">Italy</option>
-                                             <option value="JM" data-code="+1-876">Jamaica</option>
-                                             <option value="JP" data-code="+81">Japan</option>
-                                             <option value="JO" data-code="+962">Jordan</option>
-                                             <option value="KZ" data-code="+7">Kazakhstan</option>
-                                             <option value="KE" data-code="+254">Kenya</option>
-                                             <option value="KW" data-code="+965">Kuwait</option>
-                                             <option value="KG" data-code="+996">Kyrgyzstan</option>
-                                             <option value="LA" data-code="+856">Laos</option>
-                                             <option value="LV" data-code="+371">Latvia</option>
-                                             <option value="LB" data-code="+961">Lebanon</option>
-                                             <option value="LR" data-code="+231">Liberia</option>
-                                             <option value="LY" data-code="+218">Libya</option>
-                                             <option value="LT" data-code="+370">Lithuania</option>
-                                             <option value="LU" data-code="+352">Luxembourg</option>
-                                             <option value="MY" data-code="+60">Malaysia</option>
-                                             <option value="MV" data-code="+960">Maldives</option>
-                                             <option value="ML" data-code="+223">Mali</option>
-                                             <option value="MT" data-code="+356">Malta</option>
-                                             <option value="MX" data-code="+52">Mexico</option>
-                                             <option value="MA" data-code="+212">Morocco</option>
-                                             <option value="NP" data-code="+977">Nepal</option>
-                                             <option value="NZ" data-code="+64">New Zealand</option>
-                                             <option value="NG" data-code="+234">Nigeria</option>
-                                             <option value="NO" data-code="+47">Norway</option>
-                                             <option value="OM" data-code="+968">Oman</option>
-                                             <option value="PH" data-code="+63">Philippines</option>
-                                          </select>
-                                       </div>
-                                    </div>
-                                    <div class="col-md-12 col-lg-6">
-                                       <div class="form-group">
-                                          <label for="userCity">City</label>
-                                          <input type="text" name="userCity" id="userCity" class="form-control" required placeholder="Enter your city" value="Karachi" aria-describedby="helpId">
-                                          <small id="helpId" class="text-muted">e.g. Karachi</small>
-                                       </div>
-                                    </div>
-                                    <div class="col-md-12 col-lg-6">
-                                       <div class="form-group">
-                                          <label for="userAreaCode">Area Code</label>
-                                          <input type="text" name="userAreaCode" id="userAreaCode" class="form-control" required placeholder="Enter your Area code" value="112" aria-describedby="helpId">
-                                          <small id="helpId" class="text-muted">e.g. 1221</small>
                                        </div>
                                     </div>
                                  </div>           
@@ -431,7 +281,7 @@
                                                       <div class="form-group">
                                                       <label for="{{ $i }}_passportnumber">Passport Number</label>
                                                          <div class="infos">
-                                                            <input type="number" name="{{ $key }}_passportnumber[]" id="{{ $i }}_passportnumber" class="form-control" aria-describedby="helpId" value="123123" required>
+                                                            <input type="text" name="{{ $key }}_passportnumber[]" id="{{ $i }}_passportnumber" class="form-control" aria-describedby="helpId" value="123123" required>
                                                             <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Passport Number"></i>
                                                          </div>
                                                       </div>
@@ -444,7 +294,7 @@
                                                       </div>
                                                    </div>
                                                 </div>
-                                                <div class="row">
+                                                {{-- <div class="row">
                                                    <div class="col-md-12 col-lg-6">
                                                       <div class="form-group">
                                                          <label for="{{ $i }}_area_code">Area Code</label>
@@ -481,7 +331,7 @@
                                                          <small id="helpId" class="text-muted">Loyalty points / miles won't be added for incorrect entries.</small>
                                                       </div>
                                                    </div>
-                                                </div>
+                                                </div> --}}
                                              </div>
                                           @endfor
                                       </div>
@@ -1148,19 +998,20 @@
       });
 
       // ------------------------------------ Booking Start ------------------------------------ //
-      // IdsExpireTime start
-      let enableSessionTimer = true;
-      if (enableSessionTimer) {
-         let sessionTime = @json(session('IdsExpireTime')) || 0;
-         if (!sessionTime) {
-            $(".idExpIn h3").text("Invalid session time");
-            return;
-         }
-         let sessionTimestamp = new Date(sessionTime).getTime();
-         let expMinutes = 10; // change this into 10 Aliiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
-         let expirationTime = sessionTimestamp + expMinutes * 60 * 1000;
+      const sessionTimer = (action = true) => {
+         if (!action) return;
          let countdown;
-
+         let expirationTime;
+         let sessionTime = @json(session('IdsExpireTime')) || 0;
+         let sessionTimestamp = new Date(sessionTime).getTime();
+         let expMinutes = 110; // change this into 10 Aliiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+         if (!sessionTime) {
+            expirationTime = 0;
+            $(".idExpIn h3").text("Invalid session time");
+            // return;
+         } else {
+            expirationTime = sessionTimestamp + expMinutes * 60 * 1000;
+         }
          function updateTimer() {
             let currentTime = new Date().getTime();
             let timeLeft = expirationTime - currentTime;
@@ -1205,10 +1056,8 @@
                allowOutsideClick: false,
                allowEscapeKey: false,
                preConfirm: () => {
-                  window.history.back();
-                  setTimeout(() => {
-                     window.location.reload();
-                  }, 100);
+                  let goBack = localStorage.getItem('flights') || null;
+                  goBack ? window.location.href = `/flights${goBack}` : window.history.back();
                }
             });
             return;
@@ -1217,6 +1066,7 @@
             countdown = setInterval(updateTimer, 1000);
          }
       }
+      sessionTimer();
       // IdsExpireTime end
       let passengers = [];
       let paymentdata;
@@ -1687,32 +1537,6 @@
 
             let navTabs = `<ul class="nav nav-tabs segmentNavTabBaggage">`;
             let tabContent = `<div class="tab-content segmentBtnsBaggage mt-3">${passengerButtons}`;
-            // 4 segments like 
-            // response.data.forEach((item, index) => {
-            //    console.log(item, index)
-            //    let segmentInfo = item.OnDFlightSegmentInfo[0] ? item.OnDFlightSegmentInfo : [item.OnDFlightSegmentInfo];
-            //    if (!segmentInfo) return;
-            //    segmentInfo.forEach((seg, ind) => {
-            //       let rph = getSegmentAttributes(seg["@attributes"].FlightNumber).rph || seg["@attributes"].RPH;
-            //       let tabId = `baggageFlight-${index}-${ind}`;
-            //       segmentRph[`${tabId}`] = rph;
-            //       segmentFlightNo[`${tabId}`] = seg["@attributes"].FlightNumber;
-            //       segmentDepDate[`${tabId}`] = seg["@attributes"].DepartureDateTime;
-            //       selectedBaggagesGlobal[tabId] = selectedBaggagesGlobal[tabId] || {};
-            //       navTabs += `<li class="nav-item">
-            //                   <a class="nav-link ${index === 0 && ind === 0 ? 'active' : ''}" data-toggle="tab" href="#${tabId}">
-            //                      ${getCity(seg.DepartureAirport)}-${getCity(seg.ArrivalAirport)}
-            //                   </a>
-            //                </li>`;
-            //       tabContent += `<div id="${tabId}" class="tab-pane fade ${index === 0 && ind === 0 ? 'show active' : ''}">
-            //                      <div class="baggageMapContainer row my-2"></div>
-            //                   </div>`;
-            //       // Auto-load first segment's baggage
-            //       if (index === 0 && ind === 0) {
-            //          loadBaggageMap(tabId, item.Baggage, totalPassengers, passengerList);
-            //       }
-            //    })
-            // });
             response.data.forEach((item, index) => {
                let segmentInfo = Array.isArray(item.OnDFlightSegmentInfo)
                   ? item.OnDFlightSegmentInfo
@@ -1912,9 +1736,71 @@
          // withOutAncis = true;
          // $('#contactSubmit').click()
       // });
+      // $('#contactSubmit').click(function () {
+      //    let hasError = false;
+      //    let firstErrorField = null;
+      //    $('.paxDetails .contact2').each(function () {
+      //       let passenger = {
+      //          type: $(this).find('input[name$="_type[]"]').val(),
+      //          name: $(this).find('input[name$="_name[]"]').val(),
+      //          surname: $(this).find('input[name$="_surname[]"]').val(),
+      //          title: $(this).find('input[name^="title_"]:checked').val(),
+      //          dob: $(this).find('input[name$="_dob[]"]').val(),
+      //          nationality: $(this).find('select[name$="_nationality[]"]').val(),
+      //          passportNumber: $(this).find('input[name$="_passportnumber[]"]').val(),
+      //          passportExpiry: $(this).find('input[name$="_passportexp[]"]').val(),
+      //          // countryCode: $(this).find('select[name$="_nationality[]"] option:selected').data('code'),
+      //          // areaCode: $(this).find('input[name$="_area_code[]"]').val(),
+      //          // phoneCode: $(this).find('input[name$="_phone_code[]"]').val(),
+      //          // phone: $(this).find('input[name$="_phone[]"]').val()
+      //       };
+      //       $(this).find("input[required], select[required]").each(function () {
+      //          if (!$(this).val()) {
+      //             $(this).addClass("border-danger");
+      //             hasError = true;
+      //             if (!firstErrorField) firstErrorField = this;
+      //          } else {
+      //             $(this).removeClass("border-danger");
+      //          }
+      //       });
+      //       passengers.push(passenger);
+      //    });
+      //    let userFullName = $('#userFullName').val();
+      //    let userEmail = $('#userEmail').val();
+      //    let userPhoneCode = $('#userPhoneCode').val();
+      //    let userPhone = $('#userPhone').val();
+      //    if (!userFullName || !userEmail || !userPhoneCode || !userPhone) {
+      //       hasError = true;
+      //       if (!firstErrorField) {
+      //          if (!userFullName) firstErrorField = $('#userFullName');
+      //          else if (!userEmail) firstErrorField = $('#userEmail');
+      //          else if (!userPhoneCode) firstErrorField = $('#userPhoneCode');
+      //          else if (!userPhone) firstErrorField = $('#userPhone');
+      //       }
+      //    }
+         
+      //    if (hasError) {
+      //       if (firstErrorField) $(firstErrorField).focus();
+      //       _alert('please fill all required fields', 'warning')
+      //       return false;
+      //    }
+      //    console.log(passengers)
+      //    return;
+      //    if(!isDirectBooking) {
+      //       getFinalPrice();
+      //    }
+      // });
+      let lastSubmittedData = null;
+      let isSubmitting = false;
+
       $('#contactSubmit').click(function () {
+         if (isSubmitting) return;
+         isSubmitting = true;
+
+         passengers = [];
          let hasError = false;
          let firstErrorField = null;
+
          $('.paxDetails .contact2').each(function () {
             let passenger = {
                type: $(this).find('input[name$="_type[]"]').val(),
@@ -1923,13 +1809,10 @@
                title: $(this).find('input[name^="title_"]:checked').val(),
                dob: $(this).find('input[name$="_dob[]"]').val(),
                nationality: $(this).find('select[name$="_nationality[]"]').val(),
-               countryCode: $(this).find('select[name$="_nationality[]"] option:selected').data('code'),
                passportNumber: $(this).find('input[name$="_passportnumber[]"]').val(),
-               passportExpiry: $(this).find('input[name$="_passportexp[]"]').val(),
-               areaCode: $(this).find('input[name$="_area_code[]"]').val(),
-               phoneCode: $(this).find('input[name$="_phone_code[]"]').val(),
-               phone: $(this).find('input[name$="_phone[]"]').val()
+               passportExpiry: $(this).find('input[name$="_passportexp[]"]').val()
             };
+
             $(this).find("input[required], select[required]").each(function () {
                if (!$(this).val()) {
                   $(this).addClass("border-danger");
@@ -1939,41 +1822,60 @@
                   $(this).removeClass("border-danger");
                }
             });
+
             passengers.push(passenger);
          });
-         let userFirstName = $('#userFirstName').val();
-         let userLastName = $('#userLastName').val();
-         let userEmail = $('#userEmail').val();
-         let userPhoneCode = $('#userPhoneCode').val();
-         let userPhone = $('#userPhone').val();
-         let userCity = $('#userCity').val();
-         let userAreaCode = $('#userAreaCode').val();
-         if (!userFirstName || !userLastName || !userEmail || !userPhoneCode || !userPhone || !userAreaCode || !userCity) {
+
+         let userData = {
+            fullName: $('#userFullName').val(),
+            email: $('#userEmail').val(),
+            phoneCode: $('#userPhoneCode').val(),
+            phone: $('#userPhone').val()
+         };
+
+         if (!userData.fullName || !userData.email || !userData.phoneCode || !userData.phone) {
             hasError = true;
             if (!firstErrorField) {
-               if (!userFirstName) firstErrorField = $('#userFirstName');
-               if (!userLastName) firstErrorField = $('#userLastName');
-               else if (!userEmail) firstErrorField = $('#userEmail');
-               else if (!userPhoneCode) firstErrorField = $('#userPhoneCode');
-               else if (!userPhone) firstErrorField = $('#userPhone');
-               else if (!userCity) firstErrorField = $('#userCity');
-               else if (!userAreaCode) firstErrorField = $('#userAreaCode');
+               if (!userData.fullName) firstErrorField = $('#userFullName');
+               else if (!userData.email) firstErrorField = $('#userEmail');
+               else if (!userData.phoneCode) firstErrorField = $('#userPhoneCode');
+               else if (!userData.phone) firstErrorField = $('#userPhone');
             }
          }
-         
+
          if (hasError) {
             if (firstErrorField) $(firstErrorField).focus();
-            _alert('please fill all required fields', 'warning')
+            _alert('Please fill all required fields', 'warning');
+            isSubmitting = false;
             return false;
          }
-         if(!isDirectBooking) {
-         getFinalPrice();
+
+         let currentData = JSON.stringify({ passengers, userData });
+
+         if (currentData === lastSubmittedData) {
+            // _alert('No changes detected. Data already submitted.', 'info');
+            // isSubmitting = false;
+            if (!isDirectBooking) {
+               getFinalPrice();
+            } else {
+               isSubmitting = false;
+            }
+            return;
+         }
+
+         lastSubmittedData = currentData;
+         if (!isDirectBooking) {
+            getFinalPrice();
+         } else {
+            isSubmitting = false;
          }
       });
-
+      
+      
       const getFinalPrice = () => {
          // console.log(selectedSeatsGlobal, selectedMealsGlobal, selectedBaggagesGlobal)
          // return
+         isSubmitting = false;
          let paymentPriceContainer = $('.paymentPriceContainer');
          paymentPriceContainer.empty();
          $.ajax({
@@ -2077,10 +1979,9 @@
                         <p>Traveler ${index + 1}: <span>${paxCapitalize(row.type)}</span></p>
                         <p><span>Name</span>: ${row.name}</p>
                         <p><span>Surname</span>: ${row.surName}</p>
-                        <p><span>Phone Number</span>: ${row.phoneNumber}</p>
                      </div>
                      <div class="col-md-6 col-12">
-                        <h1 class="font-weight-bold mb-3">Ticket Details</h1>
+                        <h1 class="font-weight-bold mb-3">${flights ?? 'Ticket Details'}</h1>
                         <div class="row">
                               ${flights}
                         </div>
@@ -2100,19 +2001,13 @@
       }
       const bookingAjax = () => {
          let user = {
-            userTitle: $('input[name="userTitle"]:checked').val(),
-            userFirstName: $('#userFirstName').val(),
-            userLastName: $('#userLastName').val(),
+            userFullName: $('#userFullName').val(),
+            userEmail: $('#userEmail').val(),
             userPhoneCode: $('#userPhoneCode').val(),
             userPhone: $('#userPhone').val(),
-            userAreaCode: $('#userAreaCode').val(),
-            countryCode : $('#userCountry').val(),
-            country: $('#userCountry option:selected').text(),
-            userCity: $('#userCity').val(),
-            userEmail: $('#userEmail').val(),
             acceptOffers: $('#acceptOffers').is(':checked'),
          }
-         // console.log(user)
+         // console.log(passengers)
          // return;
          $.ajax({
             type: "POST",
@@ -2122,7 +2017,7 @@
             },
             beforeSend: () => _loader('show'),
             success: function (response) {
-               enableSessionTimer = false;
+               sessionTimer(false);
                let tax = @json($tax);
                let totalPrice = parseInt(response.totalPrice?.Amount) + parseInt(tax);
                _alert(response.message, response.status)

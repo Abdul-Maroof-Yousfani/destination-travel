@@ -125,7 +125,7 @@ class FlightController extends Controller
             ]);
             return response()->json([
                 'status' => 'success',
-                'redirect' => route('bookingPage')
+                'redirect' => route('flightBooking')
             ], 200);
         };
 
@@ -150,7 +150,7 @@ class FlightController extends Controller
         ]);
         return response()->json([
             'status' => 'success',
-            'redirect' => route('bookingPage')
+            'redirect' => route('flightBooking')
         ], 200);
     }
     public function booking()
@@ -311,9 +311,9 @@ class FlightController extends Controller
         $bookingRefID = $booking['BookingReferenceID']['@attributes']['ID'] ?? '--';
         $paxPriceArray = $booking['PriceInfo']['PTC_FareBreakdowns']['PTC_FareBreakdown'] ?? [];
 
-        $userFullName = trim(($request->user['userFirstName'] ?? '') . ' ' . ($request->user['userLastName'] ?? '')) ?: '-';
+        // $userFullName = trim(($request->user['userFirstName'] ?? '') . ' ' . ($request->user['userLastName'] ?? '')) ?: '-';
         $userDetails = BookingId::create([
-            'name' => $userFullName,
+            'name' => $request->user['userFullName'] ?? '-',
             'email' => $request->user['userEmail'] ?? '-',
             'phone_code' => $request->user['userPhoneCode'] ?? '-',
             'phone' => $request->user['userPhone'] ?? '-',
@@ -330,27 +330,27 @@ class FlightController extends Controller
             $eTicketInfo = [];
             $ticketArray = $item['ETicketInfo']['ETicketInfomation'] ?? [];
 
-        if (isset($ticketArray[0])) {
-            foreach ($ticketArray as $ticket) {
+            if (isset($ticketArray[0])) {
+                foreach ($ticketArray as $ticket) {
+                    $eTicketInfo[] = [
+                        'couponNo' => $ticket['@attributes']['couponNo'] ?? '',
+                        'eTicketNo' => $ticket['@attributes']['eTicketNo'] ?? '',
+                        'flightSegmentCode' => str_replace('/', ' to ', $ticket['@attributes']['flightSegmentCode'] ?? ''),
+                        'usedStatus' => $ticket['@attributes']['usedStatus'] ?? '',
+                    ];
+                }
+            } elseif (!empty($ticketArray)) {
                 $eTicketInfo[] = [
-                    'couponNo' => $ticket['@attributes']['couponNo'] ?? '',
-                    'eTicketNo' => $ticket['@attributes']['eTicketNo'] ?? '',
-                    'flightSegmentCode' => str_replace('/', ' to ', $ticket['@attributes']['flightSegmentCode'] ?? ''),
-                    'usedStatus' => $ticket['@attributes']['usedStatus'] ?? '',
+                    'couponNo' => $ticketArray['@attributes']['couponNo'] ?? '',
+                    'eTicketNo' => $ticketArray['@attributes']['eTicketNo'] ?? '',
+                    'flightSegmentCode' => str_replace('/', ' to ', $ticketArray['@attributes']['flightSegmentCode'] ?? ''),
+                    'usedStatus' => $ticketArray['@attributes']['usedStatus'] ?? '',
                 ];
             }
-        } elseif (!empty($ticketArray)) {
-            $eTicketInfo[] = [
-                'couponNo' => $ticketArray['@attributes']['couponNo'] ?? '',
-                'eTicketNo' => $ticketArray['@attributes']['eTicketNo'] ?? '',
-                'flightSegmentCode' => str_replace('/', ' to ', $ticketArray['@attributes']['flightSegmentCode'] ?? ''),
-                'usedStatus' => $ticketArray['@attributes']['usedStatus'] ?? '',
-            ];
-        }
             $data[] = [
                 'name' => $item['PersonName']['GivenName'] ?? 'Unknown',
                 'surName' => $item['PersonName']['Surname'] ?? 'Unknown',
-                'phoneNumber' => $item['Telephone']['@attributes']['PhoneNumber'] ?? 'Unknown',
+                // 'phoneNumber' => $item['Telephone']['@attributes']['PhoneNumber'] ?? 'Unknown',
                 'type' => $item['@attributes']['PassengerTypeCode'] ?? 'Unknown',
                 'travelerRefNumber' => $item['TravelerRefNumber']['@attributes']['RPH'] ?? 'Unknown',
                 'eTicketInfo' => $eTicketInfo
@@ -378,5 +378,3 @@ class FlightController extends Controller
         ], 200);
     }
 }
-
-// dd($request->ip())

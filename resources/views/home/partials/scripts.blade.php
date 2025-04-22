@@ -21,4 +21,22 @@
             iconColor: icons[type] || icons.success
         });
     }
+    const confirmationModal = (title = 'Are You Sure?', icon = 'warning') => {
+        return Swal.fire({
+            title, icon,
+            confirmButtonText: "Yes",
+            cancelButtonText: "Cancel",
+            showCancelButton: true,
+            showCloseButton: true
+        });
+    };
+    // Usage :)
+    // confirmationModal().then((result) => {
+    //     if (result.isConfirmed) {
+    //         _alert('Is Confirmed');
+    //     } else {
+    //         isSubmitting = false;
+    //         _alert('Is Cancel', 'error');
+    //     }
+    // });
 </script>

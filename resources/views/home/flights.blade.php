@@ -2,19 +2,16 @@
 
 @section('title', 'Flights')
 @section('style')
-    {{-- style --}}
+    <style>
+        .select-flight {
+            text-align: center;
+        }
+        .der-time ul li h2 {
+            font-size: 20px;
+        }
+    </style>
 @endsection
 @section('content')
-
-<style>
-.select-flight {
-    text-align: center;
-}
-.der-time ul li h2 {
-    font-size: 20px;
-}
-</style>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <section class="mainBanner wow fadeInLeft">
         <div class="container">
@@ -572,7 +569,7 @@
                                         </div>
                                         <p>Total round-trip price</p>
                                         <div class="conti">
-                                            <a name="" id="" class="btn btn-b" href="{{ route('booking') }}" role="button">Continue</a>
+                                            <a name="" id="" class="btn btn-b" href="/" role="button">Continue</a>
                                         </div>
                                         </div>
                                     </div>
@@ -751,7 +748,7 @@
                                         </div>
                                         <p>Total round-trip price</p>
                                         <div class="conti">
-                                            <a name="" id="" class="btn btn-b" href="{{ route('booking') }}" role="button">Continue</a>
+                                            <a name="" id="" class="btn btn-b" href="/" role="button">Continue</a>
                                         </div>
                                         </div>
                                     </div>
@@ -930,7 +927,7 @@
                                         </div>
                                         <p>Total round-trip price</p>
                                         <div class="conti">
-                                            <a name="" id="" class="btn btn-b" href="{{ route('booking') }}" role="button">Continue</a>
+                                            <a name="" id="" class="btn btn-b" href="/" role="button">Continue</a>
                                         </div>
                                         </div>
                                     </div>
@@ -1058,6 +1055,7 @@
         updateDurationDisplay(durationSlider, durationDisplay);
     </script>
     <script>
+        localStorage.clear();
         let isReturn = @json($isRoundTrip) ? true : false;
         let paxCount = @json($paxCount);
 
@@ -1313,7 +1311,7 @@
         /**
          * Function to send booking request AJAX
          */
-        const sendBookingRequest = (isDirectBooking) => {
+        const sendBookingRequest = isDirectBooking => {
             // if (!firstBundleId) {
             //     _alert('You must select at least one bundle.');
             //     return;
@@ -1332,6 +1330,7 @@
                 beforeSend: () => _loader('show'),
                 success: function(response) {
                     if (response.redirect) {
+                        localStorage.setItem('flights', window.location.search);
                         window.location.href = '/flights/booking';
                     } else if (response.error) {
                         _alert(response.error, 'error');
@@ -1394,7 +1393,4 @@
             };
         };
     </script>
-
-
-
 @endsection

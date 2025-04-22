@@ -17,7 +17,7 @@ class FlyJinnahService
     protected $helperService;
     protected $flight_details;
     protected $agentCode;
-    // protected $tempToken;
+    protected $tempToken;
 
     public function __construct(HelperService $helperService)
     {
@@ -44,7 +44,7 @@ class FlyJinnahService
                 </wsse:Security>
             </soap:Header>
         ';
-        // $this->tempToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBQllURVNUUzlQIiwiaXAiOiI3Mi4yNTUuNjIuMjE2IiwiaWQiOiI2ODk4MTE5Ny0zOTc3LTQwZmQtYmRmOC1lYWFkZDUzNjMzYTkiLCJmbiI6IkRlc3RpbmF0aW9ucyBUcmF2ZWwiLCJsbiI6IlRvdXJzIiwib2MiOiJBQUJLSEk4MjY0Iiwic3QiOiIiLCJwcml2aWxlZ2VzIjpbIkxBQUFBQUkiXSwiaWF0IjoxNzQ0NzIyNjc0LCJleHAiOjE3NDQ4MDkwNzR9.Y-2mC52R6fHPl4qMaUoAz3cTurW_6L4csci1gpFKNoY';
+        $this->tempToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBQllURVNUUzlQIiwiaXAiOiIxNzguMTI4LjIyMC4wIiwiaWQiOiJkMmVhMTliMy05NmVkLTQ2NzItOGIwMC1lM2NhZGZjMWViOGEiLCJmbiI6IkRlc3RpbmF0aW9ucyBUcmF2ZWwiLCJsbiI6IlRvdXJzIiwib2MiOiJBQUJLSEk4MjY0Iiwic3QiOiIiLCJwcml2aWxlZ2VzIjpbIkxBQUFBQUkiXSwiaWF0IjoxNzQ1MjE4NzIxLCJleHAiOjE3NDUzMDUxMjF9.7qYpP3j-qyHREXMT1qT5KOn0lnKegaJ5-zH4O9U-cV0';
     }
     public function authenticate()
     {
@@ -67,6 +67,7 @@ class FlyJinnahService
                     'status' => $response->status(),
                     'response' => $response->body(),
                 ]);
+                // dd('okok');
                 return 'Authentication Failed!';
             }
 
@@ -794,6 +795,7 @@ class FlyJinnahService
                 $infantAssociation = "/A{$assignedAdult}";
                 $adultCounter++;
             }
+            // <ns2:Telephone AreaCityCode=\"{$passenger['areaCode']}\" CountryAccessCode=\"{$passenger['countryCode']}\" PhoneNumber=\"{$passenger['phone']}\"/>
             $passengerXml .= "
                 <ns2:AirTraveler BirthDate=\"{$passenger['dob']}T00:00:00\" PassengerTypeCode=\"" . $passengerTypeCode . "\">
                     <ns2:PersonName>
@@ -801,7 +803,6 @@ class FlyJinnahService
                         <ns2:GivenName>{$passenger['name']}</ns2:GivenName>
                         <ns2:Surname>{$passenger['surname']}</ns2:Surname>
                     </ns2:PersonName>
-                    <ns2:Telephone AreaCityCode=\"{$passenger['areaCode']}\" CountryAccessCode=\"{$passenger['countryCode']}\" PhoneNumber=\"{$passenger['phone']}\"/>
                     <ns2:Address>
                         <ns2:CountryName Code=\"{$passenger['nationality']}\"/>
                     </ns2:Address>
@@ -831,26 +832,27 @@ class FlyJinnahService
                 </ns2:PaymentDetails>
             </ns2:Fulfillment>';
         };
-        $loggedInUser = '<ns1:ContactInfo>
-            <ns1:PersonName>
-            <ns1:Title>'.$user['userTitle'].'</ns1:Title>
-            <ns1:FirstName>'.$user['userFirstName'].'</ns1:FirstName>
-            <ns1:LastName>'.$user['userLastName'].'</ns1:LastName>
-            </ns1:PersonName>
-            <ns1:Telephone>
-            <ns1:PhoneNumber>'.$user['userPhone'].'</ns1:PhoneNumber>
-            <ns1:CountryCode>'.$user['userPhoneCode'].'</ns1:CountryCode>
-            <ns1:AreaCode>'.$user['userAreaCode'].'</ns1:AreaCode>
-            </ns1:Telephone>
-            <ns1:Email>'.$user['userEmail'].'</ns1:Email>
-            <ns1:Address>
-            <ns1:CountryName>
-                <ns1:CountryName>'.$user['country'].'</ns1:CountryName>
-                <ns1:CountryCode>'.$user['countryCode'].'</ns1:CountryCode>
-            </ns1:CountryName>
-            <ns1:CityName>'.$user['userCity'].'</ns1:CityName>
-            </ns1:Address>
-        </ns1:ContactInfo>';
+        $loggedInUser = '';
+        // $loggedInUser = '<ns1:ContactInfo>
+        //     <ns1:PersonName>
+        //     <ns1:Title>'.$user['userTitle'].'</ns1:Title>
+        //     <ns1:FirstName>'.$user['userFirstName'].'</ns1:FirstName>
+        //     <ns1:LastName>'.$user['userLastName'].'</ns1:LastName>
+        //     </ns1:PersonName>
+        //     <ns1:Telephone>
+        //     <ns1:PhoneNumber>'.$user['userPhone'].'</ns1:PhoneNumber>
+        //     <ns1:CountryCode>'.$user['userPhoneCode'].'</ns1:CountryCode>
+        //     <ns1:AreaCode>'.$user['userAreaCode'].'</ns1:AreaCode>
+        //     </ns1:Telephone>
+        //     <ns1:Email>'.$user['userEmail'].'</ns1:Email>
+        //     <ns1:Address>
+        //     <ns1:CountryName>
+        //         <ns1:CountryName>'.$user['country'].'</ns1:CountryName>
+        //         <ns1:CountryCode>'.$user['countryCode'].'</ns1:CountryCode>
+        //     </ns1:CountryName>
+        //     <ns1:CityName>'.$user['userCity'].'</ns1:CityName>
+        //     </ns1:Address>
+        // </ns1:ContactInfo>';
         $xmlBody = '<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                 '.$this->XMLHeader.'
