@@ -596,7 +596,7 @@ div#shiva{font-size:35px;}
 .sup-bo p{font-size:15px;}
 .fea{text-align:center;}
 .copadd{padding:0 !important;}
-.fly ul{display:flex;align-items:center;flex-wrap:wrap;justify-content:center !important;gap:9px;}
+.fly ul{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:9px;}
 .fly ul li{margin-bottom:0px;}
 .right-left{text-align:center;}
 .flys2::before{top:27px;left:-12px;}
@@ -655,7 +655,7 @@ input#paymentSendTest{padding:8px 0px;}
 .select2-results__option{padding:10px 9px;font-size:11px !important;}
 .right-left.mob-hid{font-size:13px;}
 .select2-container--default .select2-selection--single .select2-selection__arrow{height:26px;position:absolute;top:0;right:0;width:inherit;}
-.select2-container .select2-selection--single .select2-selection__rendered{width:102px !important;}
+.select2-container .select2-selection--single .select2-selection__rendered{width:100px !important;}
 .dropdown-menu2{left:150px !important;}
 .modern-calendar{font-size:11px !important;}
 .calendar-wrapper label{font-size:10px !important;color:#333;}
@@ -684,8 +684,19 @@ label.form-check-label small{font-size:10px;}
 .pri-pak h2{font-size:14px;font-weight:700;}
 .emr-adul p{font-size:12px;}
 .pri-pak p{font-size:14px;font-weight:700;}
-
-
+.card-header{padding:10px 10px !important;}
+.card-header .btn.btn-outline-info.mx-2{font-size:13px;padding:3px 12px;text-align:center;}
+.card-body{padding:5px 5px !important;}
+.nav-tabs .nav-item.show .nav-link,.nav-tabs .nav-link.active{padding:5px 5px;text-align:center;}
+.infantCountSeatBtn{text-align:center;}
+.btn-primary{padding:0px 0px !important;font-size:11px !important;}
+.tab-content.segmentBtnsMeal.mt-3 h5{font-size:12px;}
+.infantCountMealBtn{text-align:center;}
+.infantCountMealBtn .btn-outline-info{font-size:13px;}
+.meal-head p{font-size:14px !important;font-weight:700;}
+.der-time ul{gap:9px;}
+.overflow-auto.infantCountBaggageBtn{text-align:center;}
+.fly ul li.last{justify-content:center !important;width:100%;}
 
 }
 @media (max-width:430px){.top-header{padding:10px 0px;background:#d7f3fb;display:block;}
@@ -717,7 +728,7 @@ div#shiva{font-size:35px;}
 .sup-bo p{font-size:15px;}
 .fea{text-align:center;}
 .copadd{padding:0 !important;}
-.fly ul{display:flex;align-items:center;flex-wrap:wrap;justify-content:center !important;gap:9px;}
+.fly ul{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:9px;}
 .fly ul li{margin-bottom:0px;}
 .right-left{text-align:center;}
 .flys2::before{top:27px;left:-12px;}
@@ -776,7 +787,7 @@ input#paymentSendTest{padding:8px 0px;}
 .select2-results__option{padding:10px 9px;font-size:11px !important;}
 .right-left.mob-hid{font-size:13px;}
 .select2-container--default .select2-selection--single .select2-selection__arrow{height:26px;position:absolute;top:0;right:0;width:inherit;}
-.select2-container .select2-selection--single .select2-selection__rendered{width:102px !important;}
+.select2-container .select2-selection--single .select2-selection__rendered{width:100px !important;}
 .dropdown-menu2{left:150px !important;}
 .modern-calendar{font-size:11px !important;}
 .calendar-wrapper label{font-size:10px !important;color:#333;}
@@ -805,10 +816,23 @@ label.form-check-label small{font-size:10px;}
 .pri-pak h2{font-size:14px;font-weight:700;}
 .emr-adul p{font-size:12px;}
 .pri-pak p{font-size:14px;font-weight:700;}
-
-
+.card-header{padding:10px 10px !important;}
+.card-header .btn.btn-outline-info.mx-2{font-size:13px;padding:3px 12px;text-align:center;}
+.card-body{padding:5px 5px !important;}
+.nav-tabs .nav-item.show .nav-link,.nav-tabs .nav-link.active{padding:5px 5px;text-align:center;}
+.infantCountSeatBtn{text-align:center;}
+.btn-primary{padding:0px 0px !important;font-size:11px !important;}
+.tab-content.segmentBtnsMeal.mt-3 h5{font-size:12px;}
+.infantCountMealBtn{text-align:center;}
+.infantCountMealBtn .btn-outline-info{font-size:13px;}
+.meal-head p{font-size:14px !important;font-weight:700;}
+.der-time ul{gap:9px;}
+.overflow-auto.infantCountBaggageBtn{text-align:center;}
+.fly ul li.last{justify-content:center !important;width:100%;}
 
 }
+
+
 @media (max-width:700px) and (max-height:450px){}
 .pointer{cursor:pointer !important;}
 .z_inf{z-index:9999;}
