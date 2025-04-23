@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Mail\SendMail;
 use App\Models\BookingId;
 use Illuminate\Http\Request;
-use App\Services\HelperService;
 use App\Services\PiaService;
+use App\Services\HelperService;
+use Illuminate\Support\Facades\Mail;
 use App\Services\FlyJinnahService;
 
 class FlightController extends Controller
@@ -310,17 +312,23 @@ class FlightController extends Controller
         $bookingData = $booking['TravelerInfo'] ?? [];
         $bookingRefID = $booking['BookingReferenceID']['@attributes']['ID'] ?? '--';
         $paxPriceArray = $booking['PriceInfo']['PTC_FareBreakdowns']['PTC_FareBreakdown'] ?? [];
+        $ticketMsg = $booking['Ticketing'] ?? [];
 
         // $userFullName = trim(($request->user['userFirstName'] ?? '') . ' ' . ($request->user['userLastName'] ?? '')) ?: '-';
+        $username = $request->user['userFullName'] ?? '-';
+        $userEmail = $request->user['userEmail'] ?? null;
         $userDetails = BookingId::create([
-            'name' => $request->user['userFullName'] ?? '-',
-            'email' => $request->user['userEmail'] ?? '-',
+            'name' => $username,
+            'email' => $userEmail ?? '-',
             'phone_code' => $request->user['userPhoneCode'] ?? '-',
             'phone' => $request->user['userPhone'] ?? '-',
             'acceptOffers' => $request->user['acceptOffers'] ?? '-',
             'booking_id' => $bookingRefID,
             'ip' => request()->ip(),
         ]);
+        if ($userEmail) {
+            Mail::to($userEmail)->send(new SendMail($username, $bookingRefID, $ticketMsg['TicketAdvisory']));
+        }
 
         $data = [];
         $airTravelers = isset($bookingData['AirTraveler'][0]) ? $bookingData['AirTraveler'] : [$bookingData['AirTraveler'] ?? []];
@@ -371,7 +379,7 @@ class FlightController extends Controller
             'message' => 'Success! Your flight is booked. Safe travels!.',
             'data' => $data,
             'bookingRefID' => $bookingRefID,
-            'ticketMsg' => $booking['Ticketing'] ?? [],
+            'ticketMsg' => $ticketMsg,
             'userDetails' => ['name' => $userDetails->name, 'email' => $userDetails->email],
             'paxPricing' => $paxPricing,
             'totalPrice' => $booking['PriceInfo']['ItinTotalFare']['TotalFare']['@attributes'] ?? '--'

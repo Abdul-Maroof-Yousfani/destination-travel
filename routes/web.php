@@ -1,10 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FlightOldController;
 use App\Http\Controllers\FlightController;
 
 Route::view('/', 'home.home')->name('home');
+Route::view('mail', 'emails.sendBookingId')->name('mail');
 Route::prefix('flights')->group(function () {
     Route::get('/', [FlightController::class, 'search'])->name('flights');
     Route::post('getBundles', [FlightController::class, 'getBundles'])->name('get_bundles');
