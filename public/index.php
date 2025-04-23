@@ -1,5 +1,6 @@
 <?php
 
+die("check");
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
