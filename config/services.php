@@ -55,4 +55,13 @@ return [
         'password' => env('PIA_API_PASSWORD'),
     ],
 
+    'emirates_api' => [
+        'url' => env('EMIRATES_API_URL'),
+        'user' => env('EMIRATES_USER'),
+        'password' => env('EMIRATES_PASSWORD'),
+        'agency_id' => env('EMIRATES_AGENCY_ID'),
+        'subscription_key' => env('EMIRATES_SUBSCRIPTION_KEY'),
+        'pcc' => env('EMIRATES_PCC')
+    ],
+
 ];
