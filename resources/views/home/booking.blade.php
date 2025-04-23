@@ -1448,7 +1448,7 @@
             let isSelected = Object.values(selectedMeals).some(m => m.mealName === meal.mealName) ? 'selected' : '';
 
             html += `
-                  <div class="col-sm-12  col-md-3 col-lg-3  p-2 border mealCard pointer ${isSelected}" data-meal="${meal.mealName}" data-price="${meal.currencyCode} ${meal.mealCharge}" data-meal-code="${meal.mealCode}">
+                  <div class="col-sm-12  col-md-4 col-lg-3  p-2 border mealCard pointer ${isSelected}" data-meal="${meal.mealName}" data-price="${meal.currencyCode} ${meal.mealCharge}" data-meal-code="${meal.mealCode}">
                      <img src="${mealImg}" alt="" class="img-thumbnail">
                      <div class="meal-head d-flex justify-content-between">
                         <p class="font-weight-bolder">Meal Name</p>
@@ -1649,7 +1649,7 @@
             // Check if this baggage is selected for any passenger
             let isSelected = Object.values(selectedBaggages).some(b => b.baggageDescription === baggage.baggageDescription) ? 'selected' : '';
             
-            return `<div class="col-sm-12  col-md-3 col-lg-3 p-2 border baggageCard pointer ${isSelected}" 
+            return `<div class="col-sm-12  col-md-4 col-lg-3 p-2 border baggageCard pointer ${isSelected}" 
                         data-description="${baggage.baggageDescription}" 
                         data-price="${baggage.currencyCode} ${baggage.baggageCharge}" 
                         data-baggage-code="${baggage.baggageCode}">
