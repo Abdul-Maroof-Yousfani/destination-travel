@@ -959,6 +959,7 @@
          let current_fs = $(this).parent();
          let next_fs = current_fs.next();
          if (!validateFields(current_fs)) return;
+         if (!isDirectBooking && !checkValidationForAncis()) return;
          let index = $("fieldset").index(next_fs);
          $("#progressbar li").eq(index).addClass("active");
          next_fs.show();
@@ -1009,7 +1010,7 @@
          let expirationTime;
          let sessionTime = @json(session('IdsExpireTime')) || 0;
          let sessionTimestamp = new Date(sessionTime).getTime();
-         let expMinutes = 10; // change this into 10 Aliiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+         let expMinutes = 110; // change this into 10 Aliiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
          if (!sessionTime) {
             expirationTime = 0;
             $(".idExpIn h3").text("Invalid session time");
@@ -1083,17 +1084,15 @@
       let passengerList = [];
       let passengerListCode = [];
       delete data['passengerTypes']['inf'];
-      let customPaxCount = { ...data['paxCount'] };
-      delete customPaxCount['inf'];
-      let totalPassengers = Object.values(customPaxCount).reduce((a, b) => a + parseInt(b), 0);
-      console.log(customPaxCount, data['paxCount'])
+      delete data['paxCount']['inf'];
+      let totalPassengers = Object.values(data['paxCount']).reduce((a, b) => a + parseInt(b), 0);
       let passengerTypeMap = {
          adt: 'A',
          chd: 'C',
       };
       let runningIndex = 1;
       $.each(data['paxCount'], function (key, count) {
-         if (key === 'inf') return;
+         // if (key === 'inf') return;
          let passengerTypeInitial = passengerTypeMap[key] || key.charAt(0).toUpperCase();
          for (let i = 0; i < parseInt(count); i++) {
             passengerListCode.push(`${passengerTypeInitial}${runningIndex}`);
@@ -1106,12 +1105,12 @@
          //   }
       // });
       $.each(data['paxCount'], function (key, count) {
-         if (key === 'inf') return;
+         // if (key === 'inf') return;
          for (let i = 1; i <= parseInt(count); i++) {
             passengerList.push(`${data['passengerTypes'][key]} - ${i}`);
          }
       });
-      console.log(passengerListCode, passengerList, data['passengerTypes'], totalPassengers)
+      // console.log(passengerListCode, passengerList, data['passengerTypes'], totalPassengers)
       function paxCapitalize(pax) {
          const name = {
             adt: 'Adult',
@@ -1744,7 +1743,6 @@
 
       $('#contactSubmit').click(function () {
          if (isSubmitting) return;
-         isSubmitting = true;
 
          passengers = [];
          let hasError = false;
@@ -1799,6 +1797,8 @@
             return false;
          }
 
+         if (!isDirectBooking && !checkValidationForAncis()) return;
+         isSubmitting = true;
          let currentData = JSON.stringify({ passengers, userData });
 
          if (currentData === lastSubmittedData) {
@@ -1820,6 +1820,54 @@
          }
       });
 
+      function checkValidationForAncis() {
+         let allValid = true;
+         let missing = {
+            seats: [],
+            meals: [],
+            baggage: []
+         };
+
+         $.each(selectedSeatsGlobal, function(segmentKey, selectedSeats) {
+            if (!Array.isArray(selectedSeats)) return;
+            if (selectedSeats.length !== passengerList.length) {
+               missing.seats.push(segmentKey);
+               allValid = false;
+            }
+         });
+
+         $.each(selectedMealsGlobal, function(segmentKey, paxMeals) {
+            if (Object.keys(paxMeals).length !== passengerList.length) {
+               missing.meals.push(segmentKey);
+               allValid = false;
+            }
+         });
+
+         $.each(selectedBaggagesGlobal, function(segmentKey, paxBags) {
+            if (Object.keys(paxBags).length !== passengerList.length) {
+               missing.baggage.push(segmentKey);
+               allValid = false;
+            }
+         });
+
+         if (missing.seats.length || missing.meals.length || missing.baggage.length) {
+            let msg = 'Please select the following ancillaries for all passengers:\n';
+            if (missing.seats.length) msg += `\nSeats: ${missing.seats.join(', ')}`;
+            if (missing.meals.length) msg += `\nMeals: ${missing.meals.join(', ')}`;
+            if (missing.baggage.length) msg += `\nBaggage: ${missing.baggage.join(', ')}`;
+
+            Swal.fire({
+               icon: 'error',
+               title: 'Missing Selections',
+               text: msg,
+               customClass: {
+                  popup: 'text-start'
+               }
+            });
+            return false;
+         }
+         return true;
+      }
       const getFinalPrice = () => {
          // console.log(selectedSeatsGlobal, selectedMealsGlobal, selectedBaggagesGlobal)
          // return
@@ -1955,8 +2003,6 @@
             userPhone: $('#userPhone').val(),
             acceptOffers: $('#acceptOffers').is(':checked'),
          }
-         // console.log(passengers)
-         // return;
          $.ajax({
             type: "POST",
             url: "{{route('bookFlight')}}",

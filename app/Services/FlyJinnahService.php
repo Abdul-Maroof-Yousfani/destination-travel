@@ -781,6 +781,7 @@ class FlyJinnahService
         $adultIndexes = [];
         $adultCounter = 1;
 
+        // dd($passengers);
         foreach ($passengers as $index => $passenger)
         {
             $rph = ($passenger['type'] === 'Adult') ? 'A' : (($passenger['type'] === 'Child') ? 'C' : 'I');

@@ -211,9 +211,9 @@
                                     }
                                 }
                             @endphp
-                            @if (!empty($hasAvailableFlight))
+                            @if (!empty($data))
                                 <li>
-                                    <!-- <div class="col-sm-12 col-12"> -->
+                                     <div class="row">
                                         @foreach ($data as $index => $flightData)
                                             <div class="col-sm-{{ $isRoundTrip ? '6' : '12' }} col-12">
                                                 <div class="d-flex mb-3">
@@ -225,8 +225,9 @@
                                                     </i>
                                                 </div>
                                                 @foreach ($flightData['flights'] as $key => $flight)
-                                                    @if ($flight['availabilityStatus'] === 'AVAILABLE')
-                                                        <div class="prices2 d-flex align-items-center mb-2">
+                                                    {{-- @if ($flight['availabilityStatus'] === 'AVAILABLE') --}}
+                                                    <div class="flight-item {{ $key > 0 ? 'd-none extra-flight' : '' }}">
+                                                        <div class="prices2 d-flex align-items-center mb-2" style="{{ $key > 0 ? 'display: none;' : '' }}">
                                                             <input type="radio"
                                                                 name="{{ $index == 0 ? 'depFlight' : 'rtnFlight' }}"
                                                                 id="singleFlight{{ $index }}_{{ $key }}"
@@ -288,11 +289,37 @@
                                                             </label>
                                                         </div>
                                                         <hr>
-                                                    @endif
+                                                    </div>
+                                                        {{-- @if ($key > 0 && $loop->last)
+                                                            <div class="text-center mb-3">
+                                                                <button class="btn btn-sm btn-outline-primary show-more-flights" data-target="{{ $index }}">
+                                                                    Show more flights
+                                                                </button>
+                                                            </div>
+                                                        @endif --}}
+                                                    {{-- @endif --}}
                                                 @endforeach
+                                                {{-- @if (count($flightData['flights']) > 1)
+                                                    <div class="text-center">
+                                                        <button class="btn btn-link show-more-flights" data-flight-type="{{ $index == 0 ? 'departure' : 'return' }}">Show More</button>
+                                                    </div>
+                                                @endif --}}
                                             </div>
                                         @endforeach
-                                    <!-- </div> -->
+                                        @php
+                                            $totalExtraFlights = collect($data)->sum(function($f) {
+                                                return count($f['flights']) > 1 ? count($f['flights']) - 1 : 0;
+                                            });
+                                        @endphp
+
+                                        @if ($totalExtraFlights > 0)
+                                            <div class="text-center mb-3 col-12">
+                                                <span id="toggleFlightsBtn" class="text-info font-weight-bolder pointer">
+                                                    + {{ $totalExtraFlights }} more flight option{{ $totalExtraFlights > 1 ? 's' : '' }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                     </div>
                                     <div class="prices2 mt-3">
                                         <div class="select-flight">
                                             <button class="btn btn-b bundleModalBtn">
@@ -301,8 +328,8 @@
                                         </div>
                                     </div>
                                 </li>
-                                @else
-                                <p class="text-center">Flyjinnah flights no available</p>
+                            @else
+                                <p class="text-center">Flyjinnah flights not available</p>
                             @endif
                             <div class="modal fade right" id="bundleModal" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
@@ -1064,6 +1091,26 @@
         let firstBundleId, secondBundleId;
         let updateTimeout, depSegments, rtnSegments, depSelectedFlight, rtnSelectedFlight;
         let flightTotalFare;
+
+        
+        $(document).ready(function () {
+            const $btn = $('#toggleFlightsBtn');
+            const extraFlightCount = $('.extra-flight').length;
+            const originalText = extraFlightCount + ' more flight option' + (extraFlightCount > 1 ? 's' : '');
+
+            $btn.on('click', function () {
+                const $extraFlights = $('.extra-flight');
+                const isVisible = $extraFlights.is(':visible');
+
+                if (isVisible) {
+                    $extraFlights.addClass('d-none');
+                    $btn.text(originalText);
+                } else {
+                    $extraFlights.removeClass('d-none');
+                    $btn.text('Show less');
+                }
+            });
+        });
 
         function updateTotalPrice() {
             clearTimeout(updateTimeout);
