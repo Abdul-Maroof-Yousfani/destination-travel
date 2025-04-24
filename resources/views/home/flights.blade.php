@@ -211,7 +211,7 @@
                                     }
                                 }
                             @endphp
-                            @if (!empty($data))
+                            @if (!empty($hasAvailableFlight))
                                 <li>
                                      <div class="row">
                                         @foreach ($data as $index => $flightData)
@@ -225,93 +225,88 @@
                                                     </i>
                                                 </div>
                                                 @foreach ($flightData['flights'] as $key => $flight)
-                                                    {{-- @if ($flight['availabilityStatus'] === 'AVAILABLE') --}}
-                                                    <div class="flight-item {{ $key > 0 ? 'd-none extra-flight' : '' }}">
-                                                        <div class="prices2 d-flex align-items-center mb-2" style="{{ $key > 0 ? 'display: none;' : '' }}">
-                                                            <input type="radio"
-                                                                name="{{ $index == 0 ? 'depFlight' : 'rtnFlight' }}"
-                                                                id="singleFlight{{ $index }}_{{ $key }}"
-                                                                value="{{ $flight['price'] ?? 0 }}"
-                                                                {{ $key == 0 ? 'checked' : '' }}
-                                                                data-segment="{{ json_encode($flight['flightSegments']) }}"
-                                                                data-selected-flight="{{ json_encode($flight) }}"
-                                                                onchange="updateTotalPrice()">
+                                                    @if ($flight['availabilityStatus'] === 'AVAILABLE')
+                                                        <div class="flight-item {{ $key > 0 ? 'd-none extra-flight' : '' }}">
+                                                            <div class="prices2 d-flex align-items-center mb-2">
+                                                                <input type="radio"
+                                                                    name="{{ $index == 0 ? 'depFlight' : 'rtnFlight' }}"
+                                                                    id="singleFlight{{ $index }}_{{ $key }}"
+                                                                    value="{{ $flight['price'] ?? 0 }}"
+                                                                    {{ $key == 0 ? 'checked' : '' }}
+                                                                    data-segment="{{ json_encode($flight['flightSegments']) }}"
+                                                                    data-selected-flight="{{ json_encode($flight) }}"
+                                                                    onchange="updateTotalPrice()">
 
-                                                            <label class="flex1"
-                                                                for="singleFlight{{ $index }}_{{ $key }}">
-                                                                <div class="emri text-center">
-                                                                    <img class="w-75 p-2"
-                                                                        src="assets/images/Fly_Jinnah_logo.jpg"
-                                                                        alt="">
-                                                                </div>
-                                                                <div class="der-time">
-                                                                    <ul>
-                                                                        <li>
-                                                                            <h2>{{ $flight['departureTime'] }}</h2>
-                                                                        </li>
-                                                                        <li>
-                                                                            <div class="stays">
-                                                                                <p>{{ $flight['timeDifference'] }}</p>
-                                                                            </div>
-                                                                        </li>
-                                                                        <li class="d-flex">
-                                                                            <h2>{{ $flight['arrivalTime'] }}</h2>
-                                                                            @if ($flight['departureDayIncrease'] != 0)
-                                                                                <sup class="w-100 text-primary">+ {{$flight['departureDayIncrease']}}</sup>
-                                                                            @endif
-                                                                        </li>
-                                                                    </ul>
-                                                                    <div class="citys">
-                                                                        <div class="cit">
-                                                                            <ul>
-                                                                                <li>
-                                                                                    <p>{{ $flight['originCode'] }}</p>
-                                                                                </li>
-                                                                                <li>
-                                                                                    <p>-</p>
-                                                                                </li>
-                                                                                <li>
-                                                                                    <p>{{ $flight['isConnected'] ? '1 Stop' : 'Nonstop' }}</p>
-                                                                                </li>
-                                                                                <li>-</li>
-                                                                                <li>
-                                                                                    <p>{{ $flight['destinationCode'] }}</p>
-                                                                                </li>
-                                                                            </ul>
-                                                                            <div class="weig weig2">
+                                                                <label class="flex1"
+                                                                    for="singleFlight{{ $index }}_{{ $key }}">
+                                                                    <div class="emri text-center">
+                                                                        <img class="w-75 p-2"
+                                                                            src="assets/images/Fly_Jinnah_logo.png"
+                                                                            alt="">
+                                                                    </div>
+                                                                    <div class="der-time">
+                                                                        <ul>
+                                                                            <li>
+                                                                                <h2>{{ $flight['departureTime'] }}</h2>
+                                                                            </li>
+                                                                            <li>
+                                                                                <div class="stays">
+                                                                                    <p>{{ $flight['timeDifference'] }}</p>
+                                                                                </div>
+                                                                            </li>
+                                                                            <li class="d-flex">
+                                                                                <h2>{{ $flight['arrivalTime'] }}</h2>
+                                                                                @if ($flight['departureDayIncrease'] != 0)
+                                                                                    <sup class="w-100 text-primary">+ {{$flight['departureDayIncrease']}}</sup>
+                                                                                @endif
+                                                                            </li>
+                                                                        </ul>
+                                                                        <div class="citys">
+                                                                            <div class="cit">
                                                                                 <ul>
-                                                                                    <li><p><i class="fa-solid fa fa-money-bill-1-wave"></i> PKR {{ $flight['price'] ?? '0' }}</p></li>
+                                                                                    <li>
+                                                                                        <p>{{ $flight['originCode'] }}</p>
+                                                                                    </li>
+                                                                                    <li>
+                                                                                        <p>-</p>
+                                                                                    </li>
+                                                                                    <li>
+                                                                                        <p>{{ $flight['isConnected'] ? '1 Stop' : 'Nonstop' }}</p>
+                                                                                    </li>
+                                                                                    <li>-</li>
+                                                                                    <li>
+                                                                                        <p>{{ $flight['destinationCode'] }}</p>
+                                                                                    </li>
                                                                                 </ul>
+                                                                                <div class="weig weig2">
+                                                                                    <ul>
+                                                                                        <li><p><i class="fa-solid fa fa-money-bill-1-wave"></i> PKR {{ $flight['price'] ?? '0' }}</p></li>
+                                                                                    </ul>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                            </label>
-                                                        </div>
-                                                        <hr>
-                                                    </div>
-                                                        {{-- @if ($key > 0 && $loop->last)
-                                                            <div class="text-center mb-3">
-                                                                <button class="btn btn-sm btn-outline-primary show-more-flights" data-target="{{ $index }}">
-                                                                    Show more flights
-                                                                </button>
+                                                                </label>
                                                             </div>
-                                                        @endif --}}
-                                                    {{-- @endif --}}
+                                                            <hr>
+                                                        </div>
+                                                    @endif
                                                 @endforeach
-                                                {{-- @if (count($flightData['flights']) > 1)
-                                                    <div class="text-center">
-                                                        <button class="btn btn-link show-more-flights" data-flight-type="{{ $index == 0 ? 'departure' : 'return' }}">Show More</button>
-                                                    </div>
-                                                @endif --}}
                                             </div>
                                         @endforeach
                                         @php
-                                            $totalExtraFlights = collect($data)->sum(function($f) {
-                                                return count($f['flights']) > 1 ? count($f['flights']) - 1 : 0;
-                                            });
+                                            $totalExtraFlights = 0;
+                                            if (!empty($data)) {
+                                                foreach ($data as $flightData) {
+                                                    $availableFlights = array_filter($flightData['flights'], function ($flight) {
+                                                        return $flight['availabilityStatus'] === 'AVAILABLE';
+                                                    });
+                                                    if (count($availableFlights) > 1) {
+                                                        $totalExtraFlights += count($availableFlights) - 1;
+                                                    }
+                                                }
+                                            }
                                         @endphp
-
                                         @if ($totalExtraFlights > 0)
                                             <div class="text-center mb-3 col-12">
                                                 <span id="toggleFlightsBtn" class="text-info font-weight-bolder pointer">
@@ -1207,7 +1202,7 @@
                     <div class="sugge-tab sugge-tab-time2 ">
                         <div class="flex1">
                             <div class="emri">
-                                <img class="w-75 p-2" src="assets/images/Fly_Jinnah_logo.jpg" alt="">
+                                <img class="w-75 p-2" src="assets/images/Fly_Jinnah_logo.png" alt="">
                             </div>   
                             <div class="der-time">
                                 <ul>
@@ -1240,7 +1235,7 @@
                         <div class="sugge-tab sugge-tab-time2 ">
                             <div class="flex1">
                                 <div class="emri">
-                                    <img class="w-75 p-2" src="assets/images/Fly_Jinnah_logo.jpg" alt="">
+                                    <img class="w-75 p-2" src="assets/images/Fly_Jinnah_logo.png" alt="">
                                 </div>   
                                 <div class="der-time ">
                                     <ul>

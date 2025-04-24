@@ -348,7 +348,7 @@
                                  </div>
                                  <div class="book-flex">
                                  <div class="emr w-25">
-                                    <img src="/assets/images/Fly_Jinnah_logo.jpg" alt="Fly Jinnah logo">
+                                    <img src="/assets/images/Fly_Jinnah_logo.png" alt="Fly Jinnah logo">
                                  </div>
                                  </div>
                                  <div class="der-time der-time3">
@@ -572,7 +572,7 @@
                                  </div>
                                  <div class="book-flex">
                                  <div class="emr w-25">
-                                    <img src="/assets/images/Fly_Jinnah_logo.jpg" alt="Fly Jinnah logo">
+                                    <img src="/assets/images/Fly_Jinnah_logo.png" alt="Fly Jinnah logo">
                                  </div>
                                  </div>
                                  <div class="der-time der-time3">
@@ -642,7 +642,7 @@
                                  <div class="sugge-tab sugge-tab-tickes">
                                     <div class="flex1">
                                        <div class="emri">
-                                          <img src="/assets/images/Fly_Jinnah_logo.jpg" alt="Fly Jinnah logo">
+                                          <img src="/assets/images/Fly_Jinnah_logo.png" alt="Fly Jinnah logo">
                                        </div>   
                                        <div class="der-time der-time-setps">
                                           <ul>
@@ -668,7 +668,7 @@
                                     <div class="sugge-tab sugge-tab-tickes mt-2">
                                        <div class="flex1">
                                           <div class="emri">
-                                             <img src="/assets/images/Fly_Jinnah_logo.jpg" alt="Fly Jinnah logo">
+                                             <img src="/assets/images/Fly_Jinnah_logo.png" alt="Fly Jinnah logo">
                                           </div>   
                                           <div class="der-time der-time-setps">
                                              <ul>
@@ -1010,7 +1010,7 @@
          let expirationTime;
          let sessionTime = @json(session('IdsExpireTime')) || 0;
          let sessionTimestamp = new Date(sessionTime).getTime();
-         let expMinutes = 110; // change this into 10 Aliiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+         let expMinutes = 10; // change this into 10 Aliiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
          if (!sessionTime) {
             expirationTime = 0;
             $(".idExpIn h3").text("Invalid session time");
@@ -1897,7 +1897,7 @@
                      </div>
                      <div class="book-flex">
                         <div class="emr w-25">
-                           <img src="/assets/images/Fly_Jinnah_logo.jpg" alt="Fly Jinnah logo">
+                           <img src="/assets/images/Fly_Jinnah_logo.png" alt="Fly Jinnah logo">
                         </div>
                      </div>
                      <div class="der-time der-time3">
