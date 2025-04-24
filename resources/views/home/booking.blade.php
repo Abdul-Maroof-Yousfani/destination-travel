@@ -56,28 +56,28 @@
                                     <div class="col-md-12 col-lg-6">
                                        <div class="form-group">
                                           <label for="userFullName">Full name</label>
-                                          <input type="text" name="userFullName" id="userFullName" class="form-control" required placeholder="Enter your full name" aria-describedby="helpId" value="Syed Ali Moiz">
+                                          <input type="text" name="userFullName" id="userFullName" class="form-control" required placeholder="Enter your full name" aria-describedby="helpId">
                                           <small id="helpId" class="text-muted">e.g. Syed Ali Moiz</small>
                                        </div>
                                     </div>
                                     <div class="col-md-12 col-lg-6">
                                        <div class="form-group">
                                           <label for="userEmail">Email <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="e.g. name@outlook.com"></i> <small class="text-black-50">( Your ticket details will be sent to this email address. )</small></label>
-                                          <input type="text" name="userEmail" required id="userEmail" class="form-control" value="name@outlook.com" placeholder="Enter your email" aria-describedby="helpId">
+                                          <input type="text" name="userEmail" required id="userEmail" class="form-control" placeholder="Enter your email" aria-describedby="helpId">
                                           <small id="helpId" class="text-muted">e.g. name@outlook.com</small>
                                        </div>
                                     </div>
                                     <div class="col-md-12 col-lg-6">
                                        <div class="form-group">
                                           <label for="userPhoneCode">Phone Code</label>
-                                          <input type="text" name="userPhoneCode" id="userPhoneCode" class="form-control" required placeholder="Enter your phone code" value="92" aria-describedby="helpId">
+                                          <input type="text" name="userPhoneCode" id="userPhoneCode" class="form-control" required placeholder="Enter your phone code" maxlength="5" aria-describedby="helpId">
                                           <small id="helpId" class="text-muted">e.g. 92</small>
                                        </div>
                                     </div>
                                     <div class="col-md-12 col-lg-6">
                                        <div class="form-group">
                                           <label for="userPhone">Phone Number</label>
-                                          <input type="text" name="userPhone" id="userPhone" class="form-control" required placeholder="Enter your phone number" value="3320234557" aria-describedby="helpId">
+                                          <input type="text" name="userPhone" id="userPhone" class="form-control" required placeholder="Enter your phone number" aria-describedby="helpId">
                                           <small id="helpId" class="text-muted">e.g. 3320234557</small>
                                        </div>
                                     </div>
@@ -130,7 +130,7 @@
                                                       <div class="form-group">
                                                       <label for="{{ $i }}_name">Given Name</label>
                                                       <div class="infos">
-                                                         <input type="text" class="form-control form-control-info" aria-describedby="helpId" name="{{ $key }}_name[]" id="{{ $i }}_name" value="Alii_{{ $key }}{{ $i }}" required>
+                                                         <input type="text" class="form-control form-control-info" aria-describedby="helpId" name="{{ $key }}_name[]" id="{{ $i }}_name" required>
                                                          <div class="tooltip-container">
                                                             <i class="fa-solid fa-circle-info"></i>
                                                             <div class="tooltip-content">
@@ -149,7 +149,7 @@
                                                       <div class="form-group">
                                                       <label for="{{ $i }}_surname">Surname</label>
                                                          <div class="infos">
-                                                            <input type="text" name="{{ $key }}_surname[]" id="{{ $i }}_surname" class="form-control form-control-info" aria-describedby="helpId" value="Syed_{{ $key }}{{ $i }}" required>
+                                                            <input type="text" name="{{ $key }}_surname[]" id="{{ $i }}_surname" class="form-control form-control-info" aria-describedby="helpId" required>
                                                             <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i>
                                                          </div>
                                                          <small id="helpId" class="text-muted">Enter name as per Passport to avoid boarding issues.</small>
@@ -158,7 +158,7 @@
                                                    <div class="col-md-12 col-lg-6">
                                                       <div class="form-group">
                                                          <label for="{{ $i }}_dob">Date of Birth</label>
-                                                         <input class="form-control" id="{{ $i }}_dob" type="date" name="{{ $key }}_dob[]" value="{{ $key == 'adt' ? '2002-07-10' : ($key == 'chd' ? '2020-03-10' : '2025-03-10') }}" required>
+                                                         <input class="form-control" id="{{ $i }}_dob" type="date" name="{{ $key }}_dob[]" required>
                                                       </div>
                                                    </div>
                                                 </div>
@@ -281,7 +281,7 @@
                                                       <div class="form-group">
                                                       <label for="{{ $i }}_passportnumber">Passport Number</label>
                                                          <div class="infos">
-                                                            <input type="text" name="{{ $key }}_passportnumber[]" id="{{ $i }}_passportnumber" class="form-control" aria-describedby="helpId" value="123123" required>
+                                                            <input type="text" name="{{ $key }}_passportnumber[]" id="{{ $i }}_passportnumber" class="form-control" aria-describedby="helpId" required>
                                                             <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Passport Number"></i>
                                                          </div>
                                                       </div>
@@ -289,7 +289,7 @@
                                                    <div class="col-md-12 col-lg-6">
                                                       <div class="form-group">
                                                          <label for="{{ $i }}_passportexp">Passport Expiry</label>
-                                                         <input class="form-control" id="{{ $i }}_passportexp" type="date" name="{{ $key }}_passportexp[]">
+                                                         <input class="form-control" id="{{ $i }}_passportexp" type="date" name="{{ $key }}_passportexp[]" required>
                                                          <small id="helpId" class="text-muted">Please ensure is currently valid</small>
                                                       </div>
                                                    </div>
@@ -998,13 +998,18 @@
       });
 
       // ------------------------------------ Booking Start ------------------------------------ //
+      let skipAncis;
+      let countdown;
       const sessionTimer = (action = true) => {
-         if (!action) return;
-         let countdown;
+         if (!action) {
+            clearInterval(countdown);
+            $(".idExpIn").text('');
+            return;
+         };
          let expirationTime;
          let sessionTime = @json(session('IdsExpireTime')) || 0;
          let sessionTimestamp = new Date(sessionTime).getTime();
-         let expMinutes = 110; // change this into 10 Aliiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+         let expMinutes = 10; // change this into 10 Aliiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
          if (!sessionTime) {
             expirationTime = 0;
             $(".idExpIn h3").text("Invalid session time");
@@ -1017,6 +1022,7 @@
             let timeLeft = expirationTime - currentTime;
 
             if (timeLeft <= 0) {
+               skipAncis = true;
                $(".idExpIn h3").text("Session Expired");
                Swal.fire({
                   title: 'Session Expired',
@@ -1026,10 +1032,8 @@
                   allowOutsideClick: false,
                   allowEscapeKey: false,
                   preConfirm: () => {
-                     window.history.back();
-                     setTimeout(() => {
-                        window.location.reload();
-                     }, 100);
+                     let goBack = localStorage.getItem('flights') || null;
+                     goBack ? window.location.href = `/flights${goBack}` : window.history.back();
                   }
                });
 
@@ -1047,6 +1051,7 @@
          }
 
          if (new Date().getTime() >= expirationTime) {
+            skipAncis = true;
             $(".idExpIn h3").text("Session Expired");
             Swal.fire({
                title: 'Session Expired',
@@ -1066,14 +1071,22 @@
             countdown = setInterval(updateTimer, 1000);
          }
       }
-      sessionTimer();
+      sessionTimer(true);
+      if(!isDirectBooking && !skipAncis) {
+         getSeatAjax();
+         getMealAjax();
+         getBaggageAjax();
+      }
       // IdsExpireTime end
       let passengers = [];
       let paymentdata;
       let passengerList = [];
       let passengerListCode = [];
       delete data['passengerTypes']['inf'];
-      let totalPassengers = Object.values(data['paxCount']).reduce((a, b) => a + parseInt(b), 0);
+      let customPaxCount = { ...data['paxCount'] };
+      delete customPaxCount['inf'];
+      let totalPassengers = Object.values(customPaxCount).reduce((a, b) => a + parseInt(b), 0);
+      console.log(customPaxCount, data['paxCount'])
       let passengerTypeMap = {
          adt: 'A',
          chd: 'C',
@@ -1098,7 +1111,7 @@
             passengerList.push(`${data['passengerTypes'][key]} - ${i}`);
          }
       });
-      // console.log(passengerListCode, passengerList, data['passengerTypes'])
+      console.log(passengerListCode, passengerList, data['passengerTypes'], totalPassengers)
       function paxCapitalize(pax) {
          const name = {
             adt: 'Adult',
@@ -1115,12 +1128,11 @@
       let segmentDepDate = {};
 
       // $('.seses').click(function () {
-      //    getFinalPrice();
-      //    console.log(selectedSeatsGlobal, selectedMealsGlobal, selectedBaggagesGlobal);
+      //    sessionTimer(false);
       // });
 
 
-      const getSeatAjax = () => {
+      function getSeatAjax() {
          $.ajax({
             type: "POST",
             url: "{{route('get_seat')}}",
@@ -1295,7 +1307,7 @@
          selectedSeatsGlobal[flightId] = selectedSeats;
       }
 
-      const getMealAjax = () => {
+      function getMealAjax() {
          $.ajax({
             type: "POST",
             url: "{{route('get_meal')}}",
@@ -1509,7 +1521,7 @@
          $(".totalPriceOfMeal").text("PKR " + totalPrice);
       }
 
-      const getBaggageAjax = () => {
+      function getBaggageAjax() {
          $.post("{{route('get_baggage')}}", { data: data['segments'], _token: "{{ csrf_token() }}" }, response => {
             if (response.status !== 'success') return _alert(response.message, "error");
 
@@ -1715,11 +1727,6 @@
 
          $(".totalPriceOfBaggage").text("PKR " + totalPrice.toFixed(2));
       }
-      if(!isDirectBooking) {
-         getSeatAjax();
-         getMealAjax();
-         getBaggageAjax();
-      }
       let withOutAncis = false;
       let finalPriceTag = totalFare['TotalFare']['@attributes'];
       let paymentOnHold = true;
@@ -1732,64 +1739,6 @@
             paymentOnHold = false;
          }
       });
-      // $('#skipAncis').click(function () {
-         // withOutAncis = true;
-         // $('#contactSubmit').click()
-      // });
-      // $('#contactSubmit').click(function () {
-      //    let hasError = false;
-      //    let firstErrorField = null;
-      //    $('.paxDetails .contact2').each(function () {
-      //       let passenger = {
-      //          type: $(this).find('input[name$="_type[]"]').val(),
-      //          name: $(this).find('input[name$="_name[]"]').val(),
-      //          surname: $(this).find('input[name$="_surname[]"]').val(),
-      //          title: $(this).find('input[name^="title_"]:checked').val(),
-      //          dob: $(this).find('input[name$="_dob[]"]').val(),
-      //          nationality: $(this).find('select[name$="_nationality[]"]').val(),
-      //          passportNumber: $(this).find('input[name$="_passportnumber[]"]').val(),
-      //          passportExpiry: $(this).find('input[name$="_passportexp[]"]').val(),
-      //          // countryCode: $(this).find('select[name$="_nationality[]"] option:selected').data('code'),
-      //          // areaCode: $(this).find('input[name$="_area_code[]"]').val(),
-      //          // phoneCode: $(this).find('input[name$="_phone_code[]"]').val(),
-      //          // phone: $(this).find('input[name$="_phone[]"]').val()
-      //       };
-      //       $(this).find("input[required], select[required]").each(function () {
-      //          if (!$(this).val()) {
-      //             $(this).addClass("border-danger");
-      //             hasError = true;
-      //             if (!firstErrorField) firstErrorField = this;
-      //          } else {
-      //             $(this).removeClass("border-danger");
-      //          }
-      //       });
-      //       passengers.push(passenger);
-      //    });
-      //    let userFullName = $('#userFullName').val();
-      //    let userEmail = $('#userEmail').val();
-      //    let userPhoneCode = $('#userPhoneCode').val();
-      //    let userPhone = $('#userPhone').val();
-      //    if (!userFullName || !userEmail || !userPhoneCode || !userPhone) {
-      //       hasError = true;
-      //       if (!firstErrorField) {
-      //          if (!userFullName) firstErrorField = $('#userFullName');
-      //          else if (!userEmail) firstErrorField = $('#userEmail');
-      //          else if (!userPhoneCode) firstErrorField = $('#userPhoneCode');
-      //          else if (!userPhone) firstErrorField = $('#userPhone');
-      //       }
-      //    }
-         
-      //    if (hasError) {
-      //       if (firstErrorField) $(firstErrorField).focus();
-      //       _alert('please fill all required fields', 'warning')
-      //       return false;
-      //    }
-      //    console.log(passengers)
-      //    return;
-      //    if(!isDirectBooking) {
-      //       getFinalPrice();
-      //    }
-      // });
       let lastSubmittedData = null;
       let isSubmitting = false;
 
@@ -1870,8 +1819,7 @@
             isSubmitting = false;
          }
       });
-      
-      
+
       const getFinalPrice = () => {
          // console.log(selectedSeatsGlobal, selectedMealsGlobal, selectedBaggagesGlobal)
          // return
@@ -2044,7 +1992,7 @@
       });
 
       // ------------------------------------ Payment End ------------------------------------ //
-      
+
       // -------------------------------- Combine Functions :) -------------------------------- //
 
       const getCity = airport => airport?.City || airport?.["@attributes"]?.LocationCode || '--';
