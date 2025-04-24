@@ -50,7 +50,7 @@
                 <div class="col-md-3 text-left">
                     <div class="logo">
                         <a href="{{route('home')}}" class="logo">
-                            <img src="/assets/images/logoCG.png" alt="EDestinationLogo">
+                            <img src="{{ asset('assets/images/logoCG.png') }}" alt="EDestinationLogo">
                         </a>
                     </div>
                 </div>
