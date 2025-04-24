@@ -108,7 +108,7 @@
         <div class="radio-container">
 
             <div>
-                <input type="radio" id="oneWaySearch" name="searchOptions" value="oneWaySearch">
+                <input type="radio" id="oneWaySearch" name="searchOptions" value="oneWaySearch" checked>
                 <label for="oneWaySearch">One Way</label>
             </div>
             <div>
