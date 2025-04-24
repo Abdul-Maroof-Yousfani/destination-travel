@@ -8,19 +8,22 @@ use App\Models\BookingId;
 use Illuminate\Http\Request;
 use App\Services\PiaService;
 use App\Services\HelperService;
-use Illuminate\Support\Facades\Mail;
+use App\Services\EmiratesService;
 use App\Services\FlyJinnahService;
+use Illuminate\Support\Facades\Mail;
 
 class FlightController extends Controller
 {
     protected $flyJinnahService;
     protected $piaService;
+    protected $emiratesService;
 
-    public function __construct(FlyJinnahService $flyJinnahService, PiaService $piaService, HelperService $helperService)
+    public function __construct(FlyJinnahService $flyJinnahService, PiaService $piaService, EmiratesService $emiratesService, HelperService $helperService)
     {
-        $this->piaService = $piaService;
-        $this->flyJinnahService = $flyJinnahService;
         $this->helperService = $helperService;
+        $this->flyJinnahService = $flyJinnahService;
+        $this->piaService = $piaService;
+        $this->emiratesService = $emiratesService;
     }
     public function search(Request $request)
     {
@@ -29,6 +32,8 @@ class FlightController extends Controller
             $validatedData = $request->only(['arr', 'dest', 'dep', 'return', 'adt', 'chd', 'inf']);
             // $piaFlights = $this->piaService->searchFlights($validatedData);
             // dd($piaFlights);
+            // $emirateFlights = $this->emiratesService->searchFlights($validatedData);
+            // dd($emirateFlights);
             $flights = $this->flyJinnahService->searchFlights($validatedData);
             // if ($flights['error']) {
             //     return back()->with('error', $flights['error']);

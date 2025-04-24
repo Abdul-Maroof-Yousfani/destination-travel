@@ -75,7 +75,7 @@ header{position:fixed;width:100%;/* background:#fff;/*background-color:transpare
 .top-header{display:none;}
 .menuWrap2.menuWrap3{display:none;}
 /*header*/
-.logo a img{width:40%;}
+.logo a img{width:30%;}
 .main-header{background:#fff;padding:10px 0px;border-bottom:2px solid #D9D9D9;}
 .dropdown-toggle{width:100%;padding:14px 0px;font-size:15px;border:none;border-radius:5px;background:white;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
 .dropdown-menu{position:absolute;width:100%;max-height:200px;overflow-y:auto;border:1px solid #ccc;border-radius:5px;background:white;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:1000;display:none;}
@@ -684,7 +684,7 @@ footer{padding:20px 0px;}
 .menuWrap2 ul li a span{font-size:11px;}
 .menuWrap2 ul li a{font-size:11px;line-height:13px;text-align:left;}
 .menu-Bar{float:right;top:10px;}
-.logo a img{width:25%;}
+.logo a img{width:20%;}
 .logo{margin-top:-28px;}
 .banner ul.tab-product li a{font-size:13px;}
 .tab-links{padding:18px 6px;margin-bottom:5px;}

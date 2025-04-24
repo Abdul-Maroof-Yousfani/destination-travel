@@ -50,7 +50,7 @@
                 <div class="col-md-3 text-left">
                     <div class="logo">
                         <a href="{{route('home')}}" class="logo">
-                            <img src="/assets/images/logo.png" alt="">
+                            <img src="/assets/images/logoCG.png" alt="EDestinationLogo">
                         </a>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                     </div>
                     <div class="menuWrap2">
                         <ul class="menu2">
-                            <li><a href="search.php"><i class="fa-solid fa-magnifying-glass"></i> Search Booking</a></li>
+                            <li><a href="{{route('home')}}"><i class="fa-solid fa-magnifying-glass"></i> Search Booking</a></li>
                             <li><a href="tel:92 01234567 0">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-solid fa-phone"></i></div>
@@ -97,7 +97,7 @@
                     </div>
                     <div class="menuWrap2 menuWrap3">
                         <ul class="menu2">
-                            <li><a href="search.php"><i class="fa-solid fa-magnifying-glass"></i></a></li>
+                            <li><a href="{{route('home')}}"><i class="fa-solid fa-magnifying-glass"></i></a></li>
                             
                             <li>
                                 
