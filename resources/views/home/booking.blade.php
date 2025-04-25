@@ -2023,6 +2023,7 @@
                $(".contactDetails").html(renderTrevelerDetails(response.data));
                $(".paxWithPrice").html(renderPaxWithPrice(response.paxPricing));
                $(".orderId").html(response.bookingRefID);
+               console.log(response.emailStatus); // Show this in alert after set live email sending
             },
             error: function (xhr) {
                _alert(xhr.responseJSON.message || 'bookingAjax Error', "error");

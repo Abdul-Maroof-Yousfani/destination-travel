@@ -331,8 +331,15 @@ class FlightController extends Controller
             'booking_id' => $bookingRefID,
             'ip' => request()->ip(),
         ]);
+        $emailMsg = '';
         if ($userEmail) {
-            Mail::to($userEmail)->send(new SendMail($username, $bookingRefID, $ticketMsg['TicketAdvisory']));
+            try {
+                Mail::to($userEmail)->send(new SendMail($username, $bookingRefID, $ticketMsg['TicketAdvisory']));
+                $emailMsg = 'Flight details sent to email successfully';
+            } catch (\Exception $e) {
+                \Log::error('Mail sending failed: ' . $e->getMessage());
+                $emailMsg = 'Failed to send email';
+            }
         }
 
         $data = [];
@@ -387,7 +394,8 @@ class FlightController extends Controller
             'ticketMsg' => $ticketMsg,
             'userDetails' => ['name' => $userDetails->name, 'email' => $userDetails->email],
             'paxPricing' => $paxPricing,
-            'totalPrice' => $booking['PriceInfo']['ItinTotalFare']['TotalFare']['@attributes'] ?? '--'
+            'totalPrice' => $booking['PriceInfo']['ItinTotalFare']['TotalFare']['@attributes'] ?? '--',
+            'emailStatus' => $emailMsg
         ], 200);
     }
 }
