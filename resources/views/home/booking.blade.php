@@ -597,7 +597,7 @@
                            </div>
                         </div>
                      </div>
-                     <input type="button" name="previous" class="previous btn btn btn-b" value="Previous" />
+                     {{-- <input type="button" name="previous" class="previous btn btn btn-b" value="Previous" /> --}}
                      <input type="button" name="next" class="next d-none" id="paymentSend"/>
                      <input type="button" class="btn btn-b" value="Continue" id="paymentSendTest"/>
                      <div class="custom-control custom-switch d-flex m-3">
@@ -999,24 +999,24 @@
             setProgressBar(++current);
          }
       });
-      $(".previous").click(function () {
-         let current_fs = $(this).parent();
-         let previous_fs = current_fs.prev();
+      // $(".previous").click(function () {
+      //    let current_fs = $(this).parent();
+      //    let previous_fs = current_fs.prev();
 
-         let index = $("fieldset").index(current_fs);
-         $("#progressbar li").eq(index).removeClass("active");
+      //    let index = $("fieldset").index(current_fs);
+      //    $("#progressbar li").eq(index).removeClass("active");
 
-         previous_fs.show();
-         current_fs.animate({ opacity: 0 }, {
-            step: (now) => {
-               current_fs.css({ 'display': 'none', 'position': 'relative' });
-               previous_fs.css({ 'opacity': 1 - now });
-            },
-            duration: 500
-         });
+      //    previous_fs.show();
+      //    current_fs.animate({ opacity: 0 }, {
+      //       step: (now) => {
+      //          current_fs.css({ 'display': 'none', 'position': 'relative' });
+      //          previous_fs.css({ 'opacity': 1 - now });
+      //       },
+      //       duration: 500
+      //    });
 
-         setProgressBar(--current);
-      });
+      //    setProgressBar(--current);
+      // });
       $(".submit").click(() => false);
       setProgressBar(current);
       $(document).on("input change", "input[required], select[required]", function () {
