@@ -614,7 +614,7 @@
                                  <h2>Thank You, <span class="guestName"></span>!</h2>
                                  <p>You’re one step away from traveling to {{$data['departureFlight']['destinationCode'] ?? ''}}!</p>
                                  <p class="ticketMsg text-decoration-underline"></p>
-                                 <h3><span>Order ID: <span class="orderId"></span></span></h3>
+                                 <h3><span>Order ID: <span class="orderId copyBtn"></span></span></h3>
                               </div>
                               <div class="steps">
                                  <h4>Next Steps</h4>
@@ -939,6 +939,7 @@
       let data = @json($data);
       let totalFare = @json($totalFare);
       let isDirectBooking = @json($data['isDirectBooking']) ? true : false;
+      let firstBtn = true;
       let current = 1, steps = $("fieldset").length;
       function setProgressBar(step) {
          $(".progress-bar").css("width", (100 / steps * step) + "%");
@@ -958,19 +959,45 @@
       $(".next").click(function () {
          let current_fs = $(this).parent();
          let next_fs = current_fs.next();
+
          if (!validateFields(current_fs)) return;
          if (!isDirectBooking && !checkValidationForAncis()) return;
-         let index = $("fieldset").index(next_fs);
-         $("#progressbar li").eq(index).addClass("active");
-         next_fs.show();
-         current_fs.animate({ opacity: 0 }, {
-            step: (now) => {
-               current_fs.css({ 'display': 'none', 'position': 'relative' });
-               next_fs.css({ 'opacity': 1 - now });
-            },
-            duration: 500
-         });
-         setProgressBar(++current);
+
+         if (firstBtn) {
+            confirmationModal('Please confirm that all the provided details are correct.').then((result) => {
+               if (result.isConfirmed) {
+                  firstBtn = false;
+                  if (!isDirectBooking) {
+                     getFinalPrice();
+                  }
+                  let index = $("fieldset").index(next_fs);
+                  $("#progressbar li").eq(index).addClass("active");
+                  next_fs.show();
+                  current_fs.animate({ opacity: 0 }, {
+                     step: (now) => {
+                        current_fs.css({ 'display': 'none', 'position': 'relative' });
+                        next_fs.css({ 'opacity': 1 - now });
+                     },
+                     duration: 500
+                  });
+                  setProgressBar(++current);
+               } else {
+                  _alert('Confirmation cancelled.', 'warning');
+               }
+            });
+         } else {
+            let index = $("fieldset").index(next_fs);
+            $("#progressbar li").eq(index).addClass("active");
+            next_fs.show();
+            current_fs.animate({ opacity: 0 }, {
+               step: (now) => {
+                  current_fs.css({ 'display': 'none', 'position': 'relative' });
+                  next_fs.css({ 'opacity': 1 - now });
+               },
+               duration: 500
+            });
+            setProgressBar(++current);
+         }
       });
       $(".previous").click(function () {
          let current_fs = $(this).parent();
@@ -1804,20 +1831,21 @@
          if (currentData === lastSubmittedData) {
             // _alert('No changes detected. Data already submitted.', 'info');
             // isSubmitting = false;
-            if (!isDirectBooking) {
-               getFinalPrice();
-            } else {
-               isSubmitting = false;
-            }
+
+            // if (!isDirectBooking) {
+            //    getFinalPrice();
+            // } else {
+            //    isSubmitting = false;
+            // }
             return;
          }
 
          lastSubmittedData = currentData;
-         if (!isDirectBooking) {
-            getFinalPrice();
-         } else {
-            isSubmitting = false;
-         }
+         // if (!isDirectBooking) {
+         //    getFinalPrice();
+         // } else {
+         //    isSubmitting = false;
+         // }
       });
 
       function checkValidationForAncis() {

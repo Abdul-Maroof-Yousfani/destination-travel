@@ -1223,8 +1223,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="prick">
-
+                        <div class="pritik">
                             <a class="bg-info btn text-light" href="#" role="button">PKR ${rtn['price']}</a>
                         </div>
                     </div>

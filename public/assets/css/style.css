@@ -623,6 +623,7 @@ section.mainBanner{height:49vh;}
 .pays h2{text-transform:capitalize;}
 }
 @media (max-width:680px){.top-header{padding:10px 0px;background:#d7f3fb;display:block;}
+.tick.modalFlights>ul{display:block;align-items:center;justify-content:space-between;gap:20px;}
 .menuWrap2.menuWrap3{display:block;margin-top:-40px;}
 .menuWrap2-top ul{justify-content:space-evenly;align-items:baseline;}
 .menuWrap2{display:none;}
@@ -693,6 +694,7 @@ footer{padding:20px 0px;}
 @media (min-width:440px) and (max-width:740px){}
 
 @media (max-width:425px){.top-header{padding:10px 0px;background:#d7f3fb;display:block;}
+.tick.modalFlights>ul{display:block;align-items:center;justify-content:space-between;gap:20px;}
 .menuWrap2.menuWrap3{display:block;}
 .menuWrap2{display:none;}
 .menuWrap3{display:block;}

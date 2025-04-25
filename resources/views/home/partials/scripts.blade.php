@@ -31,12 +31,14 @@
         });
     };
     // Usage :)
-    // confirmationModal().then((result) => {
+    // let alMsg = 'Are you sure these details are proper?';
+    // confirmationModal(alMsg).then((result) => {
     //     if (result.isConfirmed) {
     //         _alert('Is Confirmed');
     //     } else {
-    //         isSubmitting = false;
     //         _alert('Is Cancel', 'error');
+    //         return;
     //     }
+    //     console.log('ggs')
     // });
 </script>
