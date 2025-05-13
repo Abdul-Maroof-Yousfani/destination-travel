@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class passengerstest extends Component
+class PassengersTest extends Component
 {
     public $flightData;
     /**
@@ -22,6 +22,6 @@ class passengerstest extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.passengerstest');
+        return view('components.PassengersTest');
     }
 }
