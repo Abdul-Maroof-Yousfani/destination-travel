@@ -84,5 +84,5 @@
             countdown = setInterval(updateTimer, 1000);
         }
     }
-    sessionTimer(true);
+    sessionTimer(false);
 </script>
