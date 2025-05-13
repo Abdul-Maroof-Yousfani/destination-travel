@@ -335,7 +335,7 @@
                                 <p class="text-center">Flyjinnah flights not available</p>
                             @endif
                             {{-- @dd($emirates) --}}
-                            <x-emirateflights :flight="$emirates" :roundTrip="$isRoundTrip" />
+                            <x-EmirateFlights :flight="$emirates" :roundTrip="$isRoundTrip" />
                             <div class="modal fade right" id="bundleModal" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -400,7 +400,7 @@
             </div>
         </div>
     </section>
-    <x-sessiontimeoutcontainer/>
+    <x-SessionTimeoutContainer/>
 @endsection
 @section('script')
     <script>

@@ -71,14 +71,14 @@
                         <div class="row row2">
                            <div class="col-md-12 col-lg-8">
                               @if (\Illuminate\Support\Facades\App::environment('local'))
-                                 <x-passengerstest :flightData="$data" />
+                                 <x-PassengersTest :flightData="$data" />
                               @elseif (\Illuminate\Support\Facades\App::environment('production'))
-                                 <x-passengers :flightData="$data" />
+                                 <x-Passengers :flightData="$data" />
                               @endif
                            </div>
                            <div class="col-md-12 col-lg-4">
                               {{-- @dd($totalFare) --}}
-                              <x-flightandprice :flightData="$data" :totalFare="$totalFare" :tax="$tax" />
+                              <x-FlightAndPrice :flightData="$data" :totalFare="$totalFare" :tax="$tax" />
                               {{-- <div class="bokkings-bar bokkings-bar2">
                                  <div class="book-head">
                                  <div class="youbook">
@@ -384,7 +384,7 @@
                               </div>
                            </div>
                            <div class="col-md-12 col-lg-4">
-                              <x-flightandprice :flightData="$data" :totalFare="$totalFare" :tax="$tax" priceclass="paymentPriceContainer"/>
+                              <x-FlightAndPrice :flightData="$data" :totalFare="$totalFare" :tax="$tax" priceclass="paymentPriceContainer"/>
                               {{-- <div class="bokkings-bar bokkings-bar2 paymentPriceContainer">
                                  <div class="book-head">
                                  <div class="youbook">
@@ -774,7 +774,7 @@
       </div>      
    </div>
 </section>
- <x-sessiontimeoutcontainer/>
+ <x-SessionTimeoutContainer/>
    {{-- <div class="footerTimeOutContainer">
       <div class="text-center idExpIn">
          <h3></h3>
