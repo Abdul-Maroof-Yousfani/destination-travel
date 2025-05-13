@@ -19,7 +19,6 @@ class searchflight extends Component
         $this->airports = Cache::rememberForever('airports_list', function () {
             return Airport::orderBy('name')->pluck('name', 'code')->toArray();
         });
-        dd($this->airports);
     }
 
     /**
