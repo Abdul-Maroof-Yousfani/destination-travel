@@ -1,7 +1,9 @@
-{{-- @dd($expTime, $endTime) --}}
 <style>
   .footerTimeOutContainer{z-index:9999;position:fixed;bottom:0;left:0;right:0;background-color:#127f9fe0;color:#fff;padding:15px;transition:opacity 0.5s ease-in-out;}
 </style>
+@php
+    $expTime = isset($expTime) ? $expTime : 10;
+@endphp
 @if (isset($expTime) && $expTime)
     <div class="footerTimeOutContainer">
         <div class="text-center idExpIn">
