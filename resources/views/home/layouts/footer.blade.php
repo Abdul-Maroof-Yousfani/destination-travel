@@ -106,10 +106,10 @@
                 <h5>Need any help?</h5>
                 <p><i class="fa-solid fa-phone"></i> Call  24/7 for any help</p>
                 <br>
-                <a href="tel:+00 123 456 789"><h5>+00 123 456 789</h5></a>
+                <a href="tel:{{ config('variables.contact.phone') }}"><h5>{{ config('variables.contact.phone') }}</h5></a>
                 <p><i class="fa-solid fa-envelope"></i> Mail to our support team</p>
                 <br>
-                <a href="mailto:support@domain.com"><h4>support@domain.com</h4></a>
+                <a href="mailto:support@edestination.com"><h4>support@edestination.com</h4></a>
              </div>
           </div>
        </div>
@@ -121,7 +121,8 @@
           <div class="row">
              <div class="col-md-12 col-lg-8 text-left copadd">
                 <div class="copy">
-                   <p>Copyright © 1996–2024 Travel & Tour. All rights reserved.</p>
+                   <p>Address: {{ config('variables.contact.address') }}</p>
+                   {{-- <p>Copyright © 1996–2024 Travel & Tour. All rights reserved.</p> --}}
                 </div>
              </div>
              <div class="col-md-12 col-lg-4 text-left copadd">

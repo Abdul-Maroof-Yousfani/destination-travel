@@ -360,13 +360,18 @@ $(window).on('load', function() {
     //     backdrop: 'static', // Prevents closing on outside click
     //     keyboard: false
     // });
-    const _loader = (action) => {
+    
+    // ============================================Aliiiiiiiiiiiiiiiiiii=====================================================
+    window.csrfToken = "{{ csrf_token() }}";
+
+    const _loader = action => {
         if (action === 'show') {
             $("body").append(`<div id="loader"><div id="loaderChild"></div></div>`);
         } else {
             $('#loader').remove();
         }
     };
+
     $(document).on('click', '.copyBtn', function () {
         let text = $(this).prev('.copyText').text();
         if (text) {
@@ -375,3 +380,50 @@ $(window).on('load', function() {
             });
         }
     });
+
+    $('.timeIn12Hr').each(function() {
+        const original = $(this).text().trim();
+        const converted = convertTo12Hour(original);
+        $(this).text(converted);
+    });
+
+    function convertTo12Hour(time) {
+        const [hour, minute] = time.split(':').map(Number);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const h = hour % 12 || 12;
+        return `${h}:${minute.toString().padStart(2, '0')} ${ampm}`;
+    }
+
+    function formatCurrency(amount) {
+        const numericAmount = Number(amount);
+        
+        if (isNaN(numericAmount)) {
+            return 'NaN';
+        }
+        
+        return numericAmount.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function formatDateTime(datetimeStr) {  // Outputs: "16 May 2025 9:30PM"
+        const date = new Date(datetimeStr);
+
+        const day = date.getDate();
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+        const month = monthNames[date.getMonth()];
+        const year = date.getFullYear();
+
+        let hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Convert 0 to 12
+
+        return `${day} ${month} ${year} ${hours}:${minutes}${ampm}`;
+    }

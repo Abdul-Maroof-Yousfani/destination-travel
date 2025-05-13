@@ -29,8 +29,8 @@
                             </div>
                         </a>
                     </li>
-                    <li><a href="#"><i class="fa-solid fa-phone"></i> Call: +92 012345678 9</a></li>
-                    <li><a href="#"><i class="fa-brands fa-whatsapp"></i> Call: +92 012345678 9</a></li>
+                    <li><a href="#"><i class="fa-solid fa-phone"></i> Call: {{ config('variables.contact.phone') }}</a></li>
+                    <li><a href="#"><i class="fa-brands fa-whatsapp"></i> Call: {{ config('variables.contact.phone') }}</a></li>
                     </ul>
                 </div>
             </div>

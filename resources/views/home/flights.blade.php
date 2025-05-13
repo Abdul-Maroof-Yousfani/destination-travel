@@ -196,32 +196,43 @@
                     </div> --}}
                     <div class="plane">
                         <ul>
-                            {{-- @dd($data) --}}
                             @php
+                                // dd($data);
                                 $hasAvailableFlight = false;
-
+                                $departureHasFlights = false;
                                 if (!empty($data)) {
                                     foreach ($data as $flightData) {
-                                        foreach ($flightData['flights'] as $flight) {
-                                            if ($flight['availabilityStatus'] === 'AVAILABLE') {
-                                                $hasAvailableFlight = true;
-                                                break 2;
+                                        if (!empty($flightData['flights'])) {
+                                            foreach ($flightData['flights'] as $flight) {
+                                                if ($flight['availabilityStatus'] === 'AVAILABLE') {
+                                                    $hasAvailableFlight = true;
+                                                    break 2;
+                                                }
                                             }
                                         }
                                     }
                                 }
+                                if (!empty($data[0]['flights'])) {
+                                    foreach ($data[0]['flights'] as $flight) {
+                                        if ($flight['availabilityStatus'] === 'AVAILABLE') {
+                                            $departureHasFlights = true;
+                                            break;
+                                        }
+                                    }
+                                }
                             @endphp
-                            @if (!empty($hasAvailableFlight))
+                            @if ($hasAvailableFlight && $departureHasFlights)
                                 <li>
                                      <div class="row">
                                         @foreach ($data as $index => $flightData)
                                             <div class="col-sm-{{ $isRoundTrip ? '6' : '12' }} col-12">
                                                 <div class="d-flex mb-3">
                                                     <p class="font-weight-bold mr-2">
-                                                        {{ $index == 0 ? 'Departure' : 'Return' }}</p>
+                                                        {{ $index == 0 ? 'Departure' : 'Return' }}
+                                                    </p>
                                                     <i>
                                                         <p>{{ $flightData['route'] ?? '' }}</p>
-                                                        <small>{{ $flightData['date'] ?? '' }}</small>
+                                                        {{-- <small>{{ $flightData['date'] ?? '' }}</small> --}}
                                                     </i>
                                                 </div>
                                                 @foreach ($flightData['flights'] as $key => $flight)
@@ -236,13 +247,12 @@
                                                                     data-segment="{{ json_encode($flight['flightSegments']) }}"
                                                                     data-selected-flight="{{ json_encode($flight) }}"
                                                                     onchange="updateTotalPrice()">
-
                                                                 <label class="flex1"
                                                                     for="singleFlight{{ $index }}_{{ $key }}">
                                                                     <div class="emri text-center">
                                                                         <img class="w-75 p-2"
                                                                             src="assets/images/Fly_Jinnah_logo.png"
-                                                                            alt="">
+                                                                            alt="Fly_Jinnah_logo">
                                                                     </div>
                                                                     <div class="der-time">
                                                                         <ul>
@@ -280,7 +290,7 @@
                                                                                 </ul>
                                                                                 <div class="weig weig2">
                                                                                     <ul>
-                                                                                        <li><p><i class="fa-solid fa fa-money-bill-1-wave"></i> PKR {{ $flight['price'] ?? '0' }}</p></li>
+                                                                                        <li><p><i class="fa-solid fa fa-money-bill-1-wave"></i> PKR {{ number_format($flight['price'], 2) }}</p></li>
                                                                                     </ul>
                                                                                 </div>
                                                                             </div>
@@ -294,7 +304,7 @@
                                                 @endforeach
                                             </div>
                                         @endforeach
-                                        @php
+                                        {{-- @php
                                             $totalExtraFlights = 0;
                                             if (!empty($data)) {
                                                 foreach ($data as $flightData) {
@@ -306,14 +316,12 @@
                                                     }
                                                 }
                                             }
-                                        @endphp
-                                        @if ($totalExtraFlights > 0)
+                                        @endphp --}}
+                                        {{-- @if ($totalExtraFlights > 0) --}}
                                             <div class="text-center mb-3 col-12">
-                                                <span id="toggleFlightsBtn" class="text-info font-weight-bolder pointer">
-                                                    + {{ $totalExtraFlights }} more flight option{{ $totalExtraFlights > 1 ? 's' : '' }}
-                                                </span>
+                                                <span id="toggleFlightsBtn" class="text-info font-weight-bolder pointer toggle-flights-btn" data-target=".extra-flight"></span>
                                             </div>
-                                        @endif
+                                        {{-- @endif --}}
                                      </div>
                                     <div class="prices2 mt-3">
                                         <div class="select-flight">
@@ -326,6 +334,8 @@
                             @else
                                 <p class="text-center">Flyjinnah flights not available</p>
                             @endif
+                            {{-- @dd($emirates) --}}
+                            <x-emirateflights :flight="$emirates" :roundTrip="$isRoundTrip" />
                             <div class="modal fade right" id="bundleModal" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -338,11 +348,7 @@
                                             <!-- <div class="col-md-12 col-lg-12"> -->
                                                 <div class="tick modalFlights mb-4"></div>
                                                 <!-- tabs -->
-                                                <div class="col-12 mb-4">
-                                                    <div class="dirx">
-                                                        <button class="btn btn-b directBooking">Direct Booking</button>
-                                                    </div>
-                                                </div>
+                                                <div class="directBookingBtn"></div>
                                                 @if ($isRoundTrip)
                                                     <div class="departure-bo">
                                                         <div class="daparture-main">
@@ -391,632 +397,10 @@
                         </ul>
                     </div>
                 </div>
-                <!-- old code design -->
-                <!-- <div class="col-md-12 col-lg-10">
-                        <div class="departure-bo">
-                            <div class="daparture-main">
-                                <div class="derp-calender">
-                                    <h3>Select your departing flight to Dubai</h3>
-                                    <p>Total one way price for all travelers</p>
-                                    <p>We have found 7 results for you so far...</p>
-                                </div>
-                                <hr>
-                                <div class="btn-group col-xs-12">
-                                    <label class="option">
-                                        <input type="radio" name="optradio"><span class="btn btn-warning btn-option">Sat, 11 Jan <br> -</span>
-                                    </label>
-                                    <label class="option">
-                                    <input type="radio" name="optradio"><span class="btn btn-warning btn-option">Sun, 12 Jan <br> -</span>
-                                    </label>
-                                    <label class="option">
-                                    <input type="radio" name="optradio"><span class="btn btn-warning btn-option">Mon, 13 Jan <br> -</span>
-                                    </label>
-                                    <label class="option">
-                                    <input type="radio" name="optradio"><span class="btn btn-warning btn-option">Tue, 14 Jan <br> -</span>
-                                    </label>
-                                    <label class="option">
-                                        <input type="radio" name="optradio"><span class="btn btn-warning btn-option">Wed, 15 Jan <br> -</span>
-                                    </label>
-                                    <label class="option">
-                                    <input type="radio" name="optradio"><span class="btn btn-warning btn-option">Thu, 16 Jan <br> -</span>
-                                    </label>
-                                    <label class="option">
-                                    <input type="radio" name="optradio"><span class="btn btn-warning btn-option">Fri, 17 Jan <br> -</span>
-                                    </label>
-                                </div>
-
-                                <div class="pack-main">
-                                    <div class="packg">
-                                        <ul class="tab-product  wow fadeInRight">
-                                            <li data-targetit="box-5" class="current">
-                                            <a href="#tab-5" data-toggle="tab">Suggested</a>
-                                            </li>
-                                            <li data-targetit="box-6" >
-                                            <a href="#tab-6" data-toggle="tab">Cheapest</a>
-                                            </li>
-                                            <li data-targetit="box-7" >
-                                            <a href="#tab-7" data-toggle="tab">Fastest</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="pacg2">
-                                        <div class="nstop">
-                                            <a href="#"><p>Nonstop</p></a>
-                                        </div>
-                                        <a href="#">More Filters <i class="fa-solid fa-angle-up"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hep2">
-                                <ul>
-                                    <li>
-                                        <a href="tel:92 01234567 0">
-                                            <div class="main-flex2">
-                                            <div class="icon-head-help">
-                                                <i class="fa-solid fa-headphones"></i>
-                                            </div>
-                                            <div class="call-content">
-                                                <span>24/7 Customer Support </span>
-                                            </div>
-                                            </div>
-                                        </a>
-                                    </li>
-                                    <li><a href="#"><i class="fa-solid fa-phone"></i> Call: +92 012345678 9</a></li>
-                                    <li><a href="#"><i class="fa-brands fa-whatsapp"></i> Call: +92 012345678 9</a></li>
-                                    <li><a href="#"><i class="fa-regular fa-envelope"></i> callcenter@travel.com</a></li>
-                                </ul>
-                            </div>
-                        </div>
-
-
-                        <div class="sugges">
-                            <div class="row">
-                            <div class="col-md-12 col-lg-10">
-                                <div class="box-5 showfirst tab-content">
-                                    <div class="main-border">
-                                        <div class="sugge-tab">
-                                        <div class="flex1">
-                                            <div class="emri">
-                                                <img src="assets/images/emirates.png" alt="">
-                                            </div>
-                                            <div class="der-time">
-                                                <ul>
-                                                    <li>
-                                                    <h2>10:40 PM</h2>
-                                                    </li>
-                                                    <li>
-                                                    <div class="stays">
-                                                        <p>
-                                                            2h 25m
-                                                        </p>
-                                                    </div>
-                                                    </li>
-                                                    <li>
-                                                    <div class="tims">
-                                                        <h2>12:05 AM</h2>
-                                                        <span>*1D</span>
-                                                    </div>
-                                                    </li>
-                                                </ul>
-                                                <div class="citys">
-                                                    <div class="cit">
-                                                    <ul>
-                                                        <li>
-                                                            <p>Karachi (KHI)</p>
-                                                        </li>
-                                                        <li>
-                                                            <p>-</p>
-                                                        </li>
-                                                        <li>
-                                                            <p>Nonstop</p>
-                                                        </li>
-                                                        <li>
-                                                            -
-                                                        </li>
-                                                        <li>
-                                                            <p>Dubai (DXB)</p>
-                                                        </li>
-                                                    </ul>
-                                                    </div>
-                                                    <div class="weig">
-                                                    <ul>
-                                                        <li>
-                                                                <p><i class="fa-solid fa-suitcase-rolling"></i> Total: 35kg</p>
-                                                        </li>
-                                                        <li>
-                                                            <p><i class="fa-solid fa-plate-wheat"></i> Meal</p>
-                                                        </li>
-                                                    </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="prices">
-                                            <div class="sav">
-                                                <p> <i class="fa-solid fa-info"></i> Save 31,115/- PKR</p>
-                                            </div>
-                                            <div class="pakr">
-                                                <a name="" id="" class="btn btn-b" href="#" role="button">PKR 222,252</a>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <div class="selec-option">
-                                        <p>Select a fare option</p>
-                                        </div>
-                                        <div class="flex-plus">
-                                        <h4>Flex Plus</h4>
-                                        <div class="flex-plus2">
-                                            <ul>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-suitcase"></i> Check-in Baggage</h4>
-                                                    <div class="plus-widh">
-                                                        <p>Total: 35Kg</p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-plane-slash"></i> Cancellation</h4>
-                                                    <div class="plus-widh">
-                                                        <p><span>Penalties Apply</span></p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-pencil"></i> Modification</h4>
-                                                    <div class="plus-widh">
-                                                        <p><span>Penalties Apply</span></p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-chair"></i> Seat</h4>
-                                                    <div class="plus-widh">
-                                                        <p>Not Included</p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-plate-wheat"></i> Meal</h4>
-                                                    <div class="plus-widh">
-                                                        <p>Not Included</p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <p>Total round-trip price</p>
-                                        <div class="conti">
-                                            <a name="" id="" class="btn btn-b" href="/" role="button">Continue</a>
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="sugge-tab sugge-tab-time2 ">
-                                        <div class="flex1">
-                                        <div class="emri">
-                                            <img src="assets/images/airblue.png" alt="">
-                                        </div>
-                                        <div class="der-time">
-                                            <ul>
-                                                <li>
-                                                    <h2>06:10 PM</h2>
-                                                </li>
-                                                <li>
-                                                    <div class="stays">
-                                                    <p>
-                                                        2h 30m
-                                                    </p>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <h2>07:40 PM</h2>
-                                                </li>
-                                            </ul>
-                                            <div class="citys">
-                                                <div class="cit">
-                                                    <ul>
-                                                    <li>
-                                                        <p>Karachi (KHI)</p>
-                                                    </li>
-                                                    <li>
-                                                        <p>-</p>
-                                                    </li>
-                                                    <li>
-                                                        <p>Nonstop</p>
-                                                    </li>
-                                                    <li>
-                                                        -
-                                                    </li>
-                                                    <li>
-                                                        <p>Dubai (DXB)</p>
-                                                    </li>
-                                                    </ul>
-                                                    <div class="weig weig2">
-                                                    <ul>
-                                                        <li>
-                                                            <p><i class="fa-solid fa-plate-wheat"></i> Meal</p>
-                                                        </li>
-                                                    </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <div class="prices2">
-                                        <a name="" id="" class="btn btn-b" href="#" role="button">PKR 91,100</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="box-6 tab-content">
-                                    <div class="main-border">
-                                        <div class="sugge-tab">
-                                        <div class="flex1">
-                                            <div class="emri">
-                                                <img src="assets/images/emirates.png" alt="">
-                                            </div>
-                                            <div class="der-time">
-                                                <ul>
-                                                    <li>
-                                                    <h2>10:40 PM</h2>
-                                                    </li>
-                                                    <li>
-                                                    <div class="stays">
-                                                        <p>
-                                                            2h 25m
-                                                        </p>
-                                                    </div>
-                                                    </li>
-                                                    <li>
-                                                    <div class="tims">
-                                                        <h2>12:05 AM</h2>
-                                                        <span>*1D</span>
-                                                    </div>
-                                                    </li>
-                                                </ul>
-                                                <div class="citys">
-                                                    <div class="cit">
-                                                    <ul>
-                                                        <li>
-                                                            <p>Karachi (KHI)</p>
-                                                        </li>
-                                                        <li>
-                                                            <p>-</p>
-                                                        </li>
-                                                        <li>
-                                                            <p>Nonstop</p>
-                                                        </li>
-                                                        <li>
-                                                            -
-                                                        </li>
-                                                        <li>
-                                                            <p>Dubai (DXB)</p>
-                                                        </li>
-                                                    </ul>
-                                                    </div>
-                                                    <div class="weig">
-                                                    <ul>
-                                                        <li>
-                                                                <p><i class="fa-solid fa-suitcase-rolling"></i> Total: 35kg</p>
-                                                        </li>
-                                                        <li>
-                                                            <p><i class="fa-solid fa-plate-wheat"></i> Meal</p>
-                                                        </li>
-                                                    </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="prices">
-                                            <div class="sav">
-                                                <p> <i class="fa-solid fa-info"></i> Save 31,115/- PKR</p>
-                                            </div>
-                                            <div class="pakr">
-                                                <a name="" id="" class="btn btn-b" href="#" role="button">PKR 222,252</a>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <div class="selec-option">
-                                        <p>Select a fare option</p>
-                                        </div>
-                                        <div class="flex-plus">
-                                        <h4>Flex Plus</h4>
-                                        <div class="flex-plus2">
-                                            <ul>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-suitcase"></i> Check-in Baggage</h4>
-                                                    <div class="plus-widh">
-                                                        <p>Total: 35Kg</p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-plane-slash"></i> Cancellation</h4>
-                                                    <div class="plus-widh">
-                                                        <p><span>Penalties Apply</span></p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-pencil"></i> Modification</h4>
-                                                    <div class="plus-widh">
-                                                        <p><span>Penalties Apply</span></p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-chair"></i> Seat</h4>
-                                                    <div class="plus-widh">
-                                                        <p>Not Included</p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-plate-wheat"></i> Meal</h4>
-                                                    <div class="plus-widh">
-                                                        <p>Not Included</p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <p>Total round-trip price</p>
-                                        <div class="conti">
-                                            <a name="" id="" class="btn btn-b" href="/" role="button">Continue</a>
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="sugge-tab sugge-tab-time2 ">
-                                        <div class="flex1">
-                                        <div class="emri">
-                                            <img src="assets/images/airblue.png" alt="">
-                                        </div>
-                                        <div class="der-time">
-                                            <ul>
-                                                <li>
-                                                    <h2>06:10 PM</h2>
-                                                </li>
-                                                <li>
-                                                    <div class="stays">
-                                                    <p>
-                                                        2h 30m
-                                                    </p>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <h2>07:40 PM</h2>
-                                                </li>
-                                            </ul>
-                                            <div class="citys">
-                                                <div class="cit">
-                                                    <ul>
-                                                    <li>
-                                                        <p>Karachi (KHI)</p>
-                                                    </li>
-                                                    <li>
-                                                        <p>-</p>
-                                                    </li>
-                                                    <li>
-                                                        <p>Nonstop</p>
-                                                    </li>
-                                                    <li>
-                                                        -
-                                                    </li>
-                                                    <li>
-                                                        <p>Dubai (DXB)</p>
-                                                    </li>
-                                                    </ul>
-                                                    <div class="weig weig2">
-                                                    <ul>
-                                                        <li>
-                                                            <p><i class="fa-solid fa-plate-wheat"></i> Meal</p>
-                                                        </li>
-                                                    </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <div class="prices2">
-                                        <a name="" id="" class="btn btn-b" href="#" role="button">PKR 91,100</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="box-7 tab-content">
-                                    <div class="main-border">
-                                        <div class="sugge-tab">
-                                        <div class="flex1">
-                                            <div class="emri">
-                                                <img src="assets/images/emirates.png" alt="">
-                                            </div>
-                                            <div class="der-time">
-                                                <ul>
-                                                    <li>
-                                                    <h2>10:40 PM</h2>
-                                                    </li>
-                                                    <li>
-                                                    <div class="stays">
-                                                        <p>
-                                                            2h 25m
-                                                        </p>
-                                                    </div>
-                                                    </li>
-                                                    <li>
-                                                    <div class="tims">
-                                                        <h2>12:05 AM</h2>
-                                                        <span>*1D</span>
-                                                    </div>
-                                                    </li>
-                                                </ul>
-                                                <div class="citys">
-                                                    <div class="cit">
-                                                    <ul>
-                                                        <li>
-                                                            <p>Karachi (KHI)</p>
-                                                        </li>
-                                                        <li>
-                                                            <p>-</p>
-                                                        </li>
-                                                        <li>
-                                                            <p>Nonstop</p>
-                                                        </li>
-                                                        <li>
-                                                            -
-                                                        </li>
-                                                        <li>
-                                                            <p>Dubai (DXB)</p>
-                                                        </li>
-                                                    </ul>
-                                                    </div>
-                                                    <div class="weig">
-                                                    <ul>
-                                                        <li>
-                                                                <p><i class="fa-solid fa-suitcase-rolling"></i> Total: 35kg</p>
-                                                        </li>
-                                                        <li>
-                                                            <p><i class="fa-solid fa-plate-wheat"></i> Meal</p>
-                                                        </li>
-                                                    </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="prices">
-                                            <div class="sav">
-                                                <p> <i class="fa-solid fa-info"></i> Save 31,115/- PKR</p>
-                                            </div>
-                                            <div class="pakr">
-                                                <a name="" id="" class="btn btn-b" href="#" role="button">PKR 222,252</a>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <div class="selec-option">
-                                        <p>Select a fare option</p>
-                                        </div>
-                                        <div class="flex-plus">
-                                        <h4>Flex Plus</h4>
-                                        <div class="flex-plus2">
-                                            <ul>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-suitcase"></i> Check-in Baggage</h4>
-                                                    <div class="plus-widh">
-                                                        <p>Total: 35Kg</p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-plane-slash"></i> Cancellation</h4>
-                                                    <div class="plus-widh">
-                                                        <p><span>Penalties Apply</span></p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-pencil"></i> Modification</h4>
-                                                    <div class="plus-widh">
-                                                        <p><span>Penalties Apply</span></p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-chair"></i> Seat</h4>
-                                                    <div class="plus-widh">
-                                                        <p>Not Included</p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="plus-fle">
-                                                    <h4><i class="fa-solid fa-plate-wheat"></i> Meal</h4>
-                                                    <div class="plus-widh">
-                                                        <p>Not Included</p>
-                                                    </div>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <p>Total round-trip price</p>
-                                        <div class="conti">
-                                            <a name="" id="" class="btn btn-b" href="/" role="button">Continue</a>
-                                        </div>
-                                        </div>
-                                    </div>
-                                    <div class="sugge-tab sugge-tab-time2 ">
-                                        <div class="flex1">
-                                        <div class="emri">
-                                            <img src="assets/images/airblue.png" alt="">
-                                        </div>
-                                        <div class="der-time">
-                                            <ul>
-                                                <li>
-                                                    <h2>06:10 PM</h2>
-                                                </li>
-                                                <li>
-                                                    <div class="stays">
-                                                    <p>
-                                                        2h 30m
-                                                    </p>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <h2>07:40 PM</h2>
-                                                </li>
-                                            </ul>
-                                            <div class="citys">
-                                                <div class="cit">
-                                                    <ul>
-                                                    <li>
-                                                        <p>Karachi (KHI)</p>
-                                                    </li>
-                                                    <li>
-                                                        <p>-</p>
-                                                    </li>
-                                                    <li>
-                                                        <p>Nonstop</p>
-                                                    </li>
-                                                    <li>
-                                                        -
-                                                    </li>
-                                                    <li>
-                                                        <p>Dubai (DXB)</p>
-                                                    </li>
-                                                    </ul>
-                                                    <div class="weig weig2">
-                                                    <ul>
-                                                        <li>
-                                                            <p><i class="fa-solid fa-plate-wheat"></i> Meal</p>
-                                                        </li>
-                                                    </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        </div>
-                                        <div class="prices2">
-                                        <a name="" id="" class="btn btn-b" href="#" role="button">PKR 91,100</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-
-                    </div> -->
             </div>
         </div>
     </section>
+    <x-sessiontimeoutcontainer/>
 @endsection
 @section('script')
     <script>
@@ -1085,25 +469,41 @@
         let segments, flightSegments;
         let firstBundleId, secondBundleId;
         let updateTimeout, depSegments, rtnSegments, depSelectedFlight, rtnSelectedFlight;
+        let airline;
         let flightTotalFare;
+        let offerIdsDep, offerIdsRtn, responseId;
 
+        // Modal was closed here :)
+        $('#bundleModal').on('hidden.bs.modal', function () {
+            $('.directModalBundles, .returnModalBundles, .directBookingBtn, .modalFlights').empty();
+            [firstBundleId, secondBundleId, firstFlight, returnFlight, offerIdsDep, offerIdsRtn, responseId] = Array(7).fill(null);
+        });
         
         $(document).ready(function () {
-            const $btn = $('#toggleFlightsBtn');
-            const extraFlightCount = $('.extra-flight').length;
-            const originalText = extraFlightCount + ' more flight option' + (extraFlightCount > 1 ? 's' : '');
+            // const extraFlightCount = $('.extra-flight').length;
+            // const originalText = `+ ${extraFlightCount} more flight option${(extraFlightCount > 1 ? 's' : '')}`;
+            // extraFlightCount > 0 ? $('#toggleFlightsBtn').text(originalText) : $('#toggleFlightsBtn').text('') ;
+            // $('#toggleFlightsBtn').on('click', function () {
+            //     if ($('.extra-flight').is(':visible')) {
+            //         $('.extra-flight').addClass('d-none');
+            //         $('#toggleFlightsBtn').text(originalText);
+            //     } else {
+            //         $('.extra-flight').removeClass('d-none');
+            //         $('#toggleFlightsBtn').text('Show less');
+            //     }
+            // });
+            $('.toggle-flights-btn').each(function () {
+                const $btn = $(this);
+                const target = $btn.data('target');
+                const count = $(target).length;
+                const originalText = `+ ${count} more flight option${count > 1 ? 's' : ''}`;
+                $btn.text(count > 0 ? originalText : '');
 
-            $btn.on('click', function () {
-                const $extraFlights = $('.extra-flight');
-                const isVisible = $extraFlights.is(':visible');
-
-                if (isVisible) {
-                    $extraFlights.addClass('d-none');
-                    $btn.text(originalText);
-                } else {
-                    $extraFlights.removeClass('d-none');
-                    $btn.text('Show less');
-                }
+                $btn.on('click', function () {
+                    const isVisible = $(target).is(':visible');
+                    $(target).toggleClass('d-none', isVisible);
+                    $btn.text(isVisible ? originalText : 'Show less');
+                });
             });
         });
 
@@ -1118,7 +518,7 @@
                 let returnPrice = parseFloat(selectedRtnFlight.val()) || 0;
 
                 let totalPrice = departurePrice + returnPrice;
-                $('#totalPrice').text(totalPrice.toLocaleString());
+                $('#totalPrice').text(formatCurrency(totalPrice));
 
                 depSegments = selectedDepFlight.data('segment');
                 rtnSegments = selectedRtnFlight.data('segment');
@@ -1128,14 +528,14 @@
         }
         $(document).ready(function() {
             updateTotalPrice();
-
+            // $(document).on('change', 'input[name="depFlight"], input[name="rtnFlight"]', updateTotalPrice);
             $('input[name="depFlight"], input[name="rtnFlight"]').change(function() {
                 updateTotalPrice();
             });
         });
         $('.bundleModalBtn').click(function() {
             bookBothBundle(depSegments, rtnSegments);
-            $('.modalFlights').html(flightHtml(depSelectedFlight, rtnSelectedFlight))
+            $('.modalFlights').html(flightHtml(depSelectedFlight, rtnSelectedFlight, 'flyJinnah'))
         });
         /** 
          * Function to book the both bundle 
@@ -1164,16 +564,12 @@
                 type: "POST",
                 url: "{{ route('get_bundles') }}",
                 data: {
-                    firstFlight,
-                    firstConnectedFlight,
-                    returnFlight,
-                    returnConnectedFlight,
-                    paxCount,
-                    _token: "{{ csrf_token() }}"
+                    firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight, paxCount, _token: "{{ csrf_token() }}"
                 },
                 beforeSend: () => _loader('show'),
                 success: (res) => {
                     if (res.error) {
+                        console.log(res.error);
                         _alert(res.details?.ShortText || res.error, "error");
                         return;
                     }
@@ -1186,6 +582,7 @@
                     flightTotalFare = res['prices']['ItinTotalFare'] ?? null;
                     let bundledService = res.bundles[0]?.bundledService || res.bundles.bundledService;
                     $(".directModalBundles").html(renderBundles(bundledService, false));
+                    $(".directBookingBtn").html('<button class="btn btn-b directBooking mb-4">Direct Booking</button>');
                     if (res.bundles.length > 1) {
                         $(".returnModalBundles").html(renderBundles(res.bundles[1].bundledService, true));
                     }
@@ -1194,75 +591,78 @@
                 complete: () => _loader('hide')
             });
         };
-
-        const flightHtml = (dep, rtn) => {
+        const flightHtml = (dep, rtn, type) => {
             if (!dep) return '';
-            let rtnflightHtml = rtn ?
-                `<li>
-                    <div class="sugge-tab sugge-tab-time2 ">
+            const getInfo = (f, isRtn = false) => {
+                if (type === 'flyJinnah') {
+                    return {
+                        logo: 'Fly_Jinnah_logo.png',
+                        depTime: f['departureTime'],
+                        arrTime: f['arrivalTime'],
+                        timeDiff: f['timeDifference'],
+                        origCode: f['originCode'],
+                        destCode: f['destinationCode'],
+                        isConnected: f['isConnected'] ? '1 Stop' : 'Nonstop',
+                        price: f['price'],
+                        priceCode: 'PKR',
+                    };
+                }
+                if (type === 'emirate') {
+                    return {
+                        logo: 'emirates.png',
+                        depTime: convertTo12Hour(f['Departure']['Time']['value']),
+                        arrTime: convertTo12Hour(f['Arrival']['Time']['value']),
+                        timeDiff: formatBetweenDuration(
+                            f['flightDetails']['details']['FlightDuration']['Value']['value'],
+                            f['secondFlight']?.['details']?.['FlightDuration']?.['Value']['value']
+                        ),
+                        origCode: f['Departure']['AirportName']['value'],
+                        destCode: f['Arrival']['AirportName']['value'],
+                        isConnected: f['flightDetails']['isConnected'] ? '1 Stop' : 'Nonstop',
+                        price: f['price']['amount'] ?? 0,
+                        priceCode: f['price']['code'] ?? 'PKR',
+                    };
+                }
+                return {};
+            };
+            const renderFlight = info => `
+                <li>
+                    <div class="sugge-tab sugge-tab-time2">
                         <div class="flex1">
                             <div class="emri">
-                                <img class="w-75 p-2" src="assets/images/Fly_Jinnah_logo.png" alt="">
+                                <img class="w-75 p-2" src="assets/images/${info.logo}" alt="${info.logo}">
                             </div>   
                             <div class="der-time">
                                 <ul>
-                                    <li><h2>${rtn['departureTime']}</h2></li>
-                                    <li><div class="stays"><p>${rtn['timeDifference']}</p></div></li>
-                                    <li><h2>${rtn['arrivalTime']}</h2></li>
+                                    <li><h2>${info.depTime}</h2></li>
+                                    <li><div class="stays"><p>${info.timeDiff}</p></div></li>
+                                    <li><h2>${info.arrTime}</h2></li>
                                 </ul>
                                 <div class="citys">
                                     <div class="cit">
                                         <ul>
-                                            <li><p>${rtn['originCode']}</p></li>
+                                            <li><p>${info.origCode}</p></li>
                                             <li><p>-</p></li>
-                                            <li><p>${rtn['isConnected'] ? '1 Stop' : 'Nonstop'}</p></li>
+                                            <li><p>${info.isConnected}</p></li>
                                             <li>-</li>
-                                            <li><p>${rtn['destinationCode']}</p></li>
+                                            <li><p>${info.destCode}</p></li>
                                         </ul>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="pritik">
-                            <a class="bg-info btn text-light" href="#" role="button">PKR ${rtn['price']}</a>
+                            <a class="bg-info btn text-light" role="button">${info.priceCode} ${formatCurrency(info.price)}</a>
                         </div>
                     </div>
-                </li>` : '';
-            return `
-                <ul>
-                    <li>
-                        <div class="sugge-tab sugge-tab-time2 ">
-                            <div class="flex1">
-                                <div class="emri">
-                                    <img class="w-75 p-2" src="assets/images/Fly_Jinnah_logo.png" alt="">
-                                </div>   
-                                <div class="der-time ">
-                                    <ul>
-                                        <li><h2>${dep['departureTime']}</h2></li>
-                                        <li><div class="stays"><p>${dep['timeDifference']}</p></div></li>
-                                        <li><h2>${dep['arrivalTime']}</h2></li>
-                                    </ul>
-                                    <div class="citys">
-                                        <div class="cit">
-                                            <ul>
-                                                <li><p>${dep['originCode']}</p></li>
-                                                <li><p>-</p></li>
-                                                <li><p>${dep['isConnected'] ? '1 Stop' : 'Nonstop'}</p></li>
-                                                <li>-</li>
-                                                <li><p>${dep['destinationCode']}</p></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="pritik">
-                                <a class="bg-info btn text-light" href="#" role="button">PKR ${dep['price']}</a>
-                            </div>
-                        </div>
-                    </li>
-                    ${rtnflightHtml}
-                </ul>`;
-        }
+                </li>`;
+
+            const depInfo = getInfo(dep);
+            const rtnInfo = rtn ? getInfo(rtn, true) : null;
+
+            return `<ul>${renderFlight(depInfo)}${rtnInfo ? renderFlight(rtnInfo) : ''}</ul>`;
+        };
+
 
         /**
          * Function to render flight bundles
@@ -1271,7 +671,7 @@
             const normalizedData = Array.isArray(data) ? data : (data ? [data] : []);
 
             if (normalizedData.length === 0) {
-                return `<div class="alert alert-danger" role="alert">No flights available</div>`;
+                return `<div class="alert alert-danger" role="alert">No bundles available</div>`;
             }
             return normalizedData.map(row => {
                 let description = parseDescription(row['description']);
@@ -1314,7 +714,7 @@
                                 </ul>
                             </div>
                             <div class="conti">
-                                <a class="btn btn-b bookBtn" data-is-return="${isReturn}" data-bundle-id="${row['bunldedServiceId']}" role="button">+ PKR ${Math.round(row['perPaxBundledFee'] || '0')}</a>
+                                <a class="btn btn-b bookBtn" data-airline="flyjinnah" data-is-return="${isReturn}" data-bundle-id="${row['bunldedServiceId']}" role="button">+ PKR ${formatCurrency(Math.round(row['perPaxBundledFee'] || '0'))}</a>
                             </div>
                         </div>
                     </li>`;
@@ -1328,9 +728,12 @@
             $(this).addClass('active');
             let bundleId = $(this).data('bundle-id');
             let isReturnBundle = $(this).data('is-return');
-
+            let offerIds = $(this).data('offer-ids') ?? null;
+            airline = $(this).data('airline');
+            responseId = $(this).data('response-id') ?? null;
             if (!isReturnBundle) {
                 firstBundleId = bundleId;
+                offerIdsDep = offerIds;
                 if (isReturn) {
                     $('.tab-product li[data-targetit="box-17"] a').trigger('click');
                     // _alert('First bundle selected. Now select a return bundle.');
@@ -1341,33 +744,46 @@
                     return;
                 }
                 secondBundleId = bundleId;
+                offerIdsRtn = offerIds;
             }
             if (firstBundleId && (!isReturn || secondBundleId)) {
                 sendBookingRequest(false);
             }
         });
         $(document).on('click', '.directBooking', function() {
+            airline = 'flyjinnah';
             sendBookingRequest(true);
         });
         /**
          * Function to send booking request AJAX
          */
         const sendBookingRequest = isDirectBooking => {
-            // if (!firstBundleId) {
-            //     _alert('You must select at least one bundle.');
-            //     return;
-            // }
-            $.ajax({
-                type: "POST",
-                url: "{{ route('booking_details') }}",
-                data: {
+            let data;
+            if (airline === "flyjinnah") {
+                data = {
                     firstBundleId: firstBundleId ?? null,
                     secondBundleId: secondBundleId ?? null,
                     depSelectedFlight: depSelectedFlight ?? null, 
                     rtnSelectedFlight: rtnSelectedFlight ?? null,
-                    isDirectBooking, flightTotalFare, segments, paxCount,
+                    isDirectBooking, flightTotalFare, segments, paxCount, airline,
                     _token: "{{ csrf_token() }}"
-                },
+                }
+            }
+            if (airline === "emirate") {
+                data = {
+                    firstBundleId: firstBundleId ? JSON.parse(decodeURIComponent(firstBundleId)) : null,
+                    secondBundleId: secondBundleId ? JSON.parse(decodeURIComponent(secondBundleId)) : null,
+                    depOfferIds: offerIdsDep ? JSON.parse(decodeURIComponent(offerIdsDep)) : null,
+                    rtnOfferIds: offerIdsRtn ? JSON.parse(decodeURIComponent(offerIdsRtn)) : null,
+                    responseId, airline, paxCount, _token: "{{ csrf_token() }}"
+                }
+            }
+            // console.log(data)
+            // return;
+            $.ajax({
+                type: "POST",
+                url: "{{ route('booking_details') }}",
+                data,
                 beforeSend: () => _loader('show'),
                 success: function(response) {
                     if (response.redirect) {
@@ -1379,6 +795,7 @@
                 },
                 error: function(xhr, status, error) {
                     _alert(xhr.responseJSON.message, 'error')
+                    console.error('Error Details:', xhr.responseJSON.details);
                     console.error('Error:', error);
                 },
                 complete: () => _loader('hide')
@@ -1433,5 +850,13 @@
                 depTerminal: data['DepartureAirport']['@attributes']['Terminal']
             };
         };
+        function formatBetweenDuration(d1, d2 = null) {
+            const getMin = d => {
+                const m = d.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+                return (parseInt(m[1] || 0) * 60) + parseInt(m[2] || 0);
+            };
+            let mins = getMin(d1) + (d2 ? getMin(d2) : 0);
+            return `${Math.floor(mins / 60)}h ${mins % 60}m`.trim();
+        }
     </script>
 @endsection

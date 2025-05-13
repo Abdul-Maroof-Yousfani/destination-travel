@@ -3,17 +3,22 @@
 namespace App\View\Components;
 
 use Closure;
-use Illuminate\Contracts\View\View;
+use App\Models\Airport;
 use Illuminate\View\Component;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Cache;
 
 class searchflight extends Component
 {
+    public $airports;
     /**
      * Create a new component instance.
      */
     public function __construct()
     {
-        //
+        $this->airports = Cache::rememberForever('airports_list', function () {
+            return Airport::orderBy('name')->pluck('name', 'code')->toArray();
+        });
     }
 
     /**
@@ -24,3 +29,5 @@ class searchflight extends Component
         return view('components.searchflight');
     }
 }
+// How to clear the cache manually if needed:
+// php artisan cache:forget airports_list

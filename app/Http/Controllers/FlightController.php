@@ -5,26 +5,25 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Mail\SendMail;
 use App\Models\BookingId;
-use Illuminate\Http\Request;
 use App\Services\PiaService;
+use Illuminate\Http\Request;
 use App\Services\HelperService;
 use App\Services\EmiratesService;
 use App\Services\FlyJinnahService;
+use Illuminate\Support\Facades\App;
+use App\Services\UserBookingService;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cache;
 
 class FlightController extends Controller
 {
-    protected $flyJinnahService;
-    protected $piaService;
-    protected $emiratesService;
-
-    public function __construct(FlyJinnahService $flyJinnahService, PiaService $piaService, EmiratesService $emiratesService, HelperService $helperService)
-    {
-        $this->helperService = $helperService;
-        $this->flyJinnahService = $flyJinnahService;
-        $this->piaService = $piaService;
-        $this->emiratesService = $emiratesService;
-    }
+    public function __construct(
+        protected FlyJinnahService $flyJinnahService,
+        protected PiaService $piaService,
+        protected EmiratesService $emiratesService,
+        protected HelperService $helperService,
+        protected UserBookingService $bookingService
+    ) {}
     public function search(Request $request)
     {
         try {
@@ -32,90 +31,91 @@ class FlightController extends Controller
             $validatedData = $request->only(['arr', 'dest', 'dep', 'return', 'adt', 'chd', 'inf']);
             // $piaFlights = $this->piaService->searchFlights($validatedData);
             // dd($piaFlights);
-            // $emirateFlights = $this->emiratesService->searchFlights($validatedData);
+            $emirateFlights = $this->emiratesService->searchFlights($validatedData);
             // dd($emirateFlights);
-            $flights = $this->flyJinnahService->searchFlights($validatedData);
+            $flyjinnahFlights = $this->flyJinnahService->searchFlights($validatedData);
+            // dd($flyjinnahFlights);
             // if ($flights['error']) {
             //     return back()->with('error', $flights['error']);
             // }
-            // dd($flights);
-    
             $paxCount = [
                 'adt' => $validatedData['adt'] ?? 1,
                 'chd' => $validatedData['chd'] ?? 0,
                 'inf' => $validatedData['inf'] ?? 0
             ];
-    
-            $flightsData = $flights['ondWiseFlightCombinations'] ?? [];
-            $isRoundTrip = count($flightsData) > 1;
-            $data = [];
-    
-            foreach ($flightsData as $route => $flightData) {
-                if (empty($flightData['dateWiseFlightCombinations'])) {
-                    continue;
-                }
-    
-                foreach ($flightData['dateWiseFlightCombinations'] as $date => $details) {
-                    foreach ($details['flightOptions'] as &$option) {
-                        $flightSegments = collect($option['flightSegments']);
-                        $option['isConnected'] = $flightSegments->count() > 1;
-    
-                        $arrivalDateTime = Carbon::parse($flightSegments->first()['arrivalDateTimeLocal']);
-                        $departureDateTime = Carbon::parse($flightSegments->last()['departureDateTimeLocal']);
-    
-                        $option['departureTime'] = $arrivalDateTime->format('h:i A');
-                        $option['departureDate'] = $arrivalDateTime->format('d M Y');
-                        $option['arrivalTime'] = $departureDateTime->format('h:i A');
-                        $option['timeDifference'] = $departureDateTime->diff($arrivalDateTime)->format('%hh %im');
-                        $option['departureDayIncrease'] = $arrivalDateTime->toDateString() !== $departureDateTime->toDateString();
-
-                        $formatCode = fn($code) => $this->helperService->codeToCountry($code) . "($code)";
-                        $option['originCode'] = $formatCode($flightSegments->first()['origin']['airportCode'] ?? null);
-                        $option['destinationCode'] = $formatCode($flightSegments->last()['destination']['airportCode'] ?? null);
-                        $option['price'] = isset($option['cabinPrices'][0]['price']) ? round($option['cabinPrices'][0]['price'] + ($tax ?? 0)) : null;
-                        $option['cabinClass'] = $option['cabinPrices'][0]['cabinClass'] ?? null;
-                    }
-                    [$org, $des] = explode('/', $route);
-                    $data[] = [
-                        'route' => $this->helperService->codeToCountry($org) . ' to ' . $this->helperService->codeToCountry($des),
-                        'date' => Carbon::parse($date)->format('D, d M, Y'),
-                        'flights' => $details['flightOptions']
-                    ];
-                }
-            }
-            // dd($data);
-            // if (empty($data)) {
-            //     return back()->with('error', 'No flights found for the given criteria.');
-            // }
-    
-            return view('home.flights', compact('paxCount', 'data', 'isRoundTrip'));
+            return view('home.flights', [
+                'paxCount' => $paxCount,
+                'isRoundTrip' => isset($validatedData['return']) ? true : false,
+                'data' => $flyjinnahFlights,
+                'emirates' => $emirateFlights,
+            ]);
     
         } catch (\Exception $e) {
             \Log::error('Flight search failed: ' . $e->getMessage());
             return back()->with('error', 'An error occurred while searching for flights. Please try again.');
         }
     }
-    public function getBundles(Request $request)
+    public function getBundles(Request $request) // skip in emirates
     {
         return response()->json(
             $this->flyJinnahService->getFlightDetails($request->only([
                 'paxCount', 'firstFlight', 'returnFlight', 
                 'firstConnectedFlight', 'returnConnectedFlight'
-            ])), 
+            ])),
             200
         );
     }
     public function bookingDetails(Request $request)
     {
+        $airline = $request->airline ?? '';
+        if (empty($airline)) return;
+        $data = [];
         $passengerTypes = [
             'adt' => 'Adult',
             'chd' => 'Child',
             'inf' => 'Infant'
         ];
+        // dd($request->all());
+        if ($airline === 'emirate') {
+            $data = [
+                'airline' => $airline,
+                'logo' => 'emirates.png',
+                'paxCount' => $request->paxCount ?? null,
+                'firstFlightBundleId' => $request->firstBundleId ?? null,
+                'returnFlightBundleId' => $request->secondBundleId ?? null,
+                'responseId' => $request->responseId ?? null,
+                'passengerTypes' => $passengerTypes,
+                'depOfferIds' => $request->depOfferIds ?? null,
+                'rtnOfferIds' => $request->rtnOfferIds ?? null,
+            ];
+            $flightDetails = $this->emiratesService->getBundlePrice([
+                'data' => $data ?? null
+            ]);
+            if (!empty($flightDetails['error'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $flightDetails['error'],
+                    'details' => $flightDetails['details'],
+                ], 400);
+            }
+            $data['flightDetails'] = $flightDetails;
+            // dd($data);
+            session([
+                'data' => $data,
+                'totalFare' => $totalFarePrice ?? null
+            ]);
+            return response()->json([
+                'status' => 'success',
+                'redirect' => route('flightBooking')
+            ], 200);
+        }
+        // dd('flyjinnah');
         $isDirectBooking = filter_var($request->isDirectBooking, FILTER_VALIDATE_BOOLEAN);
         // dd($isDirectBooking);
         $flightTotalFare = $request->flightTotalFare ?? null;
         $data = [
+            'airline' => $airline,
+            'logo' => 'Fly_Jinnah_logo.png',
             'paxCount' => $request->paxCount ?? null,
             'segments' => $request->segments ?? null,
             'firstFlightBundleId' => $request->firstBundleId ?? null,
@@ -164,6 +164,13 @@ class FlightController extends Controller
     {
         // dd(session('IdsExpireTime'));
         // dd(session('totalFare', []));
+        if (session('data.airline') === 'emirate') {
+            return view('home.booking', [
+                'data' => session('data', []),
+                'totalFare' => session('totalFare', []),
+                'tax' => config('variables.flyjinnah_api.tax') ?? 0
+            ]);
+        }
         return view('home.booking', [
             'data' => session('data', []),
             'totalFare' => session('totalFare', []),
@@ -294,108 +301,151 @@ class FlightController extends Controller
     }
     public function bookFlight(Request $request)
     {
-        $data = [
-            'data' => $request->data ?? null,
-            'user' => $request->user ?? null,
-            'passengers' => $request->passengers ?? null,
-            'paymentOnHold' => $request->paymentOnHold ?? null,
-            'finalPriceTag' => $request->finalPriceTag ?? null
-        ];
-        // dd($data);
-        $bookingResponse = $this->flyJinnahService->bookFlight([
-            'data' => $data ?? null
-        ]);
-        // dd($booking);
-        $errorMessage = $bookingResponse['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($booking['error'] ?? null);
-        if ($errorMessage) {
-            return response()->json([
-                'status' => 'error',
-                'message' => strtok($errorMessage, '[')
-            ], 400);
-        }
-        $booking = $bookingResponse['Body']['OTA_AirBookRS']['AirReservation'];
-        $bookingData = $booking['TravelerInfo'] ?? [];
-        $bookingRefID = $booking['BookingReferenceID']['@attributes']['ID'] ?? '--';
-        $paxPriceArray = $booking['PriceInfo']['PTC_FareBreakdowns']['PTC_FareBreakdown'] ?? [];
-        $ticketMsg = $booking['Ticketing'] ?? [];
-
-        // $userFullName = trim(($request->user['userFirstName'] ?? '') . ' ' . ($request->user['userLastName'] ?? '')) ?: '-';
-        $username = $request->user['userFullName'] ?? '-';
-        $userEmail = $request->user['userEmail'] ?? null;
-        $userDetails = BookingId::create([
-            'name' => $username,
-            'email' => $userEmail ?? '-',
-            'phone_code' => $request->user['userPhoneCode'] ?? '-',
-            'phone' => $request->user['userPhone'] ?? '-',
-            'acceptOffers' => $request->user['acceptOffers'] ?? '-',
-            'booking_id' => $bookingRefID,
-            'ip' => request()->ip(),
-        ]);
-        $emailMsg = '';
-        if ($userEmail) {
-            try {
-                Mail::to($userEmail)->send(new SendMail($username, $bookingRefID, $ticketMsg['TicketAdvisory']));
-                $emailMsg = 'Flight details sent to email successfully';
-            } catch (\Exception $e) {
-                \Log::error('Mail sending failed: ' . $e->getMessage());
-                $emailMsg = 'Failed to send email';
+        $airline = $request->airline ?? '';
+        // dd($request->all());
+        if ($airline === 'emirate') {
+            $passengers = $request->passengers ?? null;
+            $data = [
+                'user' => $request->user ?? null,
+                'paymentOnHold' => $request->paymentOnHold ?? null,
+                'offerIds' => $request->offerIds ?? null,
+                'bundleId' => $request->bundleId ?? null,
+                'responseId' => $request->responseId ?? null,
+                'paxCount' => $request->paxCount ?? null,
+                'passengers' => $passengers,
+            ];
+            $bookFlight = $this->emiratesService->bookFlight($data ?? null);
+            // dd($bookFlight);
+            if (!empty($bookFlight['error'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $bookFlight['error'],
+                    'details' => $bookFlight['details'],
+                ], 400);
             }
-        }
-
-        $data = [];
-        $airTravelers = isset($bookingData['AirTraveler'][0]) ? $bookingData['AirTraveler'] : [$bookingData['AirTraveler'] ?? []];
-
-        foreach ($airTravelers as $item) {
-            if (empty($item)) continue;
-            $eTicketInfo = [];
-            $ticketArray = $item['ETicketInfo']['ETicketInfomation'] ?? [];
-
-            if (isset($ticketArray[0])) {
-                foreach ($ticketArray as $ticket) {
+            $bookingRefID = $bookFlight['bundle']['bookingReferences']['bookingId'] ?? null;
+            $ticketMsg = 'Booking is OnHold';
+            // dd($bookFlight['bundle']['timeLimits']);
+            $userData = [
+                'user' => $request->user,
+                'bookingRefID' => $bookingRefID,
+                'ticketStatusMsg' => $ticketMsg,
+                'ticketLimit' => $bookFlight['bundle']['timeLimits']['ticketingTimeLimit'] ?? null,
+                'paymentLimit' => $bookFlight['bundle']['timeLimits']['paymentTimeLimit'] ?? null,
+                'airlineIds' => $bookFlight['bundle']['bookingReferences']['airlineID'] ?? null,
+                'airline' => $bookFlight['bundle']['bookingReferences']['airline'] ?? null,
+            ];
+            $userDetails = [];
+            if (App::environment('local')) {
+                $cacheKey = 'useremi';
+                $userDetails = Cache::remember($cacheKey, now()->addHours(30), function () use ($userData) {
+                    return $this->bookingService->createUser($userData);
+                });
+            } elseif (App::environment('production')) {
+                $userDetails = $this->bookingService->createUser($userData);
+            }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Success! Your flight is booked. Safe travels!.',
+                'data' => $bookFlight,
+                'passengers' => $passengers,
+                'bookingRefID' => $bookingRefID,
+                'ticketMsg' => $ticketMsg,
+                'userDetails' => ['name' => $userDetails['user']['name'], 'email' => $userDetails['user']['email']],
+                'totalPrice' => $bookFlight['bundle']['totalPrice'] ?? [],
+                'emailStatus' => $userDetails['emailMessage'] ?? 'Failed to send email'
+            ], 200);
+        } elseif ($airline === 'flyjinnah') {
+            $data = [
+                'data' => $request->data ?? null,
+                'user' => $request->user ?? null,
+                'passengers' => $request->passengers ?? null,
+                'paymentOnHold' => $request->paymentOnHold ?? null,
+                'finalPriceTag' => $request->finalPriceTag ?? null
+            ];
+            // dd($data);
+            $bookingResponse = $this->flyJinnahService->bookFlight([
+                'data' => $data ?? null
+            ]);
+            // dd($booking);
+            $errorMessage = $bookingResponse['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($booking['error'] ?? null);
+            if ($errorMessage) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => strtok($errorMessage, '[')
+                ], 400);
+            }
+            $booking = $bookingResponse['Body']['OTA_AirBookRS']['AirReservation'];
+            $bookingData = $booking['TravelerInfo'] ?? [];
+            $bookingRefID = $booking['BookingReferenceID']['@attributes']['ID'] ?? '--';
+            $paxPriceArray = $booking['PriceInfo']['PTC_FareBreakdowns']['PTC_FareBreakdown'] ?? [];
+            $ticketMsg = $booking['Ticketing'] ?? [];
+            $userData = [
+                'user' => $request->user,
+                'bookingRefID' => $bookingRefID,
+                'ticketStatusMsg' => $ticketMsg['TicketAdvisory'],
+                'ticketLimit' => null,
+                'paymentLimit' => null,
+                'airlineIds' => null,
+                'airline' => 'flyjinnah',
+            ];
+            $userDetails = $this->bookingService->createUser($userData);
+    
+            $data = [];
+            $airTravelers = isset($bookingData['AirTraveler'][0]) ? $bookingData['AirTraveler'] : [$bookingData['AirTraveler'] ?? []];
+    
+            foreach ($airTravelers as $item) {
+                if (empty($item)) continue;
+                $eTicketInfo = [];
+                $ticketArray = $item['ETicketInfo']['ETicketInfomation'] ?? [];
+    
+                if (isset($ticketArray[0])) {
+                    foreach ($ticketArray as $ticket) {
+                        $eTicketInfo[] = [
+                            'couponNo' => $ticket['@attributes']['couponNo'] ?? '',
+                            'eTicketNo' => $ticket['@attributes']['eTicketNo'] ?? '',
+                            'flightSegmentCode' => str_replace('/', ' to ', $ticket['@attributes']['flightSegmentCode'] ?? ''),
+                            'usedStatus' => $ticket['@attributes']['usedStatus'] ?? '',
+                        ];
+                    }
+                } elseif (!empty($ticketArray)) {
                     $eTicketInfo[] = [
-                        'couponNo' => $ticket['@attributes']['couponNo'] ?? '',
-                        'eTicketNo' => $ticket['@attributes']['eTicketNo'] ?? '',
-                        'flightSegmentCode' => str_replace('/', ' to ', $ticket['@attributes']['flightSegmentCode'] ?? ''),
-                        'usedStatus' => $ticket['@attributes']['usedStatus'] ?? '',
+                        'couponNo' => $ticketArray['@attributes']['couponNo'] ?? '',
+                        'eTicketNo' => $ticketArray['@attributes']['eTicketNo'] ?? '',
+                        'flightSegmentCode' => str_replace('/', ' to ', $ticketArray['@attributes']['flightSegmentCode'] ?? ''),
+                        'usedStatus' => $ticketArray['@attributes']['usedStatus'] ?? '',
                     ];
                 }
-            } elseif (!empty($ticketArray)) {
-                $eTicketInfo[] = [
-                    'couponNo' => $ticketArray['@attributes']['couponNo'] ?? '',
-                    'eTicketNo' => $ticketArray['@attributes']['eTicketNo'] ?? '',
-                    'flightSegmentCode' => str_replace('/', ' to ', $ticketArray['@attributes']['flightSegmentCode'] ?? ''),
-                    'usedStatus' => $ticketArray['@attributes']['usedStatus'] ?? '',
+                $data[] = [
+                    'name' => $item['PersonName']['GivenName'] ?? 'Unknown',
+                    'surName' => $item['PersonName']['Surname'] ?? 'Unknown',
+                    // 'phoneNumber' => $item['Telephone']['@attributes']['PhoneNumber'] ?? 'Unknown',
+                    'type' => $item['@attributes']['PassengerTypeCode'] ?? 'Unknown',
+                    'travelerRefNumber' => $item['TravelerRefNumber']['@attributes']['RPH'] ?? 'Unknown',
+                    'eTicketInfo' => $eTicketInfo
                 ];
             }
-            $data[] = [
-                'name' => $item['PersonName']['GivenName'] ?? 'Unknown',
-                'surName' => $item['PersonName']['Surname'] ?? 'Unknown',
-                // 'phoneNumber' => $item['Telephone']['@attributes']['PhoneNumber'] ?? 'Unknown',
-                'type' => $item['@attributes']['PassengerTypeCode'] ?? 'Unknown',
-                'travelerRefNumber' => $item['TravelerRefNumber']['@attributes']['RPH'] ?? 'Unknown',
-                'eTicketInfo' => $eTicketInfo
-            ];
+            $paxPricingArray = is_array($paxPriceArray) && isset($paxPriceArray[0]) ? $paxPriceArray : [$paxPriceArray];
+            $paxPricing = [];
+            foreach ($paxPricingArray as $pax) {
+                if (empty($pax)) continue;
+                $paxPricing[] = [
+                    'code' => $pax['PassengerTypeQuantity']['@attributes']['Code'] ?? '-',
+                    'price' => $pax['PassengerFare']['TotalFare']['@attributes'] ?? '-',
+                    'travelerRefNumber' => $pax['TravelerRefNumber']['@attributes'] ?? '-',
+                ];
+            }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Success! Your flight is booked. Safe travels!.',
+                'data' => $data,
+                'bookingRefID' => $bookingRefID,
+                'ticketMsg' => $ticketMsg,
+                'userDetails' => ['name' => $userDetails['user']['name'], 'email' => $userDetails['user']['email']],
+                'paxPricing' => $paxPricing,
+                'totalPrice' => $booking['PriceInfo']['ItinTotalFare']['TotalFare']['@attributes'] ?? '--',
+                'emailStatus' => $userDetails['emailMessage']
+            ], 200);
         }
-        $paxPricingArray = is_array($paxPriceArray) && isset($paxPriceArray[0]) ? $paxPriceArray : [$paxPriceArray];
-        $paxPricing = [];
-        foreach ($paxPricingArray as $pax) {
-            if (empty($pax)) continue;
-            $paxPricing[] = [
-                'code' => $pax['PassengerTypeQuantity']['@attributes']['Code'] ?? '-',
-                'price' => $pax['PassengerFare']['TotalFare']['@attributes'] ?? '-',
-                'travelerRefNumber' => $pax['TravelerRefNumber']['@attributes'] ?? '-',
-            ];
-        }
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Success! Your flight is booked. Safe travels!.',
-            'data' => $data,
-            'bookingRefID' => $bookingRefID,
-            'ticketMsg' => $ticketMsg,
-            'userDetails' => ['name' => $userDetails->name, 'email' => $userDetails->email],
-            'paxPricing' => $paxPricing,
-            'totalPrice' => $booking['PriceInfo']['ItinTotalFare']['TotalFare']['@attributes'] ?? '--',
-            'emailStatus' => $emailMsg
-        ], 200);
     }
 }

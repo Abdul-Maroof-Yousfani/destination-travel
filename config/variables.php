@@ -6,7 +6,10 @@ return [
     ],
     'contact' => [
         'name' => env('AGENCY_NAME'),
-        'phone' => +923112084701,
+        'phone' => '(021) 32460260–61',
+        'address' => 'Office No. 1113, Plot 111, KS Trade Tower, Shahrah-e-Liaquat, New Chali Road, Karachi, Pakistan',
     ],
-
+    'setting' => [
+        'timezone' => env('Asia/Karachi'),
+    ],
 ];

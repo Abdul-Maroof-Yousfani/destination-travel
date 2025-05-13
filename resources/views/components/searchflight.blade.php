@@ -1,4 +1,3 @@
-
 <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
@@ -215,26 +214,32 @@
                                     <!-- <p>Flying From (City or Airport)</p> -->
                                     <select id="from" class="select2 form-control">
                                         <option value="" disabled selected>Flying From (City or Airport)</option>
-                                        <option value="RUH">Riyadh King Khālid International Airport (RUH)</option>
-                                        <option value="BAH">Bahrain (BAH)</option>
-                                        <option value="COK">Kochi (COK)</option>
-                                        <option value="AMM">Amman (AMM)</option>
-                                        <option value="SHJ">Sharjah (SHJ)</option>
-                                        <option value="KHI">Karachi (KHI)</option>
-                                        <option value="ISB">Islamabad (ISB)</option>
-                                        <option value="LHR">Lahore (LHR)</option>
-                                        <option value="JFK">New York (JFK)</option>
-                                        <option value="LAX">Los Angeles (LAX)</option>
-                                        <option value="ORD">Chicago (ORD)</option>
-                                        <option value="MIA">Miami (MIA)</option>
-                                        <option value="DFW">Dallas (DFW)</option>
-                                        <option value="SFO">San Francisco (SFO)</option>
-                                        <option value="ATL">Atlanta (ATL)</option>
-                                        <option value="SEA">Seattle (SEA)</option>
-                                        <option value="DEN">Denver (DEN)</option>
-                                        <option value="BOS">Boston (BOS)</option>
-                                        <option value="LAS">Las Vegas (LAS)</option>
-                                        <option value="IAH">Houston (IAH)</option>
+                                        @if (!empty($airports))
+                                            @foreach ($airports as $code => $name)
+                                                <option value="{{ $code }}">{{ $name }} ({{ $code }})</option>
+                                            @endforeach
+                                        @else
+                                            <option value="RUH">Riyadh King Khālid International Airport (RUH)</option>
+                                            <option value="BAH">Bahrain (BAH)</option>
+                                            <option value="COK">Kochi (COK)</option>
+                                            <option value="AMM">Amman (AMM)</option>
+                                            <option value="SHJ">Sharjah (SHJ)</option>
+                                            <option value="KHI">Karachi (KHI)</option>
+                                            <option value="ISB">Islamabad (ISB)</option>
+                                            <option value="LHR">Lahore (LHR)</option>
+                                            <option value="JFK">New York (JFK)</option>
+                                            <option value="LAX">Los Angeles (LAX)</option>
+                                            <option value="ORD">Chicago (ORD)</option>
+                                            <option value="MIA">Miami (MIA)</option>
+                                            <option value="DFW">Dallas (DFW)</option>
+                                            <option value="SFO">San Francisco (SFO)</option>
+                                            <option value="ATL">Atlanta (ATL)</option>
+                                            <option value="SEA">Seattle (SEA)</option>
+                                            <option value="DEN">Denver (DEN)</option>
+                                            <option value="BOS">Boston (BOS)</option>
+                                            <option value="LAS">Las Vegas (LAS)</option>
+                                            <option value="IAH">Houston (IAH)</option>
+                                        @endif
                                     </select>
                                 </div>
                         </div>
@@ -256,26 +261,32 @@
                                 <!-- <p>Flying To (City or Airport)</p> -->
                                 <select id="to" class="select2 form-control">
                                     <option value="" disabled selected>Flying To (City or Airport)</option>
-                                    <option value="RUH">Riyadh King Khālid International Airport (RUH)</option>
-                                    <option value="BAH">Bahrain (BAH)</option>
-                                    <option value="COK">Kochi (COK)</option>
-                                    <option value="AMM">Amman (AMM)</option>
-                                    <option value="SHJ">Sharjah (SHJ)</option>
-                                    <option value="KHI">Karachi (KHI)</option>
-                                    <option value="ISB">Islamabad (ISB)</option>
-                                    <option value="LHR">Lahore (LHR)</option>
-                                    <option value="JFK">New York (JFK)</option>
-                                    <option value="LAX">Los Angeles (LAX)</option>
-                                    <option value="ORD">Chicago (ORD)</option>
-                                    <option value="MIA">Miami (MIA)</option>
-                                    <option value="DFW">Dallas (DFW)</option>
-                                    <option value="SFO">San Francisco (SFO)</option>
-                                    <option value="ATL">Atlanta (ATL)</option>
-                                    <option value="SEA">Seattle (SEA)</option>
-                                    <option value="DEN">Denver (DEN)</option>
-                                    <option value="BOS">Boston (BOS)</option>
-                                    <option value="LAS">Las Vegas (LAS)</option>
-                                    <option value="IAH">Houston (IAH)</option>
+                                    @if (!empty($airports))
+                                        @foreach ($airports as $code => $name)
+                                            <option value="{{ $code }}">{{ $name }} ({{ $code }})</option>
+                                        @endforeach
+                                    @else
+                                        <option value="RUH">Riyadh King Khālid International Airport (RUH)</option>
+                                        <option value="BAH">Bahrain (BAH)</option>
+                                        <option value="COK">Kochi (COK)</option>
+                                        <option value="AMM">Amman (AMM)</option>
+                                        <option value="SHJ">Sharjah (SHJ)</option>
+                                        <option value="KHI">Karachi (KHI)</option>
+                                        <option value="ISB">Islamabad (ISB)</option>
+                                        <option value="LHR">Lahore (LHR)</option>
+                                        <option value="JFK">New York (JFK)</option>
+                                        <option value="LAX">Los Angeles (LAX)</option>
+                                        <option value="ORD">Chicago (ORD)</option>
+                                        <option value="MIA">Miami (MIA)</option>
+                                        <option value="DFW">Dallas (DFW)</option>
+                                        <option value="SFO">San Francisco (SFO)</option>
+                                        <option value="ATL">Atlanta (ATL)</option>
+                                        <option value="SEA">Seattle (SEA)</option>
+                                        <option value="DEN">Denver (DEN)</option>
+                                        <option value="BOS">Boston (BOS)</option>
+                                        <option value="LAS">Las Vegas (LAS)</option>
+                                        <option value="IAH">Houston (IAH)</option>
+                                    @endif
                                 </select>
                             </div>
                             

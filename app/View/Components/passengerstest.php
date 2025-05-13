@@ -6,14 +6,15 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class searchflightold extends Component
+class passengerstest extends Component
 {
+    public $flightData;
     /**
      * Create a new component instance.
      */
-    public function __construct()
+    public function __construct($flightData = [])
     {
-        //
+        $this->flightData = is_array($flightData) ? $flightData : [];
     }
 
     /**
@@ -21,6 +22,6 @@ class searchflightold extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.searchflightold');
+        return view('components.passengerstest');
     }
 }

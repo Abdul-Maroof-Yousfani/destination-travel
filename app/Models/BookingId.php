@@ -11,10 +11,25 @@ class BookingId extends Model
 
     protected $table = 'booking_ids';
 
-    protected $fillable = [ 'name', 'phone_code', 'phone', 'email', 'accept_notifications', 'booking_id', 'ip' ];
+    protected $fillable = [
+        'name',
+        'phone_code',
+        'phone',
+        'email',
+        'accept_notifications',
+        'booking_id',
+        'ip',
+        'airline',
+        'airline_ids',
+        'is_paid',
+        'ticket_limit',
+        'payment_limit',
+    ];
 
-    // const CREATED_AT = 'created_at';
-    // const UPDATED_AT = 'updated_at';
-
-    protected $dates = ['created_at', 'updated_at'];
+    protected $casts = [
+        'ticket_limit' => 'datetime',
+        'payment_limit' => 'datetime',
+        'airline_ids' => 'array',
+        'is_paid' => 'boolean',
+    ];
 }

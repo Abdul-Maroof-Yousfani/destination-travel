@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use App\Services\HelperService;
@@ -122,7 +123,7 @@ class FlyJinnahService
         session([
             'JSESSIONID' => null,
             'TransactionIdentifier' => null,
-            'IdsExpireTime' => null,
+            'IdsExpireTimeFj' => null,
         ]);
         $username = $this->username;
         $agentCode = $this->agentCode;
@@ -207,9 +208,8 @@ class FlyJinnahService
                 ]);
                 return ['error' => 'Flight search failed.', 'details' => $response->json()];
             }
-
-            return $response->json();
-
+            // dd($response->json());
+            return $this->getFlights($response->json());
         } catch (\Exception $e) {
             \Log::error('Exception in flight search', ['message' => $e->getMessage()]);
             return ['error' => 'Exception occurred while searching flights.'];
@@ -318,7 +318,7 @@ class FlyJinnahService
             session([
                 'JSESSIONID' => $jsessionId,
                 'TransactionIdentifier' => $arrayResponse['Body']['OTA_AirPriceRS']['@attributes']['TransactionIdentifier'] ?? null,
-                'IdsExpireTime' => now(),
+                'IdsExpireTimeFj' => now()->addMinutes(10),
             ]);
             return([
                 'originDestinationOptions' => $arrayResponse['Body']['OTA_AirPriceRS']['PricedItineraries']['PricedItinerary']['AirItinerary']['OriginDestinationOptions']['OriginDestinationOption'] ?? 'Not found',
@@ -909,6 +909,56 @@ class FlyJinnahService
         }
     }
     // ------------------  Helper Functions  ---------------------
+    private function getFlights($fjData)
+    {
+        if(empty($fjData)) return '';
+        $flightsData = $fjData['ondWiseFlightCombinations'] ?? [];
+        $data = [];
+        $tax = config('variables.flyjinnah_api.tax') ?? 0;
+
+        foreach ($flightsData as $route => $flightData) {
+            if (empty($flightData['dateWiseFlightCombinations'])) {
+                continue;
+            }
+            foreach ($flightData['dateWiseFlightCombinations'] as $date => $details) {
+                foreach ($details['flightOptions'] as &$option) {
+                    if(empty($option['flightSegments'])) {
+                        return $data = [
+                            'route' => '',
+                            'date' => '',
+                            'flights' => ''
+                        ];
+                    }
+                    $flightSegments = collect($option['flightSegments']);
+                    $option['isConnected'] = $flightSegments->count() > 1;
+
+                    $arrivalDateTime = Carbon::parse($flightSegments->first()['arrivalDateTimeLocal']);
+                    $departureDateTime = Carbon::parse($flightSegments->last()['departureDateTimeLocal']);
+
+                    $option['departureTime'] = $arrivalDateTime->format('h:i A');
+                    $option['departureDate'] = $arrivalDateTime->format('d M Y');
+                    $option['arrivalTime'] = $departureDateTime->format('h:i A');
+                    $option['timeDifference'] = $departureDateTime->diff($arrivalDateTime)->format('%hh %im');
+                    $option['departureDayIncrease'] = $arrivalDateTime->toDateString() !== $departureDateTime->toDateString();
+
+                    $formatCode = fn($code) => $this->helperService->codeToCountry($code) . "($code)";
+                    $option['originCode'] = $formatCode($flightSegments->first()['origin']['airportCode'] ?? null);
+                    $option['destinationCode'] = $formatCode($flightSegments->last()['destination']['airportCode'] ?? null);
+                    $option['price'] = isset($option['cabinPrices'][0]['price']) ? round($option['cabinPrices'][0]['price'] + ($tax ?? 0)) : null;
+                    $option['cabinClass'] = $option['cabinPrices'][0]['cabinClass'] ?? null;
+                }
+                [$org, $des] = explode('/', $route);
+                $data[] = [
+                    'route' => $this->helperService->codeToCountry($org) . ' → ' . $this->helperService->codeToCountry($des),
+                    'date' => Carbon::parse($date)->format('D, d M, Y'),
+                    'flights' => $details['flightOptions']
+                ];
+            }
+        }
+        // dd($data);
+        return $data;
+
+    }
     private function addFlightSegments($tag, $flights, $segments = null)
     {
         $segmentsXml = '';

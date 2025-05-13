@@ -9,7 +9,7 @@
                             <li><a href="tel:92 01234567 0">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-solid fa-phone"></i></div>
-                                        <div class="call-content"><span>Call 24/7 </span> <strong>92 01234567 0</strong></div>
+                                        <div class="call-content"><span>Call 24/7 </span> <strong>{{ config('variables.contact.phone') }}</strong></div>
                                     </div>
                                 </a>
                             </li>
@@ -66,10 +66,10 @@
                     <div class="menuWrap2">
                         <ul class="menu2">
                             <li><a href="{{route('home')}}"><i class="fa-solid fa-magnifying-glass"></i> Search Booking</a></li>
-                            <li><a href="tel:92 01234567 0">
+                            <li><a href="tel:{{ config('variables.contact.phone') }}">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-solid fa-phone"></i></div>
-                                        <div class="call-content"><span>Call 24/7 </span><br> <strong>92 01234567 0</strong></div>
+                                        <div class="call-content"><span>Call 24/7 </span><br> <strong>{{ config('variables.contact.phone') }}</strong></div>
                                     </div>
                                 </a>
                             </li>
