@@ -19,7 +19,6 @@ class SearchFlight extends Component
         $this->airports = Cache::rememberForever('airports_list', function () {
             return Airport::orderBy('name')->pluck('name', 'code')->toArray();
         });
-        dd($this->airports);
     }
 
     /**
@@ -27,7 +26,7 @@ class SearchFlight extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.searchflight');
+        return view('components.SearchFlight');
     }
 }
 // How to clear the cache manually if needed:

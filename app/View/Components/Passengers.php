@@ -22,6 +22,6 @@ class Passengers extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.passengers');
+        return view('components.Passengers');
     }
 }
