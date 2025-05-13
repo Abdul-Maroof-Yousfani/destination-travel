@@ -8,7 +8,7 @@ use Illuminate\View\Component;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Cache;
 
-class searchflight extends Component
+class SearchFlight extends Component
 {
     public $airports;
     /**
