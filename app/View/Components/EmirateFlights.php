@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class emirateflights extends Component
+class EmirateFlights extends Component
 {
     public $flights;
     public $isRoundTrip;
