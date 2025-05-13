@@ -17,7 +17,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12 col-lg-12">
-                    <x-searchflight />
+                    <x-SearchFlight />
                 </div>
             </div>
         </div>
