@@ -63,14 +63,12 @@ class EmiratesService
                     <AirportCode>'.$origin.'</AirportCode>
                 </Arrival>
             </OriginDestination>';
-            $returnODR = '<OriginDestinationReferences>OD2</OriginDestinationReferences>';
+            $returnODR = '
+                <CabinType>
+                    <Code>'.$cabinClass.'</Code>
+                    <OriginDestinationReferences>OD2</OriginDestinationReferences>
+                </CabinType>';
         }
-        $farePrefrences = '<FarePreferences>
-                                <Types>
-                                    <Type>70J</Type>
-                                    <Type>749</Type>
-                                </Types>
-                            </FarePreferences>';
         $body = '<AirShoppingRQ Version="17.2" TransactionIdentifier="'.$this->randomId.'">
                         <Document id="document"/>
                         <Party>
@@ -100,16 +98,15 @@ class EmiratesService
                                 <CabinType>
                                     <Code>'.$cabinClass.'</Code>
                                     <OriginDestinationReferences>OD1</OriginDestinationReferences>
-                                    ' . $returnODR . '
                                 </CabinType>
+                                ' . $returnODR . '
                             </CabinPreferences>
                         </Preference>
                         <DataLists>
                             ' . $paxXml . '
                         </DataLists>
                     </AirShoppingRQ>';
-        // $xmlBody = $this->getSoapEnvelope($body);
-        // dd($xmlBody);
+        // dd($this->getSoapEnvelope($body));
         try {
             $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('AirShoppingRQ'), $this->getSoapEnvelope($body));
             // dd($response->body());
@@ -346,6 +343,7 @@ class EmiratesService
                 return ['error' => 'Flight booking request failed Emirates.', 'details' => $response->body()];
             }
             $data = $this->helperService->XMLtoJSONEmirate($response->body());
+            // dd($data);
             $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'];
             if(isset($orderViewRS['Errors'])){
                 return ['error' => 'Flight booking failed.', 'details' => $orderViewRS['Errors']['Error']];
@@ -444,155 +442,6 @@ class EmiratesService
         $paxXml .= "</PassengerList>";
         return $paxXml;
     }
-    // private function getFlights($data)
-    // {
-    //     // dd($data);
-    //     if (empty($data) || empty($data['destinationList']) || empty($data['flights']) || empty($data['flightSegments']) || empty($data['offers']) || empty($data['baggageList']) || empty($data['priceClass'])) return 'Something missing';
-
-    //     $destinations = isset($data['destinationList'][0]) ? $data['destinationList'] : [$data['destinationList']];
-    //     $flights = collect(isset($data['flights'][0]) ? $data['flights'] : [$data['flights']]);
-    //     $segments = collect(isset($data['flightSegments'][0]) ? $data['flightSegments'] : [$data['flightSegments']]);
-    //     $offers = collect(isset($data['offers'][0]) ? $data['offers'] : [$data['offers']]);
-    //     $baggages = collect(isset($data['baggageList'][0]) ? $data['baggageList'] : [$data['baggageList']]);
-    //     $priceClass = collect(isset($data['priceClass'][0]) ? $data['priceClass'] : [$data['priceClass']]);
-    //     $passengers = collect(isset($data['passengers'][0]) ? $data['passengers'] : [$data['passengers']]);
-    //     $serviceList = collect($data['serviceList']) ?? null;
-    //     $responseId = $data['responseId'] ?? null;
-    //     $request = $data['request'];
-    //     // dd($destinations, $flights, $segments, $offers, $baggages, $priceClass, $responseId);
-    //     $timeZone = config('variables.setting.timezone') ?? 'Asia/Karachi';
-    //     $data = [];
-    //     $tax = config('variables.flyjinnah_api.tax') ?? 0;
-    //     $matchedOffers = '';
-    //     foreach ($destinations as $item) {
-    //         $flightIds = explode(' ', $item['FlightReferences']['value'] ?? ''); // fetch bundle with this Aliiiiiiiiiii);
-    //         $matchedFlights = $flights->filter(fn($flight) => in_array($flight['@attributes']['FlightKey'] ?? null, $flightIds))->values();
-    //         $flightSegmentReferences = $matchedFlights->map(fn($flight) => explode(' ', $flight['SegmentReferences']['value'] ?? ''))->values();
-    //         // dd($flightSegmentReferences);
-    //         $segmentDetails=[];
-    //         foreach ($flightSegmentReferences as $segmentIds) {
-    //             $flightSegments = collect($segmentIds)
-    //                 ->map(fn($id) => $segments->firstWhere('@attributes.SegmentKey', $id))
-    //                 ->filter()
-    //                 ->values();
-
-    //             $relatedFlightKeys = $matchedFlights
-    //                 ->filter(fn($flight) => !array_diff($segmentIds, explode(' ', $flight['SegmentReferences']['value'] ?? '')))
-    //                 ->pluck('@attributes.FlightKey')
-    //                 ->all();
-    //             // dd($relatedFlightKeys);
-
-    //             $matchedOffers = $offers
-    //                 ->filter(function ($offer) use ($relatedFlightKeys) {
-    //                     return isset($offer['FlightsOverview']['FlightRef']['value'])
-    //                         ? in_array($offer['FlightsOverview']['FlightRef']['value'], $relatedFlightKeys)
-    //                         : true;
-    //                 })
-    //                 ->map(function ($offer) use ($baggages, $priceClass, $serviceList, $passengers) {
-    //                     $offer['BaggageAllowance'] = collect($offer['BaggageAllowance'] ?? [])
-    //                         ->map(fn($allowance) => $this->updateBaggageAllowance($allowance, $baggages))
-    //                         ->all();
-    //                     // dd($offer);
-    //                     // $item = isset($offer['OfferItem'][0]) ? $offer['OfferItem'][0] : $offer['OfferItem'];
-    //                     $priceClassRef = $offer['FlightsOverview']['FlightRef']['@attributes']['PriceClassRef'] ?? null;
-    //                     $offer['priceClass'] = $priceClassRef ? $priceClass->where('@attributes.PriceClassID', $priceClassRef)->values()->first() : '';
-    //                     return [
-    //                         'offerID' => $offer['@attributes'] ?? null,
-    //                         'parameters' => $offer['Parameters'] ?? null,
-    //                         'timeLimits' => $offer['TimeLimits'] ?? null,
-    //                         'totalPrice' =>  [
-    //                             'code' => $offer['TotalPrice']['DetailCurrencyPrice']['Total']['@attributes']['Code'] ?? '',
-    //                             'amount' => $offer['TotalPrice']['DetailCurrencyPrice']['Total']['value'] ?? '',
-    //                         ],
-    //                         'offerItem' => $this->formatOfferItems($offer['OfferItem'], $serviceList, $passengers),
-    //                         'baggageAllowance' => $offer['BaggageAllowance'],
-    //                         'priceClass' => $offer['priceClass'],
-    //                     ];
-    //                 })->values();
-    //             $expTime = isset($matchedOffers->first()['timeLimits']['OfferExpiration']['@attributes']['DateTime']) ? Carbon::parse($matchedOffers->first()['timeLimits']['OfferExpiration']['@attributes']['DateTime'])->setTimezone($timeZone) : now()->addMinutes(20);
-    //             session([
-    //                 'IdsExpireTimeEmi' => $expTime,
-    //             ]);
-    //             // dd($matchedOffers);
-    //             $lowestPrice = [
-    //                 'code' => $matchedOffers->min(fn($offer) => data_get($offer, 'totalPrice.code', 'PKR')),
-    //                 'amount' => $matchedOffers->min(fn($offer) => (float) data_get($offer, 'totalPrice.amount', 0)) + $tax
-    //             ];
-    //             if ($flightSegments->isNotEmpty()) {
-    //                 $secondFlight = [];
-    //                 if (count($flightSegments) > 1) {
-    //                     $last = $flightSegments->last();
-    //                     $secondFlight = [
-    //                         'isConnected' => filter_var($last['@attributes']['ConnectInd'], FILTER_VALIDATE_BOOLEAN),
-    //                         'details' => $last['FlightDetail'] ?? [],
-    //                         'equipment' => $last['Equipment'] ?? [],
-    //                         'marketingCarrier' => $last['MarketingCarrier'] ?? [],
-    //                     ];
-    //                 }
-    //                 $first = $flightSegments->first();
-    //                 $totalMinutes = 0;
-    //                 try {
-    //                     $d1 = new \DateInterval($first['FlightDetail']['FlightDuration']['Value']['value'] ?? 'PT0M');
-    //                     $totalMinutes += ($d1->h * 60) + $d1->i;
-    //                 } catch (\Exception $e) {
-    //                     \Log::error('Exception in calculate duration', ['message' => $e->getMessage()]);
-    //                 }
-
-    //                 if (!empty($secondFlight) && isset($secondFlight['details']['FlightDuration']['Value']['value'])) {
-    //                     try {
-    //                         $d2 = new \DateInterval($secondFlight['details']['FlightDuration']['Value']['value']);
-    //                         $totalMinutes += ($d2->h * 60) + $d2->i;
-    //                     } catch (\Exception $e) {
-    //                         \Log::error('Exception in calculate duration', ['message' => $e->getMessage()]);
-    //                     }
-    //                 }
-
-    //                 $hours = floor($totalMinutes / 60);
-    //                 $minutes = $totalMinutes % 60;
-    //                 $duration = ($hours > 0 ? $hours . 'h ' : '') . ($minutes > 0 ? $minutes . 'm' : '');
-    //                 $segmentDetails[] = [
-    //                     'Departure' => $first['Departure'] ?? [],
-    //                     'Arrival' => $flightSegments->last()['Arrival'] ?? [],
-    //                     'segmentKey' => $first['@attributes']['SegmentKey'] ?? [],
-    //                     'flightDetails' => [
-    //                         'isConnected' => filter_var($first['@attributes']['ConnectInd'], FILTER_VALIDATE_BOOLEAN),
-    //                         'details' => $first['FlightDetail'] ?? [],
-    //                         'equipment' => $first['Equipment'] ?? [],
-    //                         'marketingCarrier' => $first['MarketingCarrier'] ?? [],
-    //                     ],
-    //                     'secondFlight' => $secondFlight,
-    //                     'duration' => $duration ?? '',
-    //                     'price' => $lowestPrice,
-    //                     'bundles' => $request === 1 ? $matchedOffers->all() : [],
-    //                 ];
-    //             }
-    //         }
-    //         if($request === 2) {
-    //             $data['segments'][] = [
-    //                 'departureCode' => $this->helperService->codeToCountry($item['DepartureCode']),
-    //                 'arrivalCode' => $this->helperService->codeToCountry($item['ArrivalCode']),
-    //                 'flights' => collect($segmentDetails)->first(),
-    //                 'responseId' => $responseId,
-    //             ];
-    //         } else {
-    //             $data[] = [
-    //                 'departureCode' => $this->helperService->codeToCountry($item['DepartureCode']),
-    //                 'arrivalCode' => $this->helperService->codeToCountry($item['ArrivalCode']),
-    //                 'flights' => $segmentDetails,
-    //                 'responseId' => $responseId,
-    //             ];
-    //         }
-    //     }
-    //     if($request === 2) {
-    //         $data['bundle'] = $matchedOffers->first();
-    //         $expTime = isset($data['bundle']['timeLimits']['OfferExpiration']['@attributes']['DateTime']) ? Carbon::parse($data['bundle']['timeLimits']['OfferExpiration']['@attributes']['DateTime'])->setTimezone($timeZone) : now()->addMinutes(20);
-    //         session([
-    //             'IdsExpireTimeEmi' => $expTime,
-    //         ]);
-    //     }
-    //     // dd($data);
-    //     return $data;
-    // }
     private function getFlights($data) //New One
     {
         // dd($data);
@@ -774,112 +623,6 @@ class EmiratesService
         // dd($data);
         return $data;
     }
-    // private function formatOfferItems($data, $serviceItems = null, $passengers)
-    // {
-    //     // dd($data);
-    //     if (empty($data)) return [];
-    //     $data = isset($data[0]) ? $data : [$data];
-    //     $offers = [];
-    //     foreach ($data as $item) {
-    //         // dd($item);
-    //         $offerItemID = $item['@attributes']['OfferItemID'] ?? '';
-    //         $currency = $item['TotalPriceDetail']['TotalAmount']['DetailCurrencyPrice']['Total']['@attributes']['Code'] ?? '';
-    //         $price = $item['TotalPriceDetail']['TotalAmount']['DetailCurrencyPrice']['Total']['value'] ?? '';
-    //         $fareComponent = isset($item['FareDetail']['FareComponent'][0]) ? $item['FareDetail']['FareComponent'] : [$item['FareDetail']['FareComponent']];
-    //         $refs = explode(' ', $item['FareDetail']['PassengerRefs']['value'] ?? '');
-    //         $fareDetail = [
-    //             'passengerRef' => $item['FareDetail']['PassengerRefs'] ?? '',
-    //             'passengers' => collect($refs)
-    //                 ->map(fn($ref) => collect($passengers)->firstWhere('@attributes.PassengerID', $ref)['PTC']['value'] ?? null)
-    //                 ->filter()->countBy()
-    //                 ->map(fn($count, $type) => "$type x $count")
-    //                 ->implode(', ') ?: 'N/A',
-    //             'baseAmount' => [
-    //                 'code' => $item['FareDetail']['Price']['BaseAmount']['@attributes']['Code'] ?? '',
-    //                 'amount' => $item['FareDetail']['Price']['BaseAmount']['value'] ?? '',
-    //             ],
-    //             'taxes' => [
-    //                 'total' => [
-    //                     'code' => $item['FareDetail']['Price']['Taxes']['Total']['@attributes']['Code'] ?? '',
-    //                     'amount' => $item['FareDetail']['Price']['Taxes']['Total']['value'] ?? '',
-    //                 ],
-    //                 'tax' => collect($item['FareDetail']['Price']['Taxes']['Breakdown']['Tax'])->map(function ($tax) {
-    //                     return [
-    //                         'price' => [
-    //                             'code' => $tax['Amount']['@attributes']['Code'] ?? '',
-    //                             'amount' => $tax['Amount']['value'] ?? '',
-    //                         ],
-    //                         'taxCode' => $tax['TaxCode']['value'] ?? '',
-    //                         'description' => $tax['Description']['value'] ?? '',
-    //                     ];
-    //                 })->values()->all()
-    //             ],
-    //             'penalties' => collect($fareComponent)->map(function ($fare) {
-    //                 return [
-    //                     'arrival' => $fare['SegmentRefs']['@attributes']['ON_Point'] ?? '',
-    //                     'destination' => $fare['SegmentRefs']['@attributes']['OFF_Point'] ?? '',
-    //                     'cabinType' => $fare['FareBasis']['CabinType']['CabinTypeName']['value'] ?? '',
-    //                     'fareRules' => $fare['FareRules']['Penalty']['@attributes'] ?? '',
-    //                 ];
-    //             })->values()->all()
-    //         ];
-    //         $services = isset($item['Service'][0]) ? $item['Service'] : [$item['Service']];
-    //         $formattedServices = null;
-    //         // if (!empty($serviceItems) && $serviceItems->filter()->isNotEmpty()) {
-    //             $formattedServices = collect($services)->map(function ($service) use ($serviceItems) {
-    //                 $serviceID = $service['@attributes']['ServiceID'] ?? '';
-    //                 $passengerRefs = $service['PassengerRefs']['value'] ?? '';
-    //                 if (!isset($service['ServiceDefinitionRef'])) {
-    //                     return [
-    //                         'id' => $serviceID,
-    //                         'passengerRefs' => $passengerRefs,
-    //                         'details' => null,
-    //                     ];
-    //                 }
-    //                 $definitionID = $service['ServiceDefinitionRef']['value'] ?? null;
-    //                 $details = null;
-    //                 if ($definitionID) {
-    //                     $matched = $serviceItems->firstWhere('@attributes.ServiceDefinitionID', $definitionID);
-    //                     if ($matched) {
-    //                         $descriptionsRaw = $matched['Descriptions']['Description'] ?? [];
-    //                         $descriptions = isset($descriptionsRaw[0]) ? $descriptionsRaw : [$descriptionsRaw];
-    //                         $descriptionsCollection = collect($descriptions);
-    //                         $typeEntry = $descriptionsCollection->firstWhere('Application.value', 'Type');
-    //                         $name = $typeEntry['Text']['value'] ?? '';
-    //                         $application = $typeEntry['Application']['value'] ?? '';
-    //                         $detailsList = $descriptionsCollection
-    //                             ->filter(fn($desc) => ($desc['Application']['value'] ?? '') === 'Details')
-    //                             ->pluck('Text.value')->filter()->values()->first();
-    //                         $details = [
-    //                             $application => $name,
-    //                             'details' => $detailsList,
-    //                         ];
-    //                     }
-    //                 }
-    //                 return [
-    //                     'id' => $serviceID,
-    //                     'passengerRefs' => $passengerRefs,
-    //                     'details' => $details,
-    //                 ];
-    //             })->values()->all();
-    //         // } else {
-    //         //     $formattedServices = [
-    //         //         'id' => $service['@attributes']['ServiceID'] ?? '',
-    //         //         'passengerRefs' => $passengerRefs,
-    //         //         'details' => null,
-    //         //     ];
-    //         //     dd('ggs');
-    //         // }
-    //         $offers[] = [
-    //             'id' => $offerItemID,
-    //             'totalPrice' => ['code' => $currency, 'amount' => $price],
-    //             'services' => $formattedServices ?? $services ?? '',
-    //             'fareDetail' => $fareDetail ?? '',
-    //         ];
-    //     }
-    //     // dd($offers);
-    //     return $offers;
-    // }
     private function formatOfferItems($data, $serviceItems = null, $passengers)
     {
         $data = isset($data['OrderItem']) ? $data['OrderItem'] : $data;
