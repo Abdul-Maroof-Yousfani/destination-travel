@@ -30,6 +30,7 @@
 @endsection
 @section('content')
 @php
+// dd($data);
    $isEmirate = $data['airline'] === 'emirate';
    $isFlyJinnah = $data['airline'] === 'flyjinnah';
 @endphp
@@ -624,7 +625,7 @@
                                           </div>
                                        @endif
                                     @elseif ($isFlyJinnah)
-                                       @if (!empty($data['returnFlight']) || !empty($data['segments'][1]))
+                                       @if (!empty($data['returnFlight']) && !empty($data['segments'][1]))
                                           <div class="sugge-tab sugge-tab-tickes mt-2">
                                              <div class="flex1">
                                                 <div class="emri">
@@ -774,13 +775,7 @@
       </div>      
    </div>
 </section>
- <x-SessionTimeoutContainer/>
-   {{-- <div class="footerTimeOutContainer">
-      <div class="text-center idExpIn">
-         <h3></h3>
-      </div>
-   </div> --}}
- {{-- <button class="btn btn-dark seses">GOTOOO</button> --}}
+<x-session-timeout-container/>
 @endsection
 @section('script')
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>

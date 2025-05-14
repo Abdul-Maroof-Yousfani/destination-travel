@@ -26,7 +26,7 @@ class SearchFlight extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.SearchFlight');
+        return view('components.search-flight');
     }
 }
 // How to clear the cache manually if needed:
