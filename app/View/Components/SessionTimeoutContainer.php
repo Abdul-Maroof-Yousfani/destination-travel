@@ -22,6 +22,6 @@ class SessionTimeoutContainer extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.SessionTimeoutContainer');
+        return view('components.session-timeout-container');
     }
 }

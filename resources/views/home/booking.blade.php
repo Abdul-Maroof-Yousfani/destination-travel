@@ -72,14 +72,14 @@
                         <div class="row row2">
                            <div class="col-md-12 col-lg-8">
                               @if (\Illuminate\Support\Facades\App::environment('local'))
-                                 <x-PassengersTest :flightData="$data" />
+                                 <x-passengers-test :flightData="$data" />
                               @elseif (\Illuminate\Support\Facades\App::environment('production'))
                                  <x-Passengers :flightData="$data" />
                               @endif
                            </div>
                            <div class="col-md-12 col-lg-4">
                               {{-- @dd($totalFare) --}}
-                              <x-FlightAndPrice :flightData="$data" :totalFare="$totalFare" :tax="$tax" />
+                              <x-flight-and-price :flightData="$data" :totalFare="$totalFare" :tax="$tax" />
                               {{-- <div class="bokkings-bar bokkings-bar2">
                                  <div class="book-head">
                                  <div class="youbook">
@@ -385,7 +385,7 @@
                               </div>
                            </div>
                            <div class="col-md-12 col-lg-4">
-                              <x-FlightAndPrice :flightData="$data" :totalFare="$totalFare" :tax="$tax" priceclass="paymentPriceContainer"/>
+                              <x-flight-and-price :flightData="$data" :totalFare="$totalFare" :tax="$tax" priceclass="paymentPriceContainer"/>
                               {{-- <div class="bokkings-bar bokkings-bar2 paymentPriceContainer">
                                  <div class="book-head">
                                  <div class="youbook">

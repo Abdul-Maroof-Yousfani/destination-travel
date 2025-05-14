@@ -22,6 +22,6 @@ class PassengersTest extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.PassengersTest');
+        return view('components.passengers-test');
     }
 }

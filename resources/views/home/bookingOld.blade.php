@@ -339,7 +339,7 @@
                               @endforeach
                            </div>
                            <div class="col-md-12 col-lg-4">
-                              <x-FlightAndPrice :flightData="$data" />
+                              <x-flight-and-price :flightData="$data" />
                               <div class="bokkings-bar bokkings-bar2">
                                  <div class="book-head">
                                  <div class="youbook">
@@ -563,7 +563,7 @@
                               </div>
                            </div>
                            <div class="col-md-12 col-lg-4">
-                              <x-FlightAndPrice :flightData="$data" />
+                              <x-flight-and-price :flightData="$data" />
                               <div class="bokkings-bar bokkings-bar2 paymentPriceContainer">
                                  <div class="book-head">
                                  <div class="youbook">

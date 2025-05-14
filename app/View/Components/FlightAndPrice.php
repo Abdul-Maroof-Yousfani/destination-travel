@@ -30,6 +30,6 @@ class FlightAndPrice extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.FlightAndPrice');
+        return view('components.flight-and-price');
     }
 }
