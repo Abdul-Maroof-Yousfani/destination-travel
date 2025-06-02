@@ -138,6 +138,8 @@ class EmiratesService
                 'priceClass' => $airShoppingRS['DataLists']['PriceClassList']['PriceClass'] ?? '',
                 'serviceList' => $airShoppingRS['DataLists']['ServiceDefinitionList']['ServiceDefinition'] ?? '',
                 'responseId' => $airShoppingRS['ShoppingResponseID']['ResponseID']['value'] ?? '',
+                'currencyFormat' => collect($airShoppingRS['Metadata']['Other']['OtherMetadata'] ?? [])
+                    ->firstWhere(fn($item) => array_key_exists('CurrencyMetadatas', $item))['CurrencyMetadatas'] ?? [],
                 'request' => 1,
             ];
             // dd($flightData);
@@ -229,6 +231,8 @@ class EmiratesService
                 'priceClass' => $offerPriceRS['DataLists']['PriceClassList']['PriceClass'] ?? '',
                 'serviceList' => $offerPriceRS['DataLists']['ServiceDefinitionList']['ServiceDefinition'] ?? '',
                 'responseId' => $offerPriceRS['ShoppingResponseID']['ResponseID']['value'] ?? '',
+                'currencyFormat' => collect($offerPriceRS['Metadata']['Other']['OtherMetadata'] ?? [])
+                    ->firstWhere(fn($item) => array_key_exists('CurrencyMetadatas', $item))['CurrencyMetadatas'] ?? [],
                 'request' => 2,
             ];
             // dd($flightData);
@@ -245,53 +249,25 @@ class EmiratesService
     public function bookFlight($data)
     {
         if(empty($data)) return '';
+        $user = $data['user'];
+        // dd($data);
         $offer = $this->formatOfferTag($data['offerIds'], $data['bundleId'], $data['responseId']);
-        // dd($offer);
         $paxXml = $this->getPaxContactTag($data['paxCount'], $data['passengers']);
         // dd($paxXml);
-        $farePrefrences = '
-            <Preference>
-                <FarePreferences>
-                    <Types>
-                        <Type>70J</Type>
-                        <Type>749</Type>
-                    </Types>
-                    <Exclusion>
-                        <NoMinStayInd>false</NoMinStayInd>
-                        <NoMaxStayInd>false</NoMaxStayInd>
-                        <NoAdvPurchaseInd>false</NoAdvPurchaseInd>
-                        <NoPenaltyInd>false</NoPenaltyInd>
-                    </Exclusion>
-                </FarePreferences>
-                <PricingMethodPreference>
-                    <BestPricingOption>Y</BestPricingOption>
-                </PricingMethodPreference>
-                <ServicePricingOnlyPreference>
-                    <ServicePricingOnlyInd>false</ServicePricingOnlyInd>
-                </ServicePricingOnlyPreference>
-            </Preference>';
         $loggedInTag = '
             <ContactList>
                 <ContactInformation ContactID="CID1">
-                    <PostalAddress>
-                        <Label>AddressAtDestination</Label>
-                        <Street>123 STREET</Street>
-                        <PostalCode>33160</PostalCode>
-                        <CityName>MIAMI</CityName>
-                        <CountrySubdivisionName>FL</CountrySubdivisionName>
-                        <CountryCode>US</CountryCode>
-                    </PostalAddress>
                     <ContactProvided>
                         <EmailAddress>
                             <Label>Personal</Label>
-                            <EmailAddressValue>KYOUNG@FARELOGIX.COM</EmailAddressValue>
+                            <EmailAddressValue>'.$user['userEmail'].'</EmailAddressValue>
                         </EmailAddress>
                     </ContactProvided>
                     <ContactProvided>
                         <Phone>
                             <Label>Home</Label>
-                            <CountryDialingCode>1</CountryDialingCode>
-                            <PhoneNumber>7865554433</PhoneNumber>
+                            <CountryDialingCode>'.$user['userPhoneCode'].'</CountryDialingCode>
+                            <PhoneNumber>'.$user['userPhone'].'</PhoneNumber>
                         </Phone>
                     </ContactProvided>
                 </ContactInformation>
@@ -320,7 +296,8 @@ class EmiratesService
         try {
             $response = [];
             if (App::environment('local')) {
-                $cacheKey = 'orderComp_GG_' . md5(json_encode($body));
+                // $cacheKey = 'orderComp_GG_' . md5(json_encode($body));
+                $cacheKey = 'orderComp_GG_535';
                 $response = Cache::get($cacheKey);
                 if (!$response) {
                     $response = $this->helperService->postXml(
@@ -359,6 +336,8 @@ class EmiratesService
                 'priceClass' => $orderViewRS['Response']['DataLists']['PriceClassList']['PriceClass'] ?? '',
                 'serviceList' => $orderViewRS['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition'] ?? '',
                 'transactionId' => $orderViewRS['@attributes']['TransactionIdentifier'] ?? '',
+                'currencyFormat' => collect($orderViewRS['Metadata']['Other']['OtherMetadata'] ?? [])
+                    ->firstWhere(fn($item) => array_key_exists('CurrencyMetadatas', $item))['CurrencyMetadatas'] ?? [],
                 'request' => 3,
             ];
             // dd($this->getFlights($flightData));
@@ -454,6 +433,7 @@ class EmiratesService
         $baggages = collect(isset($data['baggageList'][0]) ? $data['baggageList'] : [$data['baggageList']]);
         $priceClass = collect(isset($data['priceClass'][0]) ? $data['priceClass'] : [$data['priceClass']]);
         $passengers = collect(isset($data['passengers'][0]) ? $data['passengers'] : [$data['passengers']]);
+        $currencyFormat = $data['currencyFormat'] ?? null;
         $serviceList = collect($data['serviceList']) ?? null;
         $responseId = $data['responseId'] ?? null;
         $transactionId = $data['transactionId'] ?? null;
@@ -487,7 +467,7 @@ class EmiratesService
                             ? in_array($offer['FlightsOverview']['FlightRef']['value'], $relatedFlightKeys)
                             : true;
                     })
-                    ->map(function ($offer) use ($baggages, $priceClass, $serviceList, $passengers) {
+                    ->map(function ($offer) use ($baggages, $priceClass, $serviceList, $passengers, $currencyFormat) {
                         $offer['BaggageAllowance'] = collect($offer['BaggageAllowance'] ?? [])
                             ->map(fn($allowance) => $this->updateBaggageAllowance($allowance, $baggages))
                             ->all();
@@ -503,7 +483,7 @@ class EmiratesService
                             'airlineID' => ($refs[1]['AirlineID']['value'] ?? '') . ' ' . ($refs[1]['ID']['value'] ?? ''),
                             'airline' => $refs[1]['AirlineID']['@attributes']['Name'] ?? '',
                         ];
-                        $formattedItems = $this->formatOfferItems((isset($offer['OrderItems']) ? $offer['OrderItems'] : $offer['OfferItem']), $serviceList, $passengers);
+                        $formattedItems = $this->formatOfferItems((isset($offer['OrderItems']) ? $offer['OrderItems'] : $offer['OfferItem']), $serviceList, $passengers, $currencyFormat);
                         return [
                             'offerID' => $offer['@attributes'] ?? null,
                             'bookingReferences' => !empty($bookingReferences) ? $bookingReferences : null,
@@ -623,10 +603,15 @@ class EmiratesService
         // dd($data);
         return $data;
     }
-    private function formatOfferItems($data, $serviceItems = null, $passengers)
+    private function formatOfferItems($data, $serviceItems = null, $passengers, $currencyFormat)
     {
         $data = isset($data['OrderItem']) ? $data['OrderItem'] : $data;
         // dd($data);
+        $fareRef = [
+            1 => 'No Show',
+            2 => 'Prior to Departure',
+            3 => 'After Departure'
+        ];
         if (empty($data)) return [];
         $data = isset($data[0]) ? $data : [$data];
         $offers = [];
@@ -669,12 +654,78 @@ class EmiratesService
                         'amount' => $item['FareDetail']['Price']['Taxes']['Total']['value'] ?? '',
                     ]
                 ],
-                'penalties' => collect($fareComponent)->map(function ($fare) {
+                'penalties' => collect($fareComponent)->map(function ($fare) use ($fareRef, $currencyFormat) {
                     return [
                         'arrival' => $fare['SegmentRefs']['@attributes']['ON_Point'] ?? '',
                         'destination' => $fare['SegmentRefs']['@attributes']['OFF_Point'] ?? '',
+                        // $fare['FareRules']['Penalty']['@attributes'] ?? '',
                         'cabinType' => $fare['FareBasis']['CabinType']['CabinTypeName']['value'] ?? '',
-                        'fareRules' => $fare['FareRules']['Penalty']['@attributes'] ?? '',
+                        'fareRules' => [
+                            'cancelFee' => collect($fare['FareRules']['Penalty']['Details']['Detail'] ?? [])
+                                ->filter(fn($item) => ($item['Type']['value'] ?? '') === 'Cancel' && isset($item['Application']['value']))
+                                ->mapWithKeys(function ($item) use ($fareRef, $currencyFormat) {
+                                    $label = $fareRef[$item['Application']['value']] ?? 'Unknown';
+                                    $amountData = $item['Amounts']['Amount'] ?? [];
+
+                                    return [
+                                        $label => [
+                                            'amountApplication' => $amountData['AmountApplication']['value'] ?? null,
+                                            'price' => [
+                                                'amount' => $this->formatMinorUnitsAmount(
+                                                    $currencyFormat,
+                                                    $amountData['CurrencyAmountValue']['@attributes']['Code'] ?? null,
+                                                    $amountData['CurrencyAmountValue']['value'] ?? null
+                                                ),
+                                                'code' => $amountData['CurrencyAmountValue']['@attributes']['Code'] ?? null,
+                                            ]
+                                        ]
+                                    ];
+                                })
+                                ->whenEmpty(fn() => collect(['Status' => 'No cancellation allowed']))
+                                ->toArray(),
+
+                            'changeFee' => collect($fare['FareRules']['Penalty']['Details']['Detail'] ?? [])
+                                ->filter(fn($item) => ($item['Type']['value'] ?? '') === 'Change' && isset($item['Application']['value']))
+                                ->mapWithKeys(function ($item) use ($fareRef, $currencyFormat) {
+                                    $label = $fareRef[$item['Application']['value']] ?? 'Unknown';
+                                    $amountData = $item['Amounts']['Amount'] ?? [];
+
+                                    return [
+                                        $label => [
+                                            'amountApplication' => $amountData['AmountApplication']['value'] ?? null,
+                                            'price' => [
+                                                'amount' => $this->formatMinorUnitsAmount(
+                                                    $currencyFormat,
+                                                    $amountData['CurrencyAmountValue']['@attributes']['Code'] ?? null,
+                                                    $amountData['CurrencyAmountValue']['value'] ?? null
+                                                ),
+                                                'code' => $amountData['CurrencyAmountValue']['@attributes']['Code'] ?? null,
+                                            ]
+                                        ]
+                                    ];
+                                })
+                                ->whenEmpty(fn() => collect(['Status' => 'No change allowed']))
+                                ->toArray(),
+
+                            'refundFee' => collect($fare['FareRules']['Penalty']['Details']['Detail'] ?? [])
+                                ->filter(fn($item) => ($item['Type']['value'] ?? '') === 'Refund' && isset($item['Application']['value']))
+                                ->mapWithKeys(function ($item) use ($fareRef) {
+                                    $label = $fareRef[$item['Application']['value']] ?? 'Unknown';
+                                    $amountData = $item['Amounts']['Amount'] ?? [];
+
+                                    return [
+                                        $label => [
+                                            'amountApplication' => $amountData['AmountApplication']['value'] ?? null,
+                                            'price' => [
+                                            'amount' => $this->formatMinorUnitsAmount($currencyFormat, ($amountData['CurrencyAmountValue']['@attributes']['Code'] ?? null), ($amountData['CurrencyAmountValue']['value'] ?? null)),
+                                                'code' => $amountData['CurrencyAmountValue']['@attributes']['Code'] ?? null,
+                                            ]
+                                        ]
+                                    ];
+                                })
+                            ->whenEmpty(fn() => collect(['Status' => 'Non-refundable']))
+                            ->toArray(),
+                        ],
                     ];
                 })->values()->all()
             ];
@@ -733,6 +784,7 @@ class EmiratesService
             //     ];
             //     dd('ggs');
             // }
+            // dd($fareDetail);
             $offer = [
                 'id' => $offerItemID,
                 'totalPrice' => ['code' => $currency, 'amount' => $price],
@@ -1036,6 +1088,29 @@ class EmiratesService
         }
         // dd($data);
         return $data;
+    }
+    private function formatMinorUnitsAmount($currencyFormat, $code, $amount)
+    {
+        // dd($currencyFormat, $code, $amount);
+        if (!is_numeric($amount)) {
+            preg_match('/\d+/', $amount, $matches);
+            if (empty($matches)) {
+                return $amount;
+            }
+            $amount = (int)$matches[0];
+        }
+
+        if (empty($currencyFormat['CurrencyMetadata']) || !$code) {
+            return $amount;
+        }
+
+        $metadata = collect($currencyFormat['CurrencyMetadata'])
+            ->firstWhere(fn($item) => ($item['@attributes']['MetadataKey'] ?? '') === $code);
+
+        $decimals = $metadata ? intval($metadata['Decimals']['value'] ?? 2) : 2;
+
+        $formattedAmount = $amount / pow(10, $decimals);
+        return number_format($formattedAmount, $decimals, '.', '');
     }
 }
 

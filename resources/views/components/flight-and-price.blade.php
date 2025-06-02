@@ -176,6 +176,7 @@
     </div>
 
     @if ($isEmirate)
+    {{-- @dd($flightData) --}}
         <div class="bokkings-bar bokkings-bar2 penaltiesContainer">
             <div class="book-head">
                 <div class="youbook">
@@ -195,18 +196,60 @@
                             <p>{{ $penalty['arrival'] ?? '' }}</p>
                             <p>{{ $penalty['destination'] ?? '' }}</p>
                         </div>
-                        <div class="emr-adul justify-content-between">
-                            <p>Cancel Fee</p>
-                            <p>{{ $penalty['fareRules']['CancelFeeInd'] ?? '' }}</p>
-                        </div>
-                        <div class="emr-adul justify-content-between">
-                            <p>Change Fee</p>
-                            <p>{{ $penalty['fareRules']['ChangeFeeInd'] ?? '' }}</p>
-                        </div>
-                        <div class="emr-adul justify-content-between">
-                            <p>Refundable Fee</p>
-                            <p>{{ $penalty['fareRules']['RefundableInd'] ?? '' }}</p>
-                        </div>
+                         {{-- Cancel Fee --}}
+                        @if (!empty($penalty['fareRules']['cancelFee']))
+                            <div class="mt-2"><strong class="font-weight-bolder">Cancel Fee</strong></div>
+                            @foreach ($penalty['fareRules']['cancelFee'] as $label => $fee)
+                                <div class="emr-adul justify-content-between">
+                                    <p>{{ $label }}</p>
+                                    @if (isset($fee['price']))
+                                        <p>
+                                            {{ $fee['price']['amount'] ?? '-' }}
+                                            {{ $fee['price']['code'] ?? '' }}
+                                            <small class="small">({{ $fee['amountApplication'] ?? '' }})</small>
+                                        </p>
+                                    @else
+                                        <p>{{ $fee }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endif
+                        {{-- Change Fee --}}
+                        @if (!empty($penalty['fareRules']['changeFee']))
+                            <div class="mt-2"><strong class="font-weight-bolder">Change Fee</strong></div>
+                            @foreach ($penalty['fareRules']['changeFee'] as $label => $fee)
+                                <div class="emr-adul justify-content-between">
+                                    <p>{{ $label }}</p>
+                                    @if (isset($fee['price']))
+                                        <p>
+                                            {{ $fee['price']['amount'] ?? '-' }}
+                                            {{ $fee['price']['code'] ?? '' }}
+                                            <small class="small">({{ $fee['amountApplication'] ?? '' }})</small>
+                                        </p>
+                                    @else
+                                        <p>{{ $fee }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endif
+                        {{-- Refund Fee --}}
+                        @if (!empty($penalty['fareRules']['refundFee']))
+                            <div class="mt-2"><strong class="font-weight-bolder">Refund Fee</strong></div>
+                            @foreach ($penalty['fareRules']['refundFee'] as $label => $fee)
+                                <div class="emr-adul justify-content-between">
+                                    <p>{{ $label }}</p>
+                                    @if (isset($fee['price']))
+                                        <p>
+                                            {{ $fee['price']['amount'] ?? '-' }}
+                                            {{ $fee['price']['code'] ?? '' }}
+                                            <small class="small">({{ $fee['amountApplication'] ?? '' }})</small>
+                                        </p>
+                                    @else
+                                        <p>{{ $fee }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endif
                         <br><hr>
                     @endforeach
                 @endforeach

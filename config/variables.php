@@ -11,5 +11,6 @@ return [
     ],
     'setting' => [
         'timezone' => env('Asia/Karachi'),
+        'admin_email' => 'admin@edestinations.com',
     ],
 ];

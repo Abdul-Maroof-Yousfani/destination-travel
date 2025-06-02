@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use League\Csv\Reader;
 
+// php artisan db:seed --class=AirportSeeder
 class AirportSeeder extends Seeder
 {
     /**

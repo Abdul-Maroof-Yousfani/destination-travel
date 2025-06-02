@@ -94,6 +94,6 @@ class HelperService
             return Airport::orderBy('name')->pluck('name', 'code')->toArray();
         });
 
-        return $airports[$code] ?? 'Unknown';
+        return $airports[$code] ?? $code ?? 'Unknown';
     }
 }
