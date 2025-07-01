@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\AgentPermissionController;
 
 Route::view('/', 'home.home')->name('home');
+Route::view('/terms-and-conditions', 'home.layouts.terms-and-conditions')->name('terms-and-conditions');
 Route::view('mail', 'emails.sendBookingId')->name('mail');
 Route::prefix('flights')->group(function () {
     Route::get('/', [FlightController::class, 'search'])->name('flights');
