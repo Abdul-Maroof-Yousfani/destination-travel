@@ -73,10 +73,10 @@
                                     </div>
                                 </a>
                             </li>
-                            <li><a href="tel:92 01234567 0">
+                            <li><a href="tel:+923232004690">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-brands fa-whatsapp"></i></div>
-                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>92 01234567 0</strong></div>
+                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>+923232004690</strong></div>
                                     </div>
                                 </a>
                             </li>
