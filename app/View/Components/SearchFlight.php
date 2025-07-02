@@ -10,15 +10,15 @@ use Illuminate\Support\Facades\Cache;
 
 class SearchFlight extends Component
 {
-    public $airports;
+    // public $airports;
     /**
      * Create a new component instance.
      */
     public function __construct()
     {
-        $this->airports = Cache::rememberForever('airports_list', function () {
-            return Airport::orderBy('name')->pluck('name', 'code')->toArray();
-        });
+        // $this->airports = Cache::rememberForever('airports_list', function () {
+        //     return Airport::orderBy('name')->pluck('name', 'code')->toArray();
+        // });
     }
 
     /**

@@ -1,9 +1,4 @@
-{{-- @dd($airports) --}}
-<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-{{-- <script src="{{ URL::asset('assets/js/select2/js_tabindex.js') }}"></script> --}}
-<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <style>
@@ -213,35 +208,7 @@
                                 </div>
                                 <div class="flys">
                                     <!-- <p>Flying From (City or Airport)</p> -->
-                                    <select id="from" class="select2 form-control">
-                                        <option value="" disabled selected>Flying From (City or Airport)</option>
-                                        @if (!empty($airports))
-                                            @foreach ($airports as $code => $name)
-                                                <option value="{{ $code }}">{{ $name }} ({{ $code }})</option>
-                                            @endforeach
-                                        @else
-                                            <option value="RUH">Riyadh King Khālid International Airport (RUH)</option>
-                                            <option value="BAH">Bahrain (BAH)</option>
-                                            <option value="COK">Kochi (COK)</option>
-                                            <option value="AMM">Amman (AMM)</option>
-                                            <option value="SHJ">Sharjah (SHJ)</option>
-                                            <option value="KHI">Karachi (KHI)</option>
-                                            <option value="ISB">Islamabad (ISB)</option>
-                                            <option value="LHR">Lahore (LHR)</option>
-                                            <option value="JFK">New York (JFK)</option>
-                                            <option value="LAX">Los Angeles (LAX)</option>
-                                            <option value="ORD">Chicago (ORD)</option>
-                                            <option value="MIA">Miami (MIA)</option>
-                                            <option value="DFW">Dallas (DFW)</option>
-                                            <option value="SFO">San Francisco (SFO)</option>
-                                            <option value="ATL">Atlanta (ATL)</option>
-                                            <option value="SEA">Seattle (SEA)</option>
-                                            <option value="DEN">Denver (DEN)</option>
-                                            <option value="BOS">Boston (BOS)</option>
-                                            <option value="LAS">Las Vegas (LAS)</option>
-                                            <option value="IAH">Houston (IAH)</option>
-                                        @endif
-                                    </select>
+                                    <select id="from" class="select2 form-control" data-placeholder="Flying From (City or Airport)"></select>
                                 </div>
                         </div>
                     </a>
@@ -260,35 +227,7 @@
                             </div>
                             <div class="flys flys2">
                                 <!-- <p>Flying To (City or Airport)</p> -->
-                                <select id="to" class="select2 form-control">
-                                    <option value="" disabled selected>Flying To (City or Airport)</option>
-                                    @if (!empty($airports))
-                                        @foreach ($airports as $code => $name)
-                                            <option value="{{ $code }}">{{ $name }} ({{ $code }})</option>
-                                        @endforeach
-                                    @else
-                                        <option value="RUH">Riyadh King Khālid International Airport (RUH)</option>
-                                        <option value="BAH">Bahrain (BAH)</option>
-                                        <option value="COK">Kochi (COK)</option>
-                                        <option value="AMM">Amman (AMM)</option>
-                                        <option value="SHJ">Sharjah (SHJ)</option>
-                                        <option value="KHI">Karachi (KHI)</option>
-                                        <option value="ISB">Islamabad (ISB)</option>
-                                        <option value="LHR">Lahore (LHR)</option>
-                                        <option value="JFK">New York (JFK)</option>
-                                        <option value="LAX">Los Angeles (LAX)</option>
-                                        <option value="ORD">Chicago (ORD)</option>
-                                        <option value="MIA">Miami (MIA)</option>
-                                        <option value="DFW">Dallas (DFW)</option>
-                                        <option value="SFO">San Francisco (SFO)</option>
-                                        <option value="ATL">Atlanta (ATL)</option>
-                                        <option value="SEA">Seattle (SEA)</option>
-                                        <option value="DEN">Denver (DEN)</option>
-                                        <option value="BOS">Boston (BOS)</option>
-                                        <option value="LAS">Las Vegas (LAS)</option>
-                                        <option value="IAH">Houston (IAH)</option>
-                                    @endif
-                                </select>
+                                <select id="to" class="select2 form-control" data-placeholder="Flying To (City or Airport)"></select>
                             </div>
                             
                         </div>
@@ -780,6 +719,76 @@
 </div>
 
 <script>
+    const staticAirports = [
+        { id: 'KHI', text: 'Karachi (KHI)' },
+        { id: 'ISB', text: 'Islamabad (ISB)' },
+        { id: 'DXB', text: 'Dubai (DXB)' },
+        { id: 'JFK', text: 'New York (JFK)' },
+        // { id: 'LHE', text: 'Lahore (LHE)' },
+        { id: 'LAX', text: 'Los Angeles (LAX)' },
+        { id: 'ORD', text: 'Chicago (ORD)' },
+        { id: 'BAH', text: 'Bahrain (BAH)' },
+    ];
+
+    function setupAirportSelect(selector) {
+        $(selector).select2({
+            theme: 'classic',
+            placeholder: $(selector).data('placeholder'),
+            minimumInputLength: 0,
+            ajax: {
+                transport: function (params, success, failure) {
+                    const term = params.data.term || '';
+                    
+                    if (!term.length) {
+                        // No search term, show only static list
+                        success({ results: staticAirports });
+                        return;
+                    }
+
+                    // With search term, show only remote results
+                    $.ajax({
+                        url: '{{ route("airport") }}',
+                        dataType: 'json',
+                        delay: 250,
+                        data: { term },
+                        success: function (data) {
+                            success({ results: data.results });
+                        },
+                        error: failure
+                    });
+                },
+                processResults: function (data) {
+                    return data;
+                },
+                cache: true
+            }
+        });
+    }
+    const setInitialAirportValue = (selector, code) => {
+        if (!code) return;
+
+        const staticMatch = staticAirports.find(a => a.id === code);
+
+        if (staticMatch) {
+            const option = new Option(staticMatch.text, staticMatch.id, true, true);
+            $(selector).append(option).trigger('change');
+        } else {
+            $.ajax({
+                url: '{{ route("airport") }}',
+                data: { term: code },
+                dataType: 'json',
+                success: function (data) {
+                    const match = data.results.find(item => item.id === code);
+                    if (match) {
+                        const option = new Option(match.text, match.id, true, true);
+                        $(selector).append(option).trigger('change');
+                    }
+                }
+            });
+        }
+    };
+
+
     document.getElementById('dropdownToggle1').addEventListener('click', function(event) {
         event.stopPropagation(); // Prevent immediate closing
         const menu = document.getElementById('dropdownMenu1');
@@ -807,8 +816,11 @@
                 returnDate.val("");
             }
         });
-        $("#from").val(getURLParam("arr"));
-        $("#to").val(getURLParam("dest"));
+        // $("#from").val(getURLParam("arr"));
+        // $("#to").val(getURLParam("dest"));
+        setInitialAirportValue('#from', getURLParam("arr"));
+        setInitialAirportValue('#to', getURLParam("dest"));
+
 
         if(!$("#returnDate").val()){
             $("#returnDate").prop("disabled", true);
@@ -905,10 +917,12 @@
 
             window.location.href = `/flights?arr=${from}&dest=${destination}&dep=${departure}&return=${returnDate}&cabinClass=${cabinClass}&adt=${adults}&chd=${children}&inf=${infants}`;
         });
+        setupAirportSelect('#from');
+        setupAirportSelect('#to');
     });
 </script>
 <!-- citys -->
-<script>
+{{-- <script>
     $(document).ready(function() {
         $('.select2').select2(); // Initialize Select2 for all elements with the class 'select2'
     });
@@ -1029,4 +1043,4 @@
         });
 
     });
-</script>
+</script> --}}

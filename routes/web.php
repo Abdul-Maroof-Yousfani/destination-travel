@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
 use Filament\Notifications\Notification;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\Admin\AgentController;
@@ -9,6 +10,8 @@ use App\Http\Controllers\Admin\AgentPermissionController;
 
 Route::view('/', 'home.home')->name('home');
 Route::view('/terms-and-conditions', 'home.layouts.terms-and-conditions')->name('terms-and-conditions');
+Route::get('get-airport', [HomeController::class, 'airports'])->name('airport');
+Route::post('verify-client', [FlightController::class, 'verifyClient'])->name('verify.client');
 Route::view('mail', 'emails.sendBookingId')->name('mail');
 Route::prefix('flights')->group(function () {
     Route::get('/', [FlightController::class, 'search'])->name('flights');

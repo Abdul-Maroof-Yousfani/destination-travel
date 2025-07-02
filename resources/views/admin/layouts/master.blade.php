@@ -90,7 +90,6 @@
   <!-- Include Scripts -->
   {{-- @include('admin/layouts/footer') --}}
   @include('combine/scripts')
-  @include('combinePartials/scripts')
   <script src="{{ url('assets/admin/script.js') }}"></script>
   @yield('script')
 

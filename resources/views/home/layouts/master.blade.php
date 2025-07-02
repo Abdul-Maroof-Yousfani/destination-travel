@@ -18,6 +18,7 @@
   <!-- Include Styles -->
   <link rel="stylesheet" href="{{ url('assets/css/layout.css') }}">
   <link rel="stylesheet" href="{{ url('assets/css/style.css') }}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" integrity="sha512-10/jx2EXwxxWqCLX/hHth/vu2KY3jCF70dCQB8TSgNjbCVAC/8vai53GfMDrO2Emgwccf2pJqxct9ehpzG+MTw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
@@ -37,6 +38,7 @@
   <!--/ Layout Content -->
 
   <!-- Include Scripts -->
+  @include('combine/scripts')
   @include('home/layouts/footer')
   @include('home/partials/scripts')
   @yield('script')

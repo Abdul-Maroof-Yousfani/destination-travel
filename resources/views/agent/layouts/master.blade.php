@@ -83,7 +83,6 @@
   <!-- Include Scripts -->
   {{-- @include('agent/layouts/footer') --}}
   @include('combine/scripts')
-  @include('combinePartials/scripts')
   <script src="{{ url('assets/admin/script.js') }}"></script>
   @yield('script')
 
