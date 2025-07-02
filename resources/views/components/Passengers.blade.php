@@ -84,7 +84,7 @@
                                <div class="tooltip-content">
                                   <h2>Given Name</h2>
                                   <p>Enter as highlighted in passport</p>
-                                  <img src="/assets/images/passport-vctor.jpg" alt="Tooltip Image">
+                                  <img src="/assets/images/passport-vctor2.jpg" alt="Tooltip Image">
                                </div>
                             </div>
                          </div>
@@ -98,7 +98,14 @@
                          <label for="{{ $i }}_surname">Surname</label>
                             <div class="infos">
                                <input type="text" name="{{ $key }}_surname[]" id="{{ $i }}_surname" class="form-control form-control-info" aria-describedby="helpId" required>
-                               <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i>
+                               <div class="tooltip-container">
+                                  <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i>
+                                 <div class="tooltip-content">
+                                    <h2>Given Name</h2>
+                                    <p>Enter as highlighted in passport</p>
+                                    <img src="/assets/images/passport-vctor.jpg" alt="Tooltip Image">
+                                 </div>
+                               </div>
                             </div>
                             <small id="helpId" class="text-muted">Enter name as per Passport to avoid boarding issues.</small>
                          </div>
