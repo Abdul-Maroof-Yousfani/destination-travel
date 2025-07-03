@@ -25,7 +25,7 @@
                     <li><a href="tel:92 01234567 0">
                             <div class="main-flex">
                                 <div class="icon-head-help"><i class="fa-solid fa-headphones"></i></div>
-                                <div class="call-content"><span>Call 24/7 24/7 Customer Support </span><br> <strong>Speak travel expert</strong></div>
+                                <div class="call-content"><span>Call 24/7 Customer Support </span><br> <strong>Speak travel expert</strong></div>
                             </div>
                         </a>
                     </li>

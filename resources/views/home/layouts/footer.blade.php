@@ -21,7 +21,7 @@
                       <a href="#">Affiliate Program</a>
                    </li>
                    <li>
-                      <a href="{{ route('terms-and-conditions') }}">Privacy Policy</a>
+                      <a href="{{ route('terms-and-conditions') }}">Terms And Conditions</a>
                    </li>
                 </ul>
              </div>
