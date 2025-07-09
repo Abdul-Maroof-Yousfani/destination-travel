@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AgentPermissionController;
 
 Route::view('/', 'home.home')->name('home');
 Route::view('/terms-and-conditions', 'home.layouts.terms-and-conditions')->name('terms-and-conditions');
+Route::view('/about-us', 'home.layouts.about-us')->name('about-us');
 Route::get('get-airport', [HomeController::class, 'airports'])->name('airport');
 Route::post('verify-client', [FlightController::class, 'verifyClient'])->name('verify.client');
 Route::view('mail', 'emails.sendBookingId')->name('mail');

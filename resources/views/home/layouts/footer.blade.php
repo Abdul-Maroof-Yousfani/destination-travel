@@ -31,7 +31,7 @@
                 <h5>Company</h5>
                 <ul>
                    <li>
-                      <a href="#">About Us</a>
+                      <a href="{{ route('about-us') }}">About Us</a>
                    </li>
                    <li>
                       <a href="#">Testimonials</a>
