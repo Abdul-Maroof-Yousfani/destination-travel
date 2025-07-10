@@ -99,13 +99,13 @@ body{font-family:'Inter',sans-serif;line-height:1.6;color:#333;}
                     <p>edestinations.pk, based in Karachi, Pakistan, is a leading travel platform dedicated to empowering travelers with instant bookings and a wide range of comprehensive choices. With a focus on delivering exceptional value, edestinations offers a variety of travel products, including domestic and international flights, hotels, buses, cars, and various services like cutting-edge technology and 24/7 dedicated customer support to enhance the travel experience for our customers. edestinations operates under the umbrella of THIRD EYE TECHNOLOGY SERVICES PTE LTD, a Singapore-based company specializing in online services for Travel Services and Software Development.</p>
                 </div>
                 <div class="hero-image">
-                    <img src="/placeholder.svg?height=300&width=400" alt="Travel illustration">
+                    <img src="https://edestinations.pk/assets/images/" alt="Travel illustration">
                 </div>
             </div>
             
             <div class="customer-support">
                 <div class="support-info">
-                    <img src="/assets/images/customersupport.webp" alt="Support agent" class="support-avatar">
+                    <img src="https://edestinations.pk/assets/images/customersupport.webp" alt="Support agent" class="support-avatar">
                     <div class="support-text">
                         <h3>24/7 Customer Support</h3>
                         <p>Expert in travel or general travel support</p>
@@ -196,25 +196,25 @@ body{font-family:'Inter',sans-serif;line-height:1.6;color:#333;}
             <h2>Our <span class="highlight">Management</span></h2>
             <div class="management-grid">
                 <div class="team-member">
-                    <img src="/placeholder.svg?height=200&width=200" alt="Anonymous 1">
+                    <img src="https://edestinations.pk/assets/images/" alt="Anonymous 1">
                     <h3>Anonymous q</h3>
                     <p>Anonymous q</p>
                     <button class="contact-btn">📧</button>
                 </div>
                 <div class="team-member">
-                    <img src="/placeholder.svg?height=200&width=200" alt="Anonymous 2">
+                    <img src="https://edestinations.pk/assets/images/" alt="Anonymous 2">
                     <h3>Anonymous 2</h3>
                     <p>Anonymous 2</p>
                     <button class="contact-btn">📧</button>
                 </div>
                 <div class="team-member">
-                    <img src="/placeholder.svg?height=200&width=200" alt="Anonymous 3">
+                    <img src="https://edestinations.pk/assets/images/" alt="Anonymous 3">
                     <h3>Anonymous 3</h3>
                     <p> Anonymous 3</p>
                     <button class="contact-btn">📧</button>
                 </div>
                 <div class="team-member">
-                    <img src="/placeholder.svg?height=200&width=200" alt=" Anonymous 4">
+                    <img src="https://edestinations.pk/assets/images/" alt=" Anonymous 4">
                     <h3>Anonymous 4</h3>
                     <p>Anonymous 4</p>
                     <button class="contact-btn">📧</button>
@@ -228,9 +228,9 @@ body{font-family:'Inter',sans-serif;line-height:1.6;color:#333;}
         <div class="container">
             <h2>Our <span class="highlight">Culture</span></h2>
             <div class="culture-gallery">
-                <img src="/placeholder.svg?height=300&width=400" alt="Office culture 1">
-                <img src="/placeholder.svg?height=300&width=400" alt="Office culture 2">
-                <img src="/placeholder.svg?height=300&width=400" alt="Office culture 3">
+                <img src="https://edestinations.pk/assets/images/" alt="Office culture 1">
+                <img src="https://edestinations.pk/assets/images/" alt="Office culture 2">
+                <img src="https://edestinations.pk/assets/images/" alt="Office culture 3">
             </div>
         </div>
     </section>
@@ -240,11 +240,11 @@ body{font-family:'Inter',sans-serif;line-height:1.6;color:#333;}
         <div class="container">
             <h2>Our <span class="highlight">Corporate Partners</span></h2>
             <div class="partners-grid">
-                <img src="/placeholder.svg?height=60&width=120" alt="Partners 1">
-                <img src="/placeholder.svg?height=60&width=120" alt="Partners 2">
-                <img src="/placeholder.svg?height=60&width=120" alt="Partners 3">
-                <img src="/placeholder.svg?height=60&width=120" alt="Partners 4">
-                <img src="/placeholder.svg?height=60&width=120" alt="Partners 5">
+                <img src="https://edestinations.pk/assets/images/" alt="Partners 1">
+                <img src="https://edestinations.pk/assets/images/" alt="Partners 2">
+                <img src="https://edestinations.pk/assets/images/" alt="Partners 3">
+                <img src="https://edestinations.pk/assets/images/" alt="Partners 4">
+                <img src="https://edestinations.pk/assets/images/" alt="Partners 5">
             </div>
         </div>
     </section>
