@@ -27,7 +27,7 @@ class EmiratesService
 
     public function __construct(HelperService $helperService)
     {
-        $this->regenerateLogs = true;
+        $this->regenerateLogs = false;
         $this->logPath = storage_path('logs/emirates_logs.txt');
 
         $this->helperService = $helperService;

@@ -29,12 +29,18 @@ class TruncateTable extends Command
     {
         // List of tables to truncate
         $tables = [
-            'flights',
             'bookings',
-            'segments',
-            'penalties',
             'booking_items',
             'booking_request_bodies',
+            'cancel_responses',
+            'clients',
+            'error_logs',
+            'flights',
+            'passengers',
+            'payments',
+            'penalties',
+            'segments',
+            'tickets',
             // Add more table names as needed
         ];
         Schema::disableForeignKeyConstraints();
