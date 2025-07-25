@@ -161,7 +161,7 @@
             }
 
             $.ajax({
-                url: "{{ route('admin.login_submit') }}",
+                url: "{{ route('admin.login.submit') }}",
                 method: 'POST',
                 data: {
                     email: email,

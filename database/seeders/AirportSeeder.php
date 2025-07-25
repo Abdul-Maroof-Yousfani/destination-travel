@@ -1,5 +1,6 @@
 <?php
 
+// php artisan db:seed --class=AirportSeeder
 namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;

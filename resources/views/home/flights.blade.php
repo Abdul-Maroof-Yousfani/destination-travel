@@ -331,8 +331,8 @@
                                         </div>
                                     </div>
                                 </li>
-                            @else
-                                <p class="text-center">Flyjinnah flights not available</p>
+                            {{-- @else
+                                <p class="text-center">Flyjinnah flights not available</p> --}}
                             @endif
                             {{-- @dd($emirates) --}}
                             <x-emirate-flights :flight="$emirates" :roundTrip="$isRoundTrip" />

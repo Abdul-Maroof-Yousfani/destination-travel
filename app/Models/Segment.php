@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Segment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'departure_code',
@@ -15,6 +16,7 @@ class Segment extends Model
         'departure_date',
         'arrival_date',
         'flight_number',
+        'flight_duration',
         'direction',
         'price',
         'price_code',
@@ -25,4 +27,21 @@ class Segment extends Model
     {
         return $this->belongsTo(Flight::class);
     }
+    public function getFormattedDurationAttribute(): string
+    {
+        try {
+            $interval = new \DateInterval($this->flight_duration);
+            $parts = [];
+            if ($interval->h > 0) {
+                $parts[] = "{$interval->h}h";
+            }
+            if ($interval->i > 0) {
+                $parts[] = "{$interval->i}m";
+            }
+            return implode(' ', $parts) ?: '0m';
+        } catch (\Exception $e) {
+            return 'N/A';
+        }
+    }
+
 }

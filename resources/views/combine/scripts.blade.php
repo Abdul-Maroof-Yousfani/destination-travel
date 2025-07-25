@@ -1,4 +1,5 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+<script src="{{ url('assets/js/custom.js') }}"></script>
 <script>
 	new WOW().init();
 	const _alert = (msg, type = 'success') => {
@@ -40,10 +41,25 @@
     //     }
     //     console.log('ggs')
     // });
+    const _confirm = async (title = 'Are You Sure?', showCancel = true, icon = 'warning', confirmBtn = 'Yes', cancelBtn = 'Cancel') => {
+        const result = await Swal.fire({
+            title,
+            icon,
+            confirmButtonText: confirmBtn,
+            cancelButtonText: cancelBtn,
+            showCancelButton: showCancel,
+            showCloseButton: showCancel
+        });
+        return result.isConfirmed;
+    };
+    // (async () => {
+    //     if (await _confirm('Are you sure you want to delete this entry?', 'warning')) {
+    //         // perform delete
+    //     }
+    // })();
     $(document).ready(function () {
         $('.logoutBtn').on('click', function (e) {
             e.preventDefault();
-
             $.ajax({
                 url: "{{ route('admin.logout') }}",
                 type: 'POST',
@@ -51,7 +67,7 @@
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function () {
-                    window.location.href = "{{ route('admin.login') }}";
+                    window.location.href = "{{ route('home') }}";
                 },
                 error: function (xhr) {
                     alert('Logout failed.');

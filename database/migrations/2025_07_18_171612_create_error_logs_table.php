@@ -11,21 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('passengers', function (Blueprint $table) {
+        Schema::create('error_logs', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('passenger_reference')->nullable();
-            $table->string('type')->nullable();
-            $table->string('given_name');
-            $table->string('surname');
-            $table->date('dob');
-            $table->string('nationality');
-            $table->string('passport_no')->nullable();
-            $table->date('passport_exp')->nullable();
+            $table->unsignedBigInteger('booking_id');
             $table->unsignedBigInteger('client_id');
+            $table->longText('details');
+            $table->enum('error_type', ['ticketing', 'cancellation', 'change'])->default('ticketing');
+            $table->longText('error_message')->nullable();
 
+            $table->foreign('booking_id')->references('id')->on('bookings')->onDelete('cascade');
             $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
-            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -35,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('passengers');
+        Schema::dropIfExists('error_logs');
     }
 };

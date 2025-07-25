@@ -13,21 +13,20 @@ return new class extends Migration
     {
         Schema::create('flights', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('client_id');
+            $table->unsignedBigInteger('booking_id')->nullable();
             $table->string('airline');
             $table->string('departure_code');
             $table->string('arrival_code');
             $table->dateTime('departure_date');
-            $table->dateTime('return_date')->nullable();
-            $table->boolean('is_oneway')->default(true); // like: direct, return etc.
+            $table->dateTime('arrival_date')->nullable();
             $table->boolean('is_connected')->default(false);
             $table->json('pax_count')->nullable(); // e.g., {"adults": 1, "children": 0, "infant": 0}
             $table->string('cabin_class'); // e.g., Economy, Business
             $table->string('price'); // change precision if needed
             $table->string('price_code'); // e.g., USD, EUR
-            $table->string('cancel_fee')->nullable(); // e.g., USD 2121, EUR 3120
-            $table->string('change_fee')->nullable(); // e.g., USD 2131, EUR 1315
-            $table->unsignedBigInteger('client_id');
 
+            $table->foreign('booking_id')->references('id')->on('bookings')->onDelete('cascade');
             $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
 
             $table->softDeletes();

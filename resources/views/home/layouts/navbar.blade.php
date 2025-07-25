@@ -90,22 +90,25 @@
                                     <div class="dropdown-menu" id="dropdownMenu6"></div>
                                 </div>
                             </li> --}}
-                            <li>
-                                <a href="#"><i class="fa-regular fa-user"></i> Sign In</a>
-                            </li>
+                            @auth('client')
+                                <li>
+                                    <a href="{{ route('login') }}"><i class="fa-regular fa-user"></i> Profile</a> &nbsp;
+                                    <a type="button" class="logoutBtn"><i class="fa fa-sign-out"></i> Logout</a>
+                                </li>
+                            @else
+                                <li>
+                                    <a href="{{ route('login') }}"><i class="fa-regular fa-user"></i> Sign In</a>
+                                </li>
+                            @endauth
                         </ul>
                     </div>
                     <div class="menuWrap2 menuWrap3">
                         <ul class="menu2">
                             <li><a href="{{route('home')}}"><i class="fa-solid fa-magnifying-glass"></i></a></li>
-                            
-                            <li>
-                                
-                            </li>
-                        
-                            <li>
-                                <a href="#"><i class="fa-regular fa-user"></i></a>
-                            </li>
+
+                            <li></li>
+
+                            <li><a href="#"><i class="fa-regular fa-user"></i></a></li>
                         </ul>
                     </div>
                 </div>
@@ -113,4 +116,4 @@
         </div>
     </div>
 </header>
-
+{{-- @dd(auth()->guard('client')->user()) --}}

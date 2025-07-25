@@ -9,8 +9,9 @@ use App\Models\BookingRequestBody;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Client extends Model
+class Client extends Authenticatable
 {
     use HasFactory, SoftDeletes;
 
@@ -62,5 +63,11 @@ class Client extends Model
         static::creating(function ($client) {
             $client->ip = request()->ip();
         });
+    }
+
+    public function getFullPhoneAttribute()
+    {
+        $code = ltrim($this->phone_code, '+');
+        return '+' . $code . $this->phone;
     }
 }

@@ -32,7 +32,20 @@
 
 <body>
   @include('home/layouts/navbar')
-
+  @if (session('message'))
+    <script>
+      $(document).ready(function() {
+        _alert("{{ session('message') }}", "{{ session('status') }}");
+      });
+    </script>
+  @endif
+  @if ($errors->any())
+    <script>
+      $(document).ready(function () {
+        _alert("{{ $errors->first() }}", "error");
+      });
+    </script>
+  @endif
   <!-- Layout Content -->
   @yield('content')
   <!--/ Layout Content -->

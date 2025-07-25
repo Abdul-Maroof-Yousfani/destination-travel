@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Booking extends Model
@@ -12,38 +13,82 @@ class Booking extends Model
     // $issuedCount = Booking::issued()->count();
     // $bookings = Booking::where('status', Booking::STATUS_PENDING)->get();
 
+    protected $appends = ['canceled_at'];
+
+    public const STATUS_EXPIRED = 'expired';
     public const STATUS_INITIAL = 'initial';
     public const STATUS_PENDING = 'pending';
     public const STATUS_ISSUED = 'issued';
+    public const STATUS_ERROR = 'error';
+    public const STATUS_CHANGED = 'changed';
+    public const STATUS_CANCEL = 'cancel';
 
     use HasFactory, SoftDeletes;
-
     protected $fillable = [
-        'booking_ref',
-        'booking_ref_owner',
+        'order_id',
+        'order_owner',
+        'flight_booking_id',
         'ticket_limit',
         'payment_limit',
+        'price_code',
+        'price',
+        'tax',
+        'tax_code',
+        'only_search',
         'status',
+        'is_oneway',
         'airline',
         'airline_id',
         'airline_code',
+        'passenger_details',
         'transaction_id',
-        'flight_id',
         'client_id',
+        'agent_id',
     ];
 
     protected $casts = [
         'ticket_limit' => 'datetime',
         'payment_limit' => 'datetime',
+        'is_oneway' => 'boolean',
+        'only_search' => 'boolean',
     ];
 
     public static function getStatuses(): array
     {
         return [
+            self::STATUS_EXPIRED,
             self::STATUS_INITIAL,
+            self::STATUS_ERROR,
             self::STATUS_PENDING,
             self::STATUS_ISSUED,
+            self::STATUS_CHANGED,
+            self::STATUS_CANCEL,
         ];
+    }
+
+    public function agent()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function scopeCancel($query)
+    {
+        return $query->where('status', self::STATUS_CANCEL);
+    }
+
+    public function scopeExpired($query)
+    {
+        return $query->where('status', self::STATUS_EXPIRED);
+    }
+
+    public function scopeChanged($query)
+    {
+        return $query->where('status', self::STATUS_CHANGED);
+    }
+
+    public function scopeError($query)
+    {
+        return $query->where('status', self::STATUS_ERROR);
     }
 
     public function scopeInitial($query)
@@ -66,14 +111,84 @@ class Booking extends Model
         return $this->belongsTo(Client::class);
     }
 
-    public function flight()
+    public function flights()
     {
-        return $this->belongsTo(Flight::class);
+        return $this->hasMany(Flight::class);
     }
     
     public function logs()
     {
         return $this->hasMany(Log::class);
     }
+
+    public function bookingItems()
+    {
+        return $this->hasMany(BookingItem::class);
+    }
+
+    public function bookingRequest()
+    {
+        return $this->hasOne(BookingRequestBody::class);
+    }
+
+    public function errorLogs()
+    {
+        return $this->hasMany(ErrorLog::class);
+    }
+
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    public function cancelResponse()
+    {
+        return $this->hasOne(CancelResponse::class);
+    }
+
+    protected function canceledAt(): Attribute
+    {
+        return Attribute::get(fn () => $this->cancelResponse?->created_at);
+    }
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function getFlightSummary(): string
+    {
+        $tripType = $this->is_oneway ? 'ONEWAY' : 'RETURN';
+        $airlineCode = strtoupper($this->airline_id);
+        $routes = $this->flights->map(function ($flight) {
+            return strtoupper($flight->departure_code . '-' . $flight->arrival_code);
+        })->implode("\n");
+        if (empty($routes)) {
+            $routes = 'N/A';
+        }
+        return "{$tripType}\n{$airlineCode}\n{$routes}";
+    }
+    // total_price
+    public function getTotalPriceAttribute(): string
+    {
+        $code = $this->price_code ?? 'Rs.';
+        $amount = is_numeric($this->price) ? number_format($this->price, 2) : '0.00';
+        return $code . ' ' . $amount;
+    }
+    // total_tax_price
+    public function getTotalTaxPriceAttribute(): string
+    {
+        $tax = (float) ($this->tax ?? 0);
+        $price = is_numeric($this->price) ? (float) $this->price : 0;
+        $totalPrice = $price + $tax;
+        $code = $this->price_code ?? 'Rs.';
+        return $code . ' ' . number_format($totalPrice, 2);
+    }
+
+
 
 }

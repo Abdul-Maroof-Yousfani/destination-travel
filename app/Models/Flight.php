@@ -18,29 +18,31 @@ class Flight extends Model
         'departure_code',
         'arrival_code',
         'departure_date',
-        'return_date',
-        'is_oneway',
+        'arrival_date',
         'is_connected',
         'pax_count',
         'cabin_class',
         'price',
         'price_code',
-        'cancel_fee',
-        'change_fee',
         'client_id',
+        'booking_id',
     ];
 
     protected $casts = [
         'departure_date' => 'datetime',
-        'return_date' => 'datetime',
+        'arrival_date' => 'datetime',
         'is_connected' => 'boolean',
-        'is_oneway' => 'boolean',
         'pax_count' => 'array',
     ];
 
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class);
     }
 
     public function getPaxCountAttribute($value)
@@ -96,4 +98,22 @@ class Flight extends Model
     // {
     //     $this->attributes['flight_nos'] = json_encode($value);
     // }
+
+    public function getCabinNameWithCodeAttribute(): string
+    {
+        $code = strtoupper($this->attributes['cabin_class'] ?? '');
+        $map = [
+            'Y' => 'Economy',
+            'W' => 'Premium Economy',
+            'C' => 'Business',
+            'J' => 'Business',
+            'P' => 'First',
+            'F' => 'First',
+        ];
+
+        $name = $map[$code] ?? 'Unknown';
+
+        return "{$name} ({$code})";
+    }
+
 }

@@ -22,6 +22,10 @@
   <link rel="stylesheet" href="{{ url('assets/admin/style.css') }}">
   @yield('style')
   <style>
+    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button {-webkit-appearance: none;margin: 0;}
+    input[type=number] {-moz-appearance: textfield;}
+    #loader{width:100%;height:100%;display:flex;justify-content:center;align-items:center;background-color:rgba(0,0,0,0.5) !important;z-index:9999;position:fixed;top:0;left:0;overflow:hidden;transition:opacity 0.5s ease;}
+    #loaderChild{width:30px;height:30px;border:5px solid #fff;border-top-color:#007bff;border-radius:50%;animation:spin 2s linear infinite;}
     .content {
       padding: 20px;
       height: calc(100vh - 60px);
@@ -72,6 +76,20 @@
     <div data-loader="dual-ring"></div>
   </div>
   <!--/ Preloader -->
+  @if (session('message'))
+    <script>
+      $(document).ready(function() {
+        _alert("{{ session('message') }}", "{{ session('status') }}");
+      });
+    </script>
+  @endif
+  @if ($errors->any())
+    <script>
+      $(document).ready(function () {
+        _alert("{{ $errors->first() }}", "error");
+      });
+    </script>
+  @endif
   @include('admin/layouts/navbar')
   <div class="content container-fluid">
   

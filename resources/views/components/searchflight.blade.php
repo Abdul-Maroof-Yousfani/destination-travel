@@ -42,10 +42,11 @@
     .modern-calendar::-webkit-calendar-picker-indicator:hover{background-color:#357ABD;}
     .icon-head-loc i{color:#30819c !important;font-size:22px;}
 </style>
-@if (session('error'))
+{{-- @if (session('error'))
     <script>
         window.onload = function () {
             let error = @json(session('error'));
+            console.log(error)
             if (typeof _alert === "function") {
                 _alert(error, 'error');
             } else {
@@ -65,7 +66,7 @@
             }
         };
     </script>
-@endif
+@endif --}}
 <script>
     function toggleDropdown() {
         const menu = document.getElementById('dropdownMenu2');

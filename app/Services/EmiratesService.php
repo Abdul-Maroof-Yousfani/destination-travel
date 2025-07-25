@@ -22,9 +22,14 @@ class EmiratesService
     protected $agencyId;
     protected $pcc;
     protected $subscriptionKey;
+    protected $regenerateLogs;
+    protected $logPath;
 
     public function __construct(HelperService $helperService)
     {
+        $this->regenerateLogs = true;
+        $this->logPath = storage_path('logs/emirates_logs.txt');
+
         $this->helperService = $helperService;
         $this->randomId = Str::random(30);
 
@@ -37,7 +42,7 @@ class EmiratesService
         $this->subscriptionKey = config('services.emirates_api.subscription_key');
         $this->pcc = config('services.emirates_api.pcc');
     }
-    public function searchFlights($data)
+    public function searchFlights($data) // AirShoppingRQ
     {
         $origin = $data['arr'];
         $destination = $data['dest'];
@@ -107,6 +112,7 @@ class EmiratesService
                         </DataLists>
                     </AirShoppingRQ>';
         // dd($this->getSoapEnvelope($body));
+        if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n");}
         try {
             $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('AirShoppingRQ'), $this->getSoapEnvelope($body));
             // dd($response->body());
@@ -119,6 +125,7 @@ class EmiratesService
             }
 
             $responseXml = $response->body();
+            if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRS Response:\n" . (string) $responseXml . "\n\n\n\n\n\n", FILE_APPEND);}
             $data = $this->helperService->XMLtoJSONEmirate($responseXml);
             // dd($data);
             $airShoppingRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['AirShoppingRS'];
@@ -153,7 +160,7 @@ class EmiratesService
             return ['error' => 'Exception occurred while fetching flight details.'];
         }
     }
-    public function getBundlePrice($data)
+    public function getBundlePrice($data) // OfferPriceRQ...........
     {
         // dd($data);
         $data = $data['data'];
@@ -202,6 +209,7 @@ class EmiratesService
                     </DataLists>
                 </OfferPriceRQ>';
         // dd($this->getSoapEnvelope($body));
+        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OfferPriceRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
             $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('OfferPriceRQ'), $this->getSoapEnvelope($body));
             // dd($response->body());
@@ -213,6 +221,7 @@ class EmiratesService
                 return ['error' => 'Flight bundle request failed Emirates.', 'details' => $response->body()];
             }
             $responseXml = $response->body();
+            if ($this->regenerateLogs) {file_put_contents($this->logPath, "OfferPriceRS Response:\n" . (string) $responseXml . "\n\n\n\n\n\n", FILE_APPEND);}
             $data = $this->helperService->XMLtoJSONEmirate($responseXml);
             // dd($responseXml);
             $offerPriceRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OfferPriceRS'];
@@ -246,7 +255,7 @@ class EmiratesService
             return ['error' => 'Exception occurred while fetching flight details.'];
         }
     }
-    public function bookFlight($data)
+    public function bookFlight($data) // OrderCreateRQ (for confirm booking without payment)...................
     {
         if(empty($data)) return '';
         $user = $data['user'];
@@ -293,38 +302,30 @@ class EmiratesService
                     </Query>
                 </OrderCreateRQ>';
         // dd($this->getSoapEnvelope($body));
-        try {
-            $response = [];
-            if (App::environment('local')) {
-                // $cacheKey = 'orderComp_GG_' . md5(json_encode($body));
-                $cacheKey = 'orderComp_GG_535';
-                $response = Cache::get($cacheKey);
-                if (!$response) {
-                    $response = $this->helperService->postXml(
-                        $this->url,
-                        $this->getSoapHeaders('OrderCreateRQ'),
-                        $this->getSoapEnvelope($body)
-                    );
-                    if ($response && $response->successful()) {
-                        Cache::put($cacheKey, $response, now()->addHours(30));
-                    }
-                }
-            } elseif (App::environment('production')) {
-                $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('OrderCreateRQ'), $this->getSoapEnvelope($body));
-            }
+        // try {
+            $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('OrderCreateRQ'), $this->getSoapEnvelope($body));
             if (!$response || !$response->successful()) {
                 \Log::error('Flight booking request failed Emirates', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
+                    'status' => $response?->status(),
+                    'response' => $response?->body()
                 ]);
-                return ['error' => 'Flight booking request failed Emirates.', 'details' => $response->body()];
+                return ['error' => 'Flight booking request failed Emirates.', 'details' => $response?->body()];
             }
+
+            if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCreateRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
+
             $data = $this->helperService->XMLtoJSONEmirate($response->body());
             // dd($data);
-            $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'];
-            if(isset($orderViewRS['Errors'])){
+
+            $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'] ?? null;
+            if (!$orderViewRS) {
+                return ['error' => 'Invalid response structure.', 'details' => $data];
+            }
+
+            if (isset($orderViewRS['Errors'])) {
                 return ['error' => 'Flight booking failed.', 'details' => $orderViewRS['Errors']['Error']];
             }
+
             $flightData = [
                 'offers' => $orderViewRS['Response']['Order'] ?? '',
                 'passengers' => $orderViewRS['Response']['DataLists']['PassengerList']['Passenger'] ?? '',
@@ -336,21 +337,261 @@ class EmiratesService
                 'priceClass' => $orderViewRS['Response']['DataLists']['PriceClassList']['PriceClass'] ?? '',
                 'serviceList' => $orderViewRS['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition'] ?? '',
                 'transactionId' => $orderViewRS['@attributes']['TransactionIdentifier'] ?? '',
-                'currencyFormat' => collect($orderViewRS['Metadata']['Other']['OtherMetadata'] ?? [])
+                'currencyFormat' => collect($orderViewRS['Response']['Metadata']['Other']['OtherMetadata'] ?? [])
                     ->firstWhere(fn($item) => array_key_exists('CurrencyMetadatas', $item))['CurrencyMetadatas'] ?? [],
                 'request' => 3,
             ];
+            session(['responseId' => null]);
+
             // dd($this->getFlights($flightData));
-            session([
-                'responseId' => null,
-            ]);
             return $this->getFlights($flightData);
+
+        // } catch (\Exception $e) {
+        //     \Log::error('Exception in fetching flight details', [
+        //         'message' => $e->getMessage(),
+        //         'trace' => $e->getTraceAsString(),
+        //     ]);
+        //     return ['error' => 'Exception occurred while fetching flight details.'];
+        // }
+
+    }
+    public function orderRetrieve($data) // OrderRetrieveRQ (for fetch order details like latest price & fares)...........
+    {
+        if(empty($data) || !isset($data['orderId'])) return 'Some data is missing for order retrieve';
+        $orderId = $data['orderId'];
+        $orderOwner = $data['owner'] ?? 'EK';
+        // dd($data);
+        $body = '<OrderRetrieveRQ Version="17.2" TransactionIdentifier="'.$this->randomId.'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns1="http://ndc.farelogix.com/aug">
+                    <Document id="document"/>
+                    <Party>
+                        <Sender>
+                            <TravelAgencySender>
+                                <PseudoCity>'.$this->pcc.'</PseudoCity>
+                                <AgencyID>'.$this->agencyId.'</AgencyID>
+                            </TravelAgencySender>
+                        </Sender>
+                    </Party>
+                    <Query>
+                        <Filters>
+                            <OrderID Owner="'.$orderOwner.'">'.$orderId.'</OrderID>
+                        </Filters>
+                    </Query>
+                </OrderRetrieveRQ>';
+        // dd($this->getSoapEnvelope($body));
+        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderRetrieveRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        try {
+            $response = $this->helperService->postXml(
+                $this->url,
+                $this->getSoapHeaders('OrderRetrieveRQ'),
+                $this->getSoapEnvelope($body)
+            );
+
+            if (!$response || !$response->successful()) {
+                \Log::error('Flight booking request failed Emirates', [
+                    'status' => $response?->status(),
+                    'response' => $response?->body()
+                ]);
+                return ['error' => 'Flight booking request failed Emirates (orderRetrieve).', 'details' => $response?->body()];
+            }
+
+            if ($this->regenerateLogs) file_put_contents($this->logPath, "OrderRetrieveRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);
+            $data = $this->helperService->XMLtoJSONEmirate($response->body());
+
+            $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'] ?? null;
+            if (!$orderViewRS) return ['error' => 'Invalid response structure.', 'details' => $data];
+
+            if (isset($orderViewRS['Errors'])) {
+                return ['error' => 'Flight booking failed. (orderRetrieve)', 'details' => $orderViewRS['Errors']['Error']];
+            }
+
+            $flightData = [
+                'offers' => $orderViewRS['Response']['Order'] ?? '',
+                'passengers' => $orderViewRS['Response']['DataLists']['PassengerList']['Passenger'] ?? '',
+                'baggageList' => $orderViewRS['Response']['DataLists']['BaggageAllowanceList']['BaggageAllowance'] ?? '',
+                'fares' => $orderViewRS['Response']['DataLists']['FareList']['FareGroup'] ?? '',
+                'flightSegments' => $orderViewRS['Response']['DataLists']['FlightSegmentList']['FlightSegment'] ?? '',
+                'flights' => $orderViewRS['Response']['DataLists']['FlightList']['Flight'] ?? '',
+                'destinationList' => $orderViewRS['Response']['DataLists']['OriginDestinationList']['OriginDestination'] ?? '',
+                'priceClass' => $orderViewRS['Response']['DataLists']['PriceClassList']['PriceClass'] ?? '',
+                'serviceList' => $orderViewRS['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition'] ?? '',
+                'transactionId' => $orderViewRS['@attributes']['TransactionIdentifier'] ?? '',
+                'currencyFormat' => collect($orderViewRS['Response']['Metadata']['Other']['OtherMetadata'] ?? [])
+                    ->firstWhere(fn($item) => array_key_exists('CurrencyMetadatas', $item))['CurrencyMetadatas'] ?? [],
+                'request' => 3,
+            ];
+
+            // dd($this->getFlights($flightData));
+            return $this->getFlights($flightData);
+
         } catch (\Exception $e) {
-            \Log::error('Exception in fetching flight details', ['message' => $e->getMessage()]);
+            \Log::error('Exception in fetching flight details (orderRetrieve).', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return ['error' => 'Exception occurred while fetching flight details.'];
         }
-    }
 
+    }
+    public function orderChange($data) // OrderChangeRQ (for approve payment)................
+    {
+        if(empty($data) || !isset($data['orderId']) || !isset($data['amount'])) return 'Some data is missing for order change';
+        $orderId = $data['orderId'];
+        $amount = $data['amount'];
+        $code = $data['code'] ?? 'PKR';
+        // dd($data);
+        $body = '<OrderChangeRQ Version="17.2" TransactionIdentifier="'.$this->randomId.'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns1="http://ndc.farelogix.com/aug">
+                    <Document id="document"/>
+                    <Party>
+                        <Sender>
+                            <TravelAgencySender>
+                                <PseudoCity>'.$this->pcc.'</PseudoCity>
+                                <AgencyID>'.$this->agencyId.'</AgencyID>
+                            </TravelAgencySender>
+                        </Sender>
+                    </Party>
+                    <Query>
+                        <OrderID>'.$orderId.'</OrderID>
+                        <Payments>
+                            <Payment>
+                                <Type>CA</Type>
+                                <Method>
+					                <Cash CashInd="true"/>
+                                </Method>
+                                <Amount Code="'.$code.'">'.$amount.'</Amount>
+                            </Payment>
+                        </Payments>
+                    </Query>
+                </OrderChangeRQ>';
+        // dd($this->getSoapEnvelope($body));
+        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        try {
+            $response = $this->helperService->postXml(
+                $this->url,
+                $this->getSoapHeaders('OrderChangeRQ'),
+                $this->getSoapEnvelope($body)
+            );
+
+            if (!$response || !$response->successful()) {
+                \Log::error('Flight booking request failed Emirates', [
+                    'status' => $response?->status(),
+                    'response' => $response?->body()
+                ]);
+                return ['error' => 'Flight booking request failed Emirates (orderChange).', 'details' => $response?->body()];
+            }
+
+            if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
+
+            $data = $this->helperService->XMLtoJSONEmirate($response->body());
+
+            $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'] ?? null;
+            if (!$orderViewRS) return ['error' => 'Invalid response structure.', 'details' => $data];
+
+            if (isset($orderViewRS['Errors'])) return ['error' => 'Flight booking failed.', 'details' => $orderViewRS['Errors']['Error']];
+
+            $flightData = [
+                'offers' => $orderViewRS['Response']['Order'] ?? '',
+                'ticketInfos' => $orderViewRS['Response']['TicketDocInfos']['TicketDocInfo'] ?? '',
+                'passengers' => $orderViewRS['Response']['DataLists']['PassengerList']['Passenger'] ?? '',
+                'baggageList' => $orderViewRS['Response']['DataLists']['BaggageAllowanceList']['BaggageAllowance'] ?? '',
+                'fares' => $orderViewRS['Response']['DataLists']['FareList']['FareGroup'] ?? '',
+                'flightSegments' => $orderViewRS['Response']['DataLists']['FlightSegmentList']['FlightSegment'] ?? '',
+                'flights' => $orderViewRS['Response']['DataLists']['FlightList']['Flight'] ?? '',
+                'destinationList' => $orderViewRS['Response']['DataLists']['OriginDestinationList']['OriginDestination'] ?? '',
+                'priceClass' => $orderViewRS['Response']['DataLists']['PriceClassList']['PriceClass'] ?? '',
+                'serviceList' => $orderViewRS['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition'] ?? '',
+                'transactionId' => $orderViewRS['@attributes']['TransactionIdentifier'] ?? '',
+                'currencyFormat' => collect($orderViewRS['Response']['Metadata']['Other']['OtherMetadata'] ?? [])
+                    ->firstWhere(fn($item) => array_key_exists('CurrencyMetadatas', $item))['CurrencyMetadatas'] ?? [],
+                'request' => 3,
+            ];
+
+            return $this->getFlights($flightData);
+        } catch (\Exception $e) {
+            \Log::error('Exception in fetching flight details(orderChange)', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return ['error' => 'Exception occurred while fetching flight details.'];
+        }
+
+    }
+    public function orderCancel($data) // OrderCancelRQ (for cancel order)
+    {
+        if(empty($data) || !isset($data['orderId'])) return 'Some data is missing for order retrieve';
+        $orderId = $data['orderId'];
+        $orderOwner = $data['owner'] ?? 'EK';
+        // dd($data);
+        $body = '<OrderCancelRQ Version="17.2" TransactionIdentifier="'.$this->randomId.'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns1="http://ndc.farelogix.com/aug">
+                    <Document id="document"/>
+                    <Party>
+                        <Sender>
+                            <TravelAgencySender>
+                                <PseudoCity>'.$this->pcc.'</PseudoCity>
+                                <AgencyID>'.$this->agencyId.'</AgencyID>
+                            </TravelAgencySender>
+                        </Sender>
+                    </Party>
+                    <Query>
+                        <Order Owner="'.$orderOwner.'" OrderID="'.$orderId.'"/>
+                    </Query>
+                </OrderCancelRQ>';
+        // dd($this->getSoapEnvelope($body));
+        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCancelRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        try {
+            $response = $this->helperService->postXml(
+                $this->url,
+                $this->getSoapHeaders('OrderCancelRQ'),
+                $this->getSoapEnvelope($body)
+            );
+
+            if (!$response || !$response->successful()) {
+                \Log::error('Flight booking request failed Emirates (orderCancel)', [
+                    'status' => $response?->status(),
+                    'response' => $response?->body()
+                ]);
+                return ['error' => 'Flight booking request failed Emirates (orderCancel).', 'details' => $response?->body()];
+            }
+
+            if ($this->regenerateLogs) file_put_contents($this->logPath, "OrderCancelRS Response:\n" . (string) $response->body() . "\n", FILE_APPEND);
+            $data = $this->helperService->XMLtoJSONEmirate($response->body());
+
+            $orderCancelRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderCancelRS'] ?? null;
+            if (!$orderCancelRS) return ['error' => 'Invalid response structure.', 'details' => $data];
+
+            if (isset($orderCancelRS['Errors'])) {
+                return ['error' => 'Flight booking failed.', 'details' => $orderCancelRS['Errors']['Error']];
+            }
+            // dd($orderCancelRS);
+
+            $flightData = [
+                'orderReference' => $orderCancelRS['Response']['OrderReference']['value'],
+                'ticketInfos' => $this->ticketInfos($orderCancelRS['Response']['TicketDocInfos']['TicketDocInfo'] ?? [])
+            ];
+            if (isset($orderCancelRS['Warnings'])) {
+                $flightData['warnings'] = [
+                    'shortText' => $orderCancelRS['Warnings']['Warning']['@attributes']['ShortText'],
+                    'code' => $orderCancelRS['Warnings']['Warning']['@attributes']['Code'],
+                    'details' => $orderCancelRS['Warnings']['Warning']['value']
+                ];
+            }
+                // 'warnings' => [
+                //     'shortText' => $orderCancelRS['Warnings']['Warning']['@attributes']['ShortText'],
+                //     'code' => $orderCancelRS['Warnings']['Warning']['@attributes']['Code'],
+                //     'details' => $orderCancelRS['Warnings']['Warning']['value']
+                // ],
+
+            // dd($flightData);
+            return $flightData;
+
+        } catch (\Exception $e) {
+            \Log::error('Exception in fetching flight details (orderCancel)', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return ['error' => 'Exception occurred while fetching flight details.'];
+        }
+
+    }
 
     // ------------------  Helper Functions  ---------------------
 
@@ -421,7 +662,7 @@ class EmiratesService
         $paxXml .= "</PassengerList>";
         return $paxXml;
     }
-    private function getFlights($data) //New One
+    private function getFlights($data)
     {
         // dd($data);
         if (empty($data) || empty($data['destinationList']) || empty($data['flights']) || empty($data['flightSegments']) || empty($data['offers']) || empty($data['baggageList']) || empty($data['priceClass'])) return 'Something missing';
@@ -438,10 +679,120 @@ class EmiratesService
         $responseId = $data['responseId'] ?? null;
         $transactionId = $data['transactionId'] ?? null;
         $request = $data['request'];
+        $ticketInfos = !empty($data['ticketInfos']) ? (collect(isset($data['ticketInfos'][0]) ? $data['ticketInfos'] : [$data['ticketInfos']])) : null;
         // dd($destinations, $flights, $segments, $offers, $baggages, $priceClass, $responseId);
         $timeZone = config('variables.setting.timezone') ?? 'Asia/Karachi';
         $data = [];
         $tax = config('variables.flyjinnah_api.tax') ?? 0;
+        if ($ticketInfos) {
+            $data['ticketInfos'] = $this->ticketInfos($ticketInfos);
+        }
+
+        // if ($ticketInfos) {
+        //     foreach ($ticketInfos as $ticketInfo) {
+        //         $data['ticketInfos'][] = [
+        //             'passengerReference' => $ticketInfo['PassengerReference']['value'] ?? '',
+        //             'agentId' => [
+        //                 'type' => $ticketInfo['AgentIDs']['AgentID']['Type']['value'] ?? '',
+        //                 'id' => $ticketInfo['AgentIDs']['AgentID']['ID']['value'] ?? '',
+        //             ],
+        //             'issuingAirlineInfo' => [
+        //                 'airline' => $ticketInfo['IssuingAirlineInfo']['AirlineName']['value'] ?? '',
+        //                 'place' => $ticketInfo['IssuingAirlineInfo']['Place']['value'] ?? '',
+        //             ],
+        //             'price' => [
+        //                 'passengerReferences' => $ticketInfo['Price']['PassengerReferences']['refs'] ?? '',
+        //                 'refs' => $ticketInfo['Price']['@attributes']['refs'] ?? '',
+        //                 'total' => [
+        //                     'code' => $ticketInfo['Price']['Total']['@attributes']['Code'] ?? '',
+        //                     'value' => $ticketInfo['Price']['Total']['value'] ?? '',
+        //                 ],
+        //                 'details' => [
+        //                     'application' => $ticketInfo['Price']['Details']['Detail']['Application']['value'] ?? '',
+        //                     'amount' => [
+        //                         'code' => $ticketInfo['Price']['Details']['Detail']['Amount']['@attributes']['Code'] ?? '',
+        //                         'value' => $ticketInfo['Price']['Details']['Detail']['Amount']['value'] ?? '',
+        //                     ],
+        //                     'taxes' => [
+        //                         'total' => [
+        //                             'code' => $ticketInfo['Price']['Taxes']['Total']['@attributes']['Code'] ?? '',
+        //                             'value' => $ticketInfo['Price']['Taxes']['Total']['value'] ?? '',
+        //                         ],
+        //                         'breakdown' => collect($ticketInfo['Price']['Taxes']['Breakdown']['Tax'] ?? [])
+        //                             ->map(fn($tax) => [
+        //                                 'amount' => [
+        //                                     'code' => $tax['Amount']['@attributes']['Code'] ?? '',
+        //                                     'value' => $tax['Amount']['value'] ?? 0,
+        //                                 ],
+        //                                 'taxCode' => $tax['TaxCode']['value'] ?? '',
+        //                                 'description' => $tax['Description']['value'] ?? '',
+        //                             ])->all(),
+        //                     ],
+        //                     'fees' => [
+        //                         'code' => $ticketInfo['Price']['Fees']['Total']['@attributes']['Code'] ?? '',
+        //                         'value' => $ticketInfo['Price']['Fees']['Total']['value'] ?? 0,
+        //                     ],
+        //                 ],
+        //             ],
+        //             'ticketDocument' => [
+        //                 'ticketDocNbr' => $ticketInfo['TicketDocument']['TicketDocNbr']['value'] ?? '',
+        //                 'type' => $ticketInfo['TicketDocument']['Type']['value'] ?? '',
+        //                 'numberOfBooklets' => $ticketInfo['TicketDocument']['NumberofBooklets']['value'] ?? '',
+        //                 'dateOfIssue' => $ticketInfo['TicketDocument']['DateOfIssue']['value'] ?? '',
+        //                 'timeOfIssue' => $ticketInfo['TicketDocument']['TimeOfIssue']['value'] ?? '',
+        //                 'ticketingLocation' => $ticketInfo['TicketDocument']['TicketingLocation']['value'] ?? '',
+        //                 'reportingType' => $ticketInfo['TicketDocument']['ReportingType']['value'] ?? '',
+        //                 'couponInfo' => collect($ticketInfo['TicketDocument']['CouponInfo'] ?? [])
+        //                     ->map(fn($coupon) => [
+        //                         'couponNumber' => $coupon['CouponNumber']['value'] ?? '',
+        //                         'couponReference' => $coupon['CouponReference']['value'] ?? '',
+        //                         'fareBasisCode' => $coupon['FareBasisCode']['Code']['value'] ?? '',
+        //                         'status' => $coupon['Status']['value'] ?? '',
+        //                         'validatingAirline' => $coupon['ValidatingAirline']['value'] ?? '',
+        //                         'couponMedia' => $coupon['CouponMedia']['value'] ?? '',
+        //                         'couponValid' => [
+        //                             'effective' => $coupon['CouponValid']['EffectiveDatePeriod']['Effective']['value'] ?? '',
+        //                             'expiration' => $coupon['CouponValid']['EffectiveDatePeriod']['Expiration']['value'] ?? '',
+        //                         ],
+        //                         'currentAirlineInfo' => [
+        //                             'departureDateTime' => Carbon::parse(($coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['Time']) ?? null),
+        //                             'arrivalDateTime' => Carbon::parse(($coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['Time']) ?? null),
+        //                             'status' => $coupon['CurrentAirlineInfo']['Status']['value'] ?? '',
+        //                             'departure' => [
+        //                                 'code' => $coupon['CurrentAirlineInfo']['Departure']['AirportCode']['value'] ?? '',
+        //                                 'date' => $coupon['CurrentAirlineInfo']['Departure']['Date']['value'] ?? '',
+        //                                 'time' => $coupon['CurrentAirlineInfo']['Departure']['Time']['value'] ?? '',
+        //                                 'airport' => $coupon['CurrentAirlineInfo']['Departure']['AirportName']['value'] ?? '',
+        //                                 'terminal' => $coupon['CurrentAirlineInfo']['Departure']['Terminal']['Name']['value'] ?? '',
+        //                             ],
+        //                             'arrival' => [
+        //                                 'code' => $coupon['CurrentAirlineInfo']['Arrival']['AirportCode']['value'] ?? '',
+        //                                 'date' => $coupon['CurrentAirlineInfo']['Arrival']['Date']['value'] ?? '',
+        //                                 'time' => $coupon['CurrentAirlineInfo']['Arrival']['Time']['value'] ?? '',
+        //                                 'airport' => $coupon['CurrentAirlineInfo']['Arrival']['AirportName']['value'] ?? '',
+        //                                 'terminal' => $coupon['CurrentAirlineInfo']['Arrival']['Terminal']['Name']['value'] ?? '',
+        //                             ],
+        //                             'marketingCarrier' => [
+        //                                 'name' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['Name']['value'] ?? '',
+        //                                 'airlineID' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['AirlineID']['value'] ?? '',
+        //                                 'flightNumber' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['FlightNumber']['value'] ?? '',
+        //                                 'resBookDesigCode' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['ResBookDesigCode']['value'] ?? '',
+        //                             ],
+        //                             'equipment' => [
+        //                                 'name' => $coupon['CurrentAirlineInfo']['Equipment']['Name']['value'] ?? '',
+        //                                 'AircraftCode' => $coupon['CurrentAirlineInfo']['Equipment']['AircraftCode']['value'] ?? '',
+        //                             ],
+        //                         ],
+        //                         'AddlBaggageInfo' => [
+        //                             'number' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Number'] ?? '',
+        //                             'type' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Type'] ?? '',
+        //                         ],
+        //                     ])->all(),
+        //             ]
+        //         ];
+        //     }
+        // }
+
         $matchedOffers = '';
         foreach ($destinations as $item) {
             $flightIds = explode(' ', $item['FlightReferences']['value'] ?? ''); // fetch bundle with this Aliiiiiiiiiii);
@@ -1112,6 +1463,115 @@ class EmiratesService
         $formattedAmount = $amount / pow(10, $decimals);
         return number_format($formattedAmount, $decimals, '.', '');
     }
+    private function ticketInfos($ticketInfos)
+    {
+        if (empty($ticketInfos)) return [];
+        $ticketInfos = isset($ticketInfos[0]) ? $ticketInfos : [$ticketInfos];
+        $tickets = [];
+        foreach ($ticketInfos as $ticketInfo) {
+            $tickets[] = [
+                'passengerReference' => $ticketInfo['PassengerReference']['value'] ?? '',
+                'agentId' => [
+                    'type' => $ticketInfo['AgentIDs']['AgentID']['Type']['value'] ?? '',
+                    'id' => $ticketInfo['AgentIDs']['AgentID']['ID']['value'] ?? '',
+                ],
+                'issuingAirlineInfo' => [
+                    'airline' => $ticketInfo['IssuingAirlineInfo']['AirlineName']['value'] ?? '',
+                    'place' => $ticketInfo['IssuingAirlineInfo']['Place']['value'] ?? '',
+                ],
+                'price' => [
+                    'passengerReferences' => $ticketInfo['Price']['PassengerReferences']['refs'] ?? '',
+                    'refs' => $ticketInfo['Price']['@attributes']['refs'] ?? '',
+                    'total' => [
+                        'code' => $ticketInfo['Price']['Total']['@attributes']['Code'] ?? '',
+                        'value' => $ticketInfo['Price']['Total']['value'] ?? '',
+                    ],
+                    'details' => [
+                        'application' => $ticketInfo['Price']['Details']['Detail']['Application']['value'] ?? '',
+                        'amount' => [
+                            'code' => $ticketInfo['Price']['Details']['Detail']['Amount']['@attributes']['Code'] ?? '',
+                            'value' => $ticketInfo['Price']['Details']['Detail']['Amount']['value'] ?? '',
+                        ],
+                        'taxes' => [
+                            'total' => [
+                                'code' => $ticketInfo['Price']['Taxes']['Total']['@attributes']['Code'] ?? '',
+                                'value' => $ticketInfo['Price']['Taxes']['Total']['value'] ?? '',
+                            ],
+                            'breakdown' => collect($ticketInfo['Price']['Taxes']['Breakdown']['Tax'] ?? [])
+                                ->map(fn($tax) => [
+                                    'amount' => [
+                                        'code' => $tax['Amount']['@attributes']['Code'] ?? '',
+                                        'value' => $tax['Amount']['value'] ?? 0,
+                                    ],
+                                    'taxCode' => $tax['TaxCode']['value'] ?? '',
+                                    'description' => $tax['Description']['value'] ?? '',
+                                ])->all(),
+                        ],
+                        'fees' => [
+                            'code' => $ticketInfo['Price']['Fees']['Total']['@attributes']['Code'] ?? '',
+                            'value' => $ticketInfo['Price']['Fees']['Total']['value'] ?? 0,
+                        ],
+                    ],
+                ],
+                'ticketDocument' => [
+                    'ticketDocNbr' => $ticketInfo['TicketDocument']['TicketDocNbr']['value'] ?? '',
+                    'type' => $ticketInfo['TicketDocument']['Type']['value'] ?? '',
+                    'numberOfBooklets' => $ticketInfo['TicketDocument']['NumberofBooklets']['value'] ?? '',
+                    'dateOfIssue' => $ticketInfo['TicketDocument']['DateOfIssue']['value'] ?? '',
+                    'timeOfIssue' => $ticketInfo['TicketDocument']['TimeOfIssue']['value'] ?? '',
+                    'ticketingLocation' => $ticketInfo['TicketDocument']['TicketingLocation']['value'] ?? '',
+                    'reportingType' => $ticketInfo['TicketDocument']['ReportingType']['value'] ?? '',
+                    'couponInfo' => collect($ticketInfo['TicketDocument']['CouponInfo'] ?? [])
+                        ->map(fn($coupon) => [
+                            'couponNumber' => $coupon['CouponNumber']['value'] ?? '',
+                            'couponReference' => $coupon['CouponReference']['value'] ?? '',
+                            'fareBasisCode' => $coupon['FareBasisCode']['Code']['value'] ?? '',
+                            'status' => $coupon['Status']['value'] ?? '',
+                            'validatingAirline' => $coupon['ValidatingAirline']['value'] ?? '',
+                            'couponMedia' => $coupon['CouponMedia']['value'] ?? '',
+                            'couponValid' => [
+                                'effective' => $coupon['CouponValid']['EffectiveDatePeriod']['Effective']['value'] ?? '',
+                                'expiration' => $coupon['CouponValid']['EffectiveDatePeriod']['Expiration']['value'] ?? '',
+                            ],
+                            'currentAirlineInfo' => [
+                                'departureDateTime' => Carbon::parse(($coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['Time']) ?? null),
+                                'arrivalDateTime' => Carbon::parse(($coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['Time']) ?? null),
+                                'status' => $coupon['CurrentAirlineInfo']['Status']['value'] ?? '',
+                                'departure' => [
+                                    'code' => $coupon['CurrentAirlineInfo']['Departure']['AirportCode']['value'] ?? '',
+                                    'date' => $coupon['CurrentAirlineInfo']['Departure']['Date']['value'] ?? '',
+                                    'time' => $coupon['CurrentAirlineInfo']['Departure']['Time']['value'] ?? '',
+                                    'airport' => $coupon['CurrentAirlineInfo']['Departure']['AirportName']['value'] ?? '',
+                                    'terminal' => $coupon['CurrentAirlineInfo']['Departure']['Terminal']['Name']['value'] ?? '',
+                                ],
+                                'arrival' => [
+                                    'code' => $coupon['CurrentAirlineInfo']['Arrival']['AirportCode']['value'] ?? '',
+                                    'date' => $coupon['CurrentAirlineInfo']['Arrival']['Date']['value'] ?? '',
+                                    'time' => $coupon['CurrentAirlineInfo']['Arrival']['Time']['value'] ?? '',
+                                    'airport' => $coupon['CurrentAirlineInfo']['Arrival']['AirportName']['value'] ?? '',
+                                    'terminal' => $coupon['CurrentAirlineInfo']['Arrival']['Terminal']['Name']['value'] ?? '',
+                                ],
+                                'marketingCarrier' => [
+                                    'name' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['Name']['value'] ?? '',
+                                    'airlineID' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['AirlineID']['value'] ?? '',
+                                    'flightNumber' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['FlightNumber']['value'] ?? '',
+                                    'resBookDesigCode' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['ResBookDesigCode']['value'] ?? '',
+                                ],
+                                'equipment' => [
+                                    'name' => $coupon['CurrentAirlineInfo']['Equipment']['Name']['value'] ?? '',
+                                    'AircraftCode' => $coupon['CurrentAirlineInfo']['Equipment']['AircraftCode']['value'] ?? '',
+                                ],
+                            ],
+                            'AddlBaggageInfo' => [
+                                'number' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Number'] ?? '',
+                                'type' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Type'] ?? '',
+                            ],
+                        ])->all(),
+                ]
+            ];
+        }
+        return $tickets;
+    }
 }
 
-// destinationList > flights > flightSegments
+// AirShoppingRQ > OfferPriceRQ > OrderCreateRQ > OrderRetrieveRQ > OrderChangeRQ > OrderCancelRQ

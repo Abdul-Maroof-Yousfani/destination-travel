@@ -1,4 +1,4 @@
-<script src="{{ url('assets/js/custom.js') }}"></script>
+{{-- <script src="{{ url('assets/js/custom.js') }}"></script>
 <script>
 	// new WOW().init();
 	// const _alert = (msg, type = 'success') => {
@@ -40,4 +40,4 @@
     //     }
     //     console.log('ggs')
     // });
-</script>
+</script> --}}

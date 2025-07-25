@@ -14,21 +14,28 @@ return new class extends Migration
         // Store the booking information when the user is view cards payment tab :)
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->string('booking_ref')->nullable(); // external reference ID
-            $table->string('booking_ref_owner')->nullable(); // external reference owner like: EK, QR, etc.
+            $table->string('order_id')->nullable(); // external reference ID
+            $table->string('order_owner')->nullable(); // external reference owner like: EK, QR, etc.
+            $table->string('flight_booking_id')->nullable();
+            $table->string('price_code')->nullable(); // e.g., USD, EUR
+            $table->string('price')->nullable(); // base price
+            $table->string('tax')->nullable(); // tax
+            $table->string('tax_code')->nullable(); // tax
             $table->dateTime('ticket_limit')->nullable(); // ticketing deadline
             $table->dateTime('payment_limit')->nullable(); // payment deadline
-            $table->enum('status', ['initial', 'pending', 'issued'])->default('initial');
+            $table->string('status')->default('initial');
+            $table->boolean('is_oneway')->default(true); // like: direct, return etc.
+            $table->boolean('only_search')->default(true); // if user only searched for flights
             $table->string('airline');
             $table->string('airline_id')->nullable();
-            $table->string('airline_code')->nullable();
             $table->string('transaction_id')->nullable(); // for payment gateway
-
-            $table->unsignedBigInteger('flight_id');
-            $table->foreign('flight_id')->references('id')->on('flights')->onDelete('cascade');
+            $table->json('passenger_details')->nullable();
 
             $table->unsignedBigInteger('client_id');
             $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
+
+            $table->unsignedBigInteger('agent_id')->nullable();
+            $table->foreign('agent_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->softDeletes();
             $table->timestamps();

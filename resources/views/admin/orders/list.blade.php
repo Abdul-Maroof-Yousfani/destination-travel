@@ -1,125 +1,204 @@
-@extends('admin/layouts/master')
+@extends('admin.layouts.master')
 
-@section('title', 'Order List')
-@section('style')
-{{-- style --}}
-@endsection
+@section('title', 'Manage Orders')
+
 @section('content')
 <div class="d-flex flex-column justify-content-between h-100">
     <div>
         <h2 class="mb-4 fw-bold">Manage Orders</h2>
         <div class="table-responsive">
             <table class="table table-bordered table-striped align-middle text-center">
-            <thead class="table-active">
-                <tr>
-                <th>Order ID</th>
-                <th>Product</th>
-                <th>PNR</th>
-                <th>Status</th>
-                <th>Type</th>
-                <th>Agent</th>
-                <th>Customer Details</th>
-                <th>Summary</th>
-                <th>Discount</th>
-                <th>Total</th>
-                <th>Charged Card</th>
-                <th>Date/Time</th>
-                <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="bg-light">
-                    <th><input type="text" class="form-control form-control-sm" placeholder="Order ID"></th>
-                    <th>
-                        <select class="form-select form-select-sm">
-                            <option selected>Select Product</option>
-                            <option value="flight">Flight</option>
-                            <option value="bus">Bus</option>
-                        </select>
-                    </th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder="PNR"></th>
-                    <th>
-                        <select class="form-select form-select-sm">
-                            <option selected>Select Status</option>
-                            <option value="initiated">Initiated</option>
-                            <option value="ticketissued">Ticket Issued</option>
-                            <option value="pending">Pending</option>
-                        </select>
-                    </th>
-                    <th>
-                        <select class="form-select form-select-sm">
-                            <option selected>Show All</option>
-                            <option value="oneway">Oneway</option>
-                            <option value="return">Return</option>
-                        </select>
-                    </th>
-                    <th>
-                        <select class="form-select form-select-sm">
-                            <option selected>Show All</option>
-                            <option value="oneway">Oneway</option>
-                            <option value="return">Return</option>
-                        </select>
-                    </th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder=""></th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder=""></th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder=""></th>
-                    <th><input type="text" class="form-control form-control-sm" placeholder=""></th>
-                    <th></th>
-                    <th>
-                        <select class="form-select form-select-sm">
-                            <option value="asc">New</option>
-                            <option value="desc">Old</option>
-                        </select>
-                    </th>
-                    <th></th>
-                </tr>
-                @for ($i = 0; $i < 5; $i++)
+                <thead class="table-active">
                     <tr>
-                    <td>2638812</td>
-                    <td>FLIGHT</td>
-                    <td>UX0LYF</td>
-                    <td><span class="badge bg_{{ $i % 2 ? 'danger' : 'success' }}">{{ $i % 2 ? 'INITIATED' : 'Ticket Issued' }}</span></td>
-                    <td>ONEWAY</td>
-                    <td>Unassigned</td>
-                    <td>
-                        Mohammad Mohsin<br>
-                        <small>+923049208101</small><br>
-                        <small>mohsin354@gmail.com</small>
-                    </td>
-                    <td>ONEWAY<br>Y PA-200<br>KH-ISB</td>
-                    <td>0</td>
-                    <td>17,715</td>
-                    <td>0</td>
-                    <td>9/22/2023 01:27</td>
-                    <td><a href="{{ route('admin.order', $i) }}" class="btn btn-sm btn_primary">View/Manage</a></td>
+                        <th>Order ID</th>
+                        <th>Order Reference</th>
+                        <th>Product</th>
+                        <th>PNR</th>
+                        <th>Status</th>
+                        <th>Type</th>
+                        <th>Agent</th>
+                        <th>Customer Details</th>
+                        <th>Summary</th>
+                        <th>Discount</th>
+                        <th>Total</th>
+                        <th>Charged Card</th>
+                        <th>Date/Time</th>
+                        <th>Action</th>
                     </tr>
-                @endfor
-                <!-- More rows as needed -->
-            </tbody>
+                    <tr class="bg-light filters">
+                        <th><input type="number" class="form-control form-control-sm" id="filterOrderId" placeholder="Order ID"></th>
+                        <th><input type="text" class="form-control form-control-sm" id="filterOrderRef" placeholder="Order Reference"></th>
+                        <th>
+                            <select class="form-select form-select-sm" id="filterProduct">
+                                <option value="">Select Product</option>
+                                <option value="flight">Flight</option>
+                                <option value="bus">Bus</option>
+                            </select>
+                        </th>
+                        <th><input type="text" class="form-control form-control-sm" id="filterPNR" placeholder="PNR"></th>
+                        <th>
+                            <select class="form-select form-select-sm" id="filterStatus">
+                                <option value="">Select Status</option>
+                                <option value="initial">Initiated</option>
+                                <option value="issued">Ticket Issued</option>
+                                <option value="pending">Pending</option>
+                                <option value="expired">Expired</option>
+                                <option value="error">Error</option>
+                                <option value="changed">Changed</option>
+                                <option value="cancel">Cancel</option>
+                            </select>
+                        </th>
+                        <th>
+                            <select class="form-select form-select-sm" id="filterType">
+                                <option value="">Show All</option>
+                                <option value="oneway">Oneway</option>
+                                <option value="return">Return</option>
+                            </select>
+                        </th>
+                        <th><input type="text" class="form-control form-control-sm" id="filterAgent" placeholder="Agent name"></th>
+                        <th colspan="7"></th>
+                    </tr>
+                </thead>
+                <tbody id="bookingResults">
+                    <tr>
+                        <td colspan="13">Loading...</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
-    </div>
-    <div class="d-flex justify-content-between mt-4">
-        <nav aria-label="Page navigation">
-            <ul class="pagination">
-                <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">Next</a></li>
-            </ul>
-        </nav>
-        <div>
-            <select id="entries" class="form-select form-select-sm d-inline-block mx-2" style="width: auto;">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
+        <div class="d-flex justify-content-between mt-4">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                </ul>
+            </nav>
+            <div>
+                <select id="entries" class="form-select form-select-sm d-inline-block mx-2" style="width: auto;">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
         </div>
     </div>
 </div>
 @endsection
+
 @section('script')
-{{-- script --}}
+<script>
+    $(document).ready(function () {
+        let currentPage = 1;
+        const orderDetailsUrl = '{{ route("admin.orders.details", ":booking") }}';
+        function fetchBookings(page = 1) {
+            const data = {
+                order_id: $('#filterOrderId').val(),
+                order_ref: $('#filterOrderRef').val(),
+                product: $('#filterProduct').val(),
+                pnr: $('#filterPNR').val(),
+                status: $('#filterStatus').val(),
+                type: $('#filterType').val(),
+                agent: $('#filterAgent').val(),
+                page: page,
+                per_page: $('#entries').val()
+            };
+
+            $('#bookingResults').html('<tr><td colspan="13" class="text-center">Loading...</td></tr>');
+
+            $.ajax({
+                url: '{{ route("admin.orders.fetch") }}',
+                method: 'GET',
+                data: data,
+                success: function (response) {
+                    let html = '';
+                    if (response.data.length === 0) {
+                        html = '<tr><td colspan="13" class="text-center">No bookings found.</td></tr>';
+                    } else {
+                        response.data.forEach(function (booking) {
+                            let url = orderDetailsUrl.replace(':booking', booking.id);
+                            html += `<tr>
+                                <td><a href="${url}" class="text-decoration-underline">${booking.id}</a></td>
+                                <td>${booking.order_id}</td>
+                                <td>${booking.product}</td>
+                                <td>${booking.flight_booking_id ?? ''}</td>
+                                <td><span class="badge bg_${booking.status === 'issued' ? 'success' : 'danger'}">${booking.status.toUpperCase()}</span></td>
+                                <td>${booking.is_oneway ? 'ONEWAY' : 'RETURN'}</td>
+                                <td>${booking.agent_name ?? 'Unassigned'}</td>
+                                <td>
+                                    ${booking.client_name ?? '-'}<br>
+                                    <small>${booking.client_phone ?? '-'}</small><br>
+                                    <small>${booking.client_email ?? '-'}</small>
+                                </td>
+                                <td>${booking.summary.replace(/\n/g, '<br>')}</td>
+                                <td>0</td>
+                                <td>${booking.total_tax_price}</td>
+                                <td>0</td>
+                                <td>${booking.created_at}</td>
+                                <td><a href="${url}" class="btn btn-sm btn_primary">View/Manage</a></td>
+                            </tr>`;
+                        });
+                    }
+
+                    $('#bookingResults').html(html);
+                    renderPagination(response);
+                },
+                error: function () {
+                    $('#bookingResults').html('<tr><td colspan="13">Something went wrong.</td></tr>');
+                }
+            });
+        }
+
+        function renderPagination(response) {
+            let pages = '';
+            const current = response.current_page;
+            const last = response.last_page;
+
+            if (last <= 1) {
+                $('.pagination').html('');
+                return;
+            }
+
+            pages += `<li class="page-item ${current === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${current - 1}">Previous</a>
+                    </li>`;
+
+            for (let i = 1; i <= last; i++) {
+                pages += `<li class="page-item ${current === i ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>`;
+            }
+
+            pages += `<li class="page-item ${current === last ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${current + 1}">Next</a>
+                    </li>`;
+
+            $('.pagination').html(pages);
+        }
+
+        $(document).on('click', '.pagination .page-link', function (e) {
+            e.preventDefault();
+            const page = $(this).data('page');
+            if (page) {
+                currentPage = page;
+                fetchBookings(page);
+            }
+        });
+
+        $('.filters input, .filters select, #entries').on('input change', function () {
+            currentPage = 1;
+            fetchBookings(1);
+        });
+
+        $('#refreshBtn').on('click', function () {
+            fetchBookings(currentPage);
+        });
+
+        fetchBookings(); // initial load
+    });
+
+</script>
 @endsection

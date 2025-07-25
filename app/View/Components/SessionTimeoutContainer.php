@@ -14,8 +14,8 @@ class SessionTimeoutContainer extends Component
      */
     public function __construct($expTime = null)
     {
-        // $this->expTime = $expTime ?? session('IdsExpireTimeFj') ?? session('IdsExpireTimeEmi') ?? null;
-        $this->expTime = now()->addMinutes(80);
+        $this->expTime = $expTime ?? session('IdsExpireTimeFj') ?? session('IdsExpireTimeEmi') ?? null;
+        // $this->expTime = now()->addMinutes(80);
     }
 
     /**

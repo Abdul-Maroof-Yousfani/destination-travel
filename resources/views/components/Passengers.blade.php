@@ -1,76 +1,104 @@
+@php
+   $user = auth()->guard('client')->user();
+   if ($user) {
+      $user->load('passengers');
+   }
+   // dd($user);
+@endphp
 <div class="contact">
-    <h2>Contact Details</h2>
-    <div class="row">
-       <div class="col-md-12 col-lg-6">
-          <div class="form-group">
-             <label for="userFullName">Full name</label>
-             <input type="text" name="userFullName" id="userFullName" class="form-control" required placeholder="Enter your full name" aria-describedby="helpId">
-             <small id="helpId" class="text-muted">e.g. Syed Ali Moiz</small>
-          </div>
-       </div>
-       <div class="col-md-12 col-lg-6">
-          <div class="form-group">
-             <label for="userEmail">Email <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="e.g. name@outlook.com"></i> <small class="text-black-50">( Your ticket details will be sent to this email address. )</small></label>
-             <input type="text" name="userEmail" required id="userEmail" class="form-control" placeholder="Enter your email" aria-describedby="helpId">
-             <small id="helpId" class="text-muted">e.g. name@outlook.com</small>
-          </div>
-       </div>
-       <div class="col-md-12 col-lg-6">
-          <div class="form-group">
-             <label for="userPhoneCode">Phone Code</label>
-             <input type="text" name="userPhoneCode" id="userPhoneCode" class="form-control" required placeholder="Enter your phone code" maxlength="5" aria-describedby="helpId">
-             <small id="helpId" class="text-muted">e.g. 92</small>
-          </div>
-       </div>
-       <div class="col-md-12 col-lg-6">
-          <div class="form-group">
-             <label for="userPhone">Phone Number</label>
-             <input type="text" name="userPhone" id="userPhone" class="form-control" required placeholder="Enter your phone number" aria-describedby="helpId">
-             <small id="helpId" class="text-muted">e.g. 3320234557</small>
-          </div>
-       </div>
-    </div>           
-    <div class="form-check cont-check">
-       <input class="form-check-input" type="checkbox" id="acceptOffers" checked>
-       <label class="form-check-label" for="acceptOffers">
-             <p>I agree to receive travel related information and deals</p>
-       </label>
-    </div>
- </div>
- @foreach ($flightData['passengerTypes'] as $key => $type)
-     @if(isset($flightData['paxCount'][$key]) && $flightData['paxCount'][$key] > 0)
+   <h2>Contact Details</h2>
+   <div class="row">
+      <div class="col-md-12 col-lg-6">
+         <div class="form-group">
+            <label for="userFullName">Full name</label>
+            <input type="text" name="userFullName" id="userFullName" class="form-control" placeholder="Enter your full name" aria-describedby="helpId" value="{{ $user->name ?? '' }}" required>
+            <small id="helpId" class="text-muted">e.g. Syed Ali Moiz</small>
+         </div>
+      </div>
+      <div class="col-md-12 col-lg-6">
+         <div class="form-group">
+            <label for="userEmail">Email <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="e.g. name@outlook.com"></i> <small class="text-black-50">( Your ticket details will be sent to this email address. )</small></label>
+            <input type="text" name="userEmail" id="userEmail" class="form-control" placeholder="Enter your email" aria-describedby="helpId" value="{{ $user->email ?? '' }}" {{ isset($user) && $user->email ? 'disabled' : 'required' }}>
+            <small id="helpId" class="text-muted">e.g. name@outlook.com</small>
+         </div>
+      </div>
+      <div class="col-md-12 col-lg-6">
+         <div class="form-group">
+            <label for="userPhoneCode">Phone Code</label>
+            <input type="text" name="userPhoneCode" id="userPhoneCode" class="form-control" required placeholder="Enter your phone code" maxlength="5" aria-describedby="helpId" value="{{ $user->phone_code ?? '' }}">
+            <small id="helpId" class="text-muted">e.g. 92</small>
+         </div>
+      </div>
+      <div class="col-md-12 col-lg-6">
+         <div class="form-group">
+            <label for="userPhone">Phone Number</label>
+            <input type="text" name="userPhone" id="userPhone" class="form-control" required placeholder="Enter your phone number" aria-describedby="helpId" value="{{ $user->phone ?? '' }}">
+            <small id="helpId" class="text-muted">e.g. 3320234557</small>
+         </div>
+      </div>
+   </div>           
+   <div class="form-check cont-check">
+      <input class="form-check-input" type="checkbox" id="acceptOffers" {{ isset($user) && $user->accept_notification ? 'checked' : '' }} >
+      <label class="form-check-label" for="acceptOffers">
+         <p>I agree to receive travel related information and deals</p>
+      </label>
+   </div>
+</div>
+@if (!empty($flightData['passengerTypes']))
+   @foreach ($flightData['passengerTypes'] as $key => $type)
+      @if (!empty($flightData['paxCount'][$key]))
          <div class=" paxDetails">
-             @for ($i = 1; $i <= $flightData['paxCount'][$key]; $i++)
-                <div class="contact contact2">
-                   <h2>Traveler Details for {{ $type }} {{ $i }}</h2>
-                   <input type="hidden" name="{{ $key }}_type[]" value="{{ $type }}">
-                   <div class="row">   
-                      {{-- <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                            <label for="">Saved Travelers</label>
-                            <select class="form-control" disabled  aria-describedby="helpId">
-                               <option value="">+ Add a new traveler</option>
-                            </select>
-                            <br>
-                            <label for=""><a href="#">Sign in</a> to view your Saved Travelers List.S</label>
-                         </div>
-                      </div> --}}
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                            <label for="gendertitle_{{ $i }}">Select Title</label>
-                            <div class="inline-flex">
-                               <label for="title_mr_{{ $key }}_{{ $i }}" class="borlook d-flex p-3">
-                                  <input class="hidden-radio" type="radio" id="title_mr_{{ $key }}_{{ $i }}" value="Mr" name="title_{{ $key }}_{{ $i }}" checked/>
-                                  <span class="ml-2">Mr</span>
-                               </label>
-                               <label for="title_mrs_{{ $key }}_{{ $i }}" class="borlook d-flex p-3">
-                                  <input class="hidden-radio" type="radio" id="title_mrs_{{ $key }}_{{ $i }}" value="Mrs" name="title_{{ $key }}_{{ $i }}" />
-                                  <span class="ml-2">Mrs</span>
-                               </label>
-                               <label for="title_ms_{{ $key }}_{{ $i }}" class="borlook d-flex p-3">
-                                  <input class="hidden-radio" type="radio" id="title_ms_{{ $key }}_{{ $i }}" value="Ms" name="title_{{ $key }}_{{ $i }}" />
-                                  <span class="ml-2">Ms</span>
-                               </label>
+               @for ($i = 1; $i <= $flightData['paxCount'][$key]; $i++)
+                  <div class="contact contact2">
+                     <h2>Traveler Details for {{ $type }} {{ $i }}</h2>
+                     <input type="hidden" name="{{ $key }}_type[]" value="{{ $type }}">
+                     <input type="hidden" name="{{ $key }}_id[]">
+                     <div class="row">   
+                        <div class="col-lg-6">
+                           <div class="form-group">
+                              <label for="savedTravelor_{{ $key }}_{{ $i }}">Saved Travelers</label>
+                              <select id="savedTravelor_{{ $key }}_{{ $i }}" class="form-control saved-traveler" {{ $user ? '' : 'disabled' }} aria-describedby="helpId">
+                                 <option >+ Add a new traveler</option>
+                                 @if ($user)
+                                    @foreach ($user->passengers as $passenger)
+                                       <option 
+                                          data-id="{{ $passenger->id }}"
+                                          data-given_name="{{ $passenger->given_name }}"
+                                          data-surname="{{ $passenger->surname }}"
+                                          data-dob="{{ \Illuminate\Support\Carbon::parse($passenger->dob)->format('Y-m-d') }}"
+                                          data-nationality="{{ $passenger->nationality }}"
+                                          data-passport_number="{{ $passenger->passport_no }}"
+                                          data-passport_expiry="{{ \Illuminate\Support\Carbon::parse($passenger->passport_expiry)->format('Y-m-d') }}"
+                                          data-title="{{ $passenger->title }}"
+                                       >
+                                          {{ $passenger->given_name }} {{ $passenger->surname }}
+                                       </option>
+                                    @endforeach
+                                 @endif
+                              </select>
+                              @if ($user)
+                                 <small id="helpId" class="text-muted">Select a passenger to automatically populate their details.</small>
+                              @else
+                                 <small id="helpId" class="text-muted"><a href="{{ route('login') }}">Sign in</a> to view your saved travelers lists.</small>
+                              @endif
+                           </div>
+                        </div>
+                        <div class="col-lg-6">
+                           <div class="form-group">
+                              <label for="gendertitle_{{ $i }}">Select Title</label>
+                              <div class="inline-flex">
+                                 <label for="title_mr_{{ $key }}_{{ $i }}" class="borlook d-flex p-3">
+                                    <input class="hidden-radio" type="radio" id="title_mr_{{ $key }}_{{ $i }}" value="Mr" name="title_{{ $key }}_{{ $i }}" checked/>
+                                    <span class="ml-2">Mr</span>
+                                 </label>
+                                 <label for="title_mrs_{{ $key }}_{{ $i }}" class="borlook d-flex p-3">
+                                    <input class="hidden-radio" type="radio" id="title_mrs_{{ $key }}_{{ $i }}" value="Mrs" name="title_{{ $key }}_{{ $i }}" />
+                                    <span class="ml-2">Mrs</span>
+                                 </label>
+                                 <label for="title_ms_{{ $key }}_{{ $i }}" class="borlook d-flex p-3">
+                                    <input class="hidden-radio" type="radio" id="title_ms_{{ $key }}_{{ $i }}" value="Ms" name="title_{{ $key }}_{{ $i }}" />
+                                    <span class="ml-2">Ms</span>
+                                 </label>
                            </div>
                          </div>
                       </div>
@@ -88,7 +116,7 @@
                                </div>
                             </div>
                          </div>
-                         <small id="helpId" class="text-muted">Enter name as per Passport to avoid boarding issues.</small>
+                         <small id="helpId" class="text-muted">Enter given name as per passport to avoid boarding issues.</small>
                          </div>
                       </div>
                    </div>
@@ -98,16 +126,17 @@
                          <label for="{{ $i }}_surname">Surname</label>
                             <div class="infos">
                                <input type="text" name="{{ $key }}_surname[]" id="{{ $i }}_surname" class="form-control form-control-info" aria-describedby="helpId" required>
-                               <div class="tooltip-container">
-                                  <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i>
+                               {{-- <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i> --}}
+                              <div class="tooltip-container">
+                                 <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i>
                                  <div class="tooltip-content">
-                                    <h2>Given Name</h2>
+                                    <h2>Surname</h2>
                                     <p>Enter as highlighted in passport</p>
                                     <img src="/assets/images/passport-vctor.jpg" alt="Tooltip Image">
                                  </div>
-                               </div>
+                              </div>
                             </div>
-                            <small id="helpId" class="text-muted">Enter name as per Passport to avoid boarding issues.</small>
+                            <small id="helpId" class="text-muted">Enter surname as per passport to avoid boarding issues.</small>
                          </div>
                       </div>
                       <div class="col-md-12 col-lg-6">
@@ -290,5 +319,91 @@
                 </div>
              @endfor
          </div>
-     @endif
- @endforeach
+      @endif
+   @endforeach
+@endif
+<script>
+   // $('#userEmail').on('blur', function () {
+   //    const email = $(this).val();
+   //    if (email) {
+   //       verifyClient(email);
+   //    }
+   // });
+   $(document).ready(function () {
+      function updateDisabledPassengers() {
+         const usedPassengerIds = [];
+
+         $('.contact2').each(function () {
+            const val = $(this).find('input[name$="_id[]"]').val();
+            if (val) {
+               usedPassengerIds.push(val);
+            }
+         });
+
+         $('.saved-traveler').each(function () {
+            const $select = $(this);
+            const currentVal = $select.val();
+
+            $select.find('option').each(function () {
+               const $option = $(this);
+               const id = $option.data('id');
+
+               if (!id) return; // Skip "+ Add a new traveler"
+               
+               // Disable only if this passenger is used in another traveler
+               if (usedPassengerIds.includes(String(id)) && $option.val() !== currentVal) {
+                  $option.prop('disabled', true);
+               } else {
+                  $option.prop('disabled', false);
+               }
+            });
+         });
+      }
+
+      $('.saved-traveler').on('change', function () {
+         const $select = $(this);
+         const $selected = $select.find('option:selected');
+
+         const $container = $select.closest('.contact2');
+
+         // Clear fields first
+         $container.find('input[name$="_id[]"]').val('');
+         $container.find('input[name$="_name[]"]').val('');
+         $container.find('input[name$="_surname[]"]').val('');
+         $container.find('input[name$="_dob[]"]').val('');
+         $container.find('select[name$="_nationality[]"]').val('PK');
+         $container.find('input[name$="_passportnumber[]"]').val('');
+         $container.find('input[name$="_passportexp[]"]').val('');
+         $container.find('input[type="radio"][value="Mr"]').prop('checked', true);
+
+         // If "+ Add a new traveler" selected, just clear and update disables
+         if (!$selected.data('id')) {
+            updateDisabledPassengers();
+            return;
+         }
+
+         const passenger = {
+            id: $selected.data('id'),
+            given_name: $selected.data('given_name'),
+            surname: $selected.data('surname'),
+            dob: $selected.data('dob'),
+            nationality: $selected.data('nationality'),
+            passport_number: $selected.data('passport_number'),
+            passport_expiry: $selected.data('passport_expiry'),
+            title: $selected.data('title')
+         };
+
+         $container.find('input[name$="_id[]"]').val(passenger.id);
+         $container.find('input[name$="_name[]"]').val(passenger.given_name);
+         $container.find('input[name$="_surname[]"]').val(passenger.surname);
+         $container.find('input[name$="_dob[]"]').val(passenger.dob);
+         $container.find('select[name$="_nationality[]"]').val(passenger.nationality);
+         $container.find('input[name$="_passportnumber[]"]').val(passenger.passport_number);
+         $container.find('input[name$="_passportexp[]"]').val(passenger.passport_expiry);
+         $container.find(`input[type="radio"][value="${passenger.title}"]`).prop('checked', true);
+
+         updateDisabledPassengers();
+      });
+   });
+</script>
+

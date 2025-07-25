@@ -18,13 +18,13 @@ return new class extends Migration
             $table->dateTime('departure_date');
             $table->dateTime('arrival_date');
             $table->string('flight_number')->nullable();
+            $table->string('flight_duration')->nullable();
             $table->enum('direction', ['outbound', 'return'])->default('outbound')->nullable();
-            $table->string('price')->nullable(); // change precision if needed
-            $table->string('price_code')->nullable(); // e.g., USD, EUR
 
             $table->unsignedBigInteger('flight_id');
             $table->foreign('flight_id')->references('id')->on('flights')->onDelete('cascade');
 
+            $table->softDeletes();
             $table->timestamps();
         });
     }
