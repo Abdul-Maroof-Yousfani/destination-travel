@@ -20,7 +20,7 @@ class UserBookingService
     public function createUser($userData)
     {
         try {
-            $password = Str::random(12);
+            $password = Str::random(8);
 
             $name = $userData['userFullName'] ?? '-';
             $email = $userData['userEmail'] ?? null;

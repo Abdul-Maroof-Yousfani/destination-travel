@@ -10,6 +10,8 @@ class Log extends Model
     use HasFactory;
 
     protected $fillable = [
+        'session_id',
+        'type',
         'notes',
         'changes',
         'image',

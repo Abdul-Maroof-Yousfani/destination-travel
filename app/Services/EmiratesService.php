@@ -27,7 +27,7 @@ class EmiratesService
 
     public function __construct(HelperService $helperService)
     {
-        $this->regenerateLogs = false;
+        $this->regenerateLogs = true;
         $this->logPath = storage_path('logs/emirates_logs.txt');
 
         $this->helperService = $helperService;
@@ -157,7 +157,7 @@ class EmiratesService
             return $this->getFlights($flightData);
         } catch (\Exception $e) {
             \Log::error('Exception in fetching flight details', ['message' => $e->getMessage()]);
-            return ['error' => 'Exception occurred while fetching flight details.'];
+            return ['error' => 'Exception occurred while searchFlights details.'];
         }
     }
     public function getBundlePrice($data) // OfferPriceRQ...........
@@ -251,8 +251,8 @@ class EmiratesService
             // dd($this->getFlights($flightData));
             return $this->getFlights($flightData);
         } catch (\Exception $e) {
-            \Log::error('Exception in fetching flight details', ['message' => $e->getMessage()]);
-            return ['error' => 'Exception occurred while fetching flight details.'];
+            \Log::error('Exception in getBundlePrice details', ['message' => $e->getMessage()]);
+            return ['error' => 'Exception occurred while getBundlePrice details.'];
         }
     }
     public function bookFlight($data) // OrderCreateRQ (for confirm booking without payment)...................
@@ -302,7 +302,7 @@ class EmiratesService
                     </Query>
                 </OrderCreateRQ>';
         // dd($this->getSoapEnvelope($body));
-        // try {
+        try {
             $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('OrderCreateRQ'), $this->getSoapEnvelope($body));
             if (!$response || !$response->successful()) {
                 \Log::error('Flight booking request failed Emirates', [
@@ -346,13 +346,13 @@ class EmiratesService
             // dd($this->getFlights($flightData));
             return $this->getFlights($flightData);
 
-        // } catch (\Exception $e) {
-        //     \Log::error('Exception in fetching flight details', [
-        //         'message' => $e->getMessage(),
-        //         'trace' => $e->getTraceAsString(),
-        //     ]);
-        //     return ['error' => 'Exception occurred while fetching flight details.'];
-        // }
+        } catch (\Exception $e) {
+            \Log::error('Exception in bookFlight details', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return ['error' => 'Exception occurred while bookFlight details.'];
+        }
 
     }
     public function orderRetrieve($data) // OrderRetrieveRQ (for fetch order details like latest price & fares)...........
@@ -428,7 +428,7 @@ class EmiratesService
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return ['error' => 'Exception occurred while fetching flight details.'];
+            return ['error' => 'Exception occurred while orderRetrieve details.'];
         }
 
     }
@@ -511,7 +511,7 @@ class EmiratesService
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return ['error' => 'Exception occurred while fetching flight details.'];
+            return ['error' => 'Exception occurred while orderChange details.'];
         }
 
     }
@@ -574,11 +574,6 @@ class EmiratesService
                     'details' => $orderCancelRS['Warnings']['Warning']['value']
                 ];
             }
-                // 'warnings' => [
-                //     'shortText' => $orderCancelRS['Warnings']['Warning']['@attributes']['ShortText'],
-                //     'code' => $orderCancelRS['Warnings']['Warning']['@attributes']['Code'],
-                //     'details' => $orderCancelRS['Warnings']['Warning']['value']
-                // ],
 
             // dd($flightData);
             return $flightData;
@@ -588,7 +583,7 @@ class EmiratesService
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return ['error' => 'Exception occurred while fetching flight details.'];
+            return ['error' => 'Exception occurred while orderCancel details.'];
         }
 
     }
@@ -1465,10 +1460,13 @@ class EmiratesService
     }
     private function ticketInfos($ticketInfos)
     {
+        // dd($ticketInfos);
         if (empty($ticketInfos)) return [];
         $ticketInfos = isset($ticketInfos[0]) ? $ticketInfos : [$ticketInfos];
         $tickets = [];
         foreach ($ticketInfos as $ticketInfo) {
+            $couponInfo = $ticketInfo['TicketDocument']['CouponInfo'] ?? [];
+            $couponInfo = isset($couponInfo[0]) ? $couponInfo : [$couponInfo];
             $tickets[] = [
                 'passengerReference' => $ticketInfo['PassengerReference']['value'] ?? '',
                 'agentId' => [
@@ -1521,52 +1519,55 @@ class EmiratesService
                     'timeOfIssue' => $ticketInfo['TicketDocument']['TimeOfIssue']['value'] ?? '',
                     'ticketingLocation' => $ticketInfo['TicketDocument']['TicketingLocation']['value'] ?? '',
                     'reportingType' => $ticketInfo['TicketDocument']['ReportingType']['value'] ?? '',
-                    'couponInfo' => collect($ticketInfo['TicketDocument']['CouponInfo'] ?? [])
-                        ->map(fn($coupon) => [
-                            'couponNumber' => $coupon['CouponNumber']['value'] ?? '',
-                            'couponReference' => $coupon['CouponReference']['value'] ?? '',
-                            'fareBasisCode' => $coupon['FareBasisCode']['Code']['value'] ?? '',
-                            'status' => $coupon['Status']['value'] ?? '',
-                            'validatingAirline' => $coupon['ValidatingAirline']['value'] ?? '',
-                            'couponMedia' => $coupon['CouponMedia']['value'] ?? '',
-                            'couponValid' => [
-                                'effective' => $coupon['CouponValid']['EffectiveDatePeriod']['Effective']['value'] ?? '',
-                                'expiration' => $coupon['CouponValid']['EffectiveDatePeriod']['Expiration']['value'] ?? '',
+                    'couponInfo' => collect($couponInfo)->map(fn($coupon) => [
+                        'couponNumber' => $coupon['CouponNumber']['value'] ?? '',
+                        'couponReference' => $coupon['CouponReference']['value'] ?? '',
+                        'fareBasisCode' => $coupon['FareBasisCode']['Code']['value'] ?? '',
+                        'status' => $coupon['Status']['value'] ?? '',
+                        'validatingAirline' => $coupon['ValidatingAirline']['value'] ?? '',
+                        'couponMedia' => $coupon['CouponMedia']['value'] ?? '',
+                        'couponValid' => [
+                            'effective' => $coupon['CouponValid']['EffectiveDatePeriod']['Effective']['value'] ?? '',
+                            'expiration' => $coupon['CouponValid']['EffectiveDatePeriod']['Expiration']['value'] ?? '',
+                        ],
+                        'currentAirlineInfo' => [
+                            'departureDateTime' => isset($coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes'])
+                                ? Carbon::parse($coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['Time'] ?? null)
+                                : null,
+                            'arrivalDateTime' => isset($coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes'])
+                                ? Carbon::parse($coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['Time'] ?? null)
+                                : null,
+                            'status' => $coupon['CurrentAirlineInfo']['Status']['value'] ?? '',
+                            'departure' => [
+                                'code' => $coupon['CurrentAirlineInfo']['Departure']['AirportCode']['value'] ?? '',
+                                'date' => $coupon['CurrentAirlineInfo']['Departure']['Date']['value'] ?? '',
+                                'time' => $coupon['CurrentAirlineInfo']['Departure']['Time']['value'] ?? '',
+                                'airport' => $coupon['CurrentAirlineInfo']['Departure']['AirportName']['value'] ?? '',
+                                'terminal' => $coupon['CurrentAirlineInfo']['Departure']['Terminal']['Name']['value'] ?? '',
                             ],
-                            'currentAirlineInfo' => [
-                                'departureDateTime' => Carbon::parse(($coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['Time']) ?? null),
-                                'arrivalDateTime' => Carbon::parse(($coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['Time']) ?? null),
-                                'status' => $coupon['CurrentAirlineInfo']['Status']['value'] ?? '',
-                                'departure' => [
-                                    'code' => $coupon['CurrentAirlineInfo']['Departure']['AirportCode']['value'] ?? '',
-                                    'date' => $coupon['CurrentAirlineInfo']['Departure']['Date']['value'] ?? '',
-                                    'time' => $coupon['CurrentAirlineInfo']['Departure']['Time']['value'] ?? '',
-                                    'airport' => $coupon['CurrentAirlineInfo']['Departure']['AirportName']['value'] ?? '',
-                                    'terminal' => $coupon['CurrentAirlineInfo']['Departure']['Terminal']['Name']['value'] ?? '',
-                                ],
-                                'arrival' => [
-                                    'code' => $coupon['CurrentAirlineInfo']['Arrival']['AirportCode']['value'] ?? '',
-                                    'date' => $coupon['CurrentAirlineInfo']['Arrival']['Date']['value'] ?? '',
-                                    'time' => $coupon['CurrentAirlineInfo']['Arrival']['Time']['value'] ?? '',
-                                    'airport' => $coupon['CurrentAirlineInfo']['Arrival']['AirportName']['value'] ?? '',
-                                    'terminal' => $coupon['CurrentAirlineInfo']['Arrival']['Terminal']['Name']['value'] ?? '',
-                                ],
-                                'marketingCarrier' => [
-                                    'name' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['Name']['value'] ?? '',
-                                    'airlineID' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['AirlineID']['value'] ?? '',
-                                    'flightNumber' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['FlightNumber']['value'] ?? '',
-                                    'resBookDesigCode' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['ResBookDesigCode']['value'] ?? '',
-                                ],
-                                'equipment' => [
-                                    'name' => $coupon['CurrentAirlineInfo']['Equipment']['Name']['value'] ?? '',
-                                    'AircraftCode' => $coupon['CurrentAirlineInfo']['Equipment']['AircraftCode']['value'] ?? '',
-                                ],
+                            'arrival' => [
+                                'code' => $coupon['CurrentAirlineInfo']['Arrival']['AirportCode']['value'] ?? '',
+                                'date' => $coupon['CurrentAirlineInfo']['Arrival']['Date']['value'] ?? '',
+                                'time' => $coupon['CurrentAirlineInfo']['Arrival']['Time']['value'] ?? '',
+                                'airport' => $coupon['CurrentAirlineInfo']['Arrival']['AirportName']['value'] ?? '',
+                                'terminal' => $coupon['CurrentAirlineInfo']['Arrival']['Terminal']['Name']['value'] ?? '',
                             ],
-                            'AddlBaggageInfo' => [
-                                'number' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Number'] ?? '',
-                                'type' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Type'] ?? '',
+                            'marketingCarrier' => [
+                                'name' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['Name']['value'] ?? '',
+                                'airlineID' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['AirlineID']['value'] ?? '',
+                                'flightNumber' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['FlightNumber']['value'] ?? '',
+                                'resBookDesigCode' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['ResBookDesigCode']['value'] ?? '',
                             ],
-                        ])->all(),
+                            'equipment' => [
+                                'name' => $coupon['CurrentAirlineInfo']['Equipment']['Name']['value'] ?? '',
+                                'AircraftCode' => $coupon['CurrentAirlineInfo']['Equipment']['AircraftCode']['value'] ?? '',
+                            ],
+                        ],
+                        'AddlBaggageInfo' => [
+                            'number' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Number'] ?? '',
+                            'type' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Type'] ?? '',
+                        ],
+                    ])->all(),
                 ]
             ];
         }

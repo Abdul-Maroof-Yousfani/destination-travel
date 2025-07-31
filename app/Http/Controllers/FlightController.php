@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\Log;
 use App\Mail\SendMail;
 use App\Models\Client;
 use App\Models\Ticket;
@@ -53,7 +54,7 @@ class FlightController extends Controller
             session(['cabinClass' => $validatedData['cabinClass']]);
             // dd($validatedData);
             // $validatedData = $request->only(['arr', 'dest', 'dep', 'return', 'cabinClass','adt', 'chd', 'inf']);
-            // $piaFlights = $this->piaService->searchFlights($validatedData);
+            // $piaFlights = $this->piaService->airShopping($validatedData);
             // dd($piaFlights);
             $emirateFlights = $this->emiratesService->searchFlights($validatedData);
             // dd($emirateFlights);
@@ -62,6 +63,19 @@ class FlightController extends Controller
             // if ($flights['error']) {
             //     return back()->with('error', $flights['error']);
             // }
+            $searchKey = "{$validatedData['arr']}_{$validatedData['dest']}";
+            $now = now()->format('d M Y h:i A');
+            Log::updateOrCreate(
+                [
+                    'session_id' => session()->getId(),
+                    'changes' => $searchKey,
+                ],
+                [
+                    'notes' => "User searched flight from {$validatedData['arr']} to {$validatedData['dest']} on {$now}",
+                    'updated_at' => now(),
+                ]
+            );
+
             $paxCount = [
                 'adt' => $validatedData['adt'] ?? 1,
                 'chd' => $validatedData['chd'] ?? 0,
@@ -98,6 +112,11 @@ class FlightController extends Controller
             'chd' => 'Child',
             'inf' => 'Infant'
         ];
+        $now = now()->format('d M Y h:i A');
+        Log::create([
+            'session_id' => session()->getId(),
+            'notes' => "User fetch booking details on {$now}",
+        ]);
         // dd($request->all());
         if ($airline === 'emirate') {
             $data = [
@@ -318,6 +337,11 @@ class FlightController extends Controller
     }
     public function payment(Request $request)
     {
+        $now = now()->format('d M Y h:i A');
+        Log::create([
+            'session_id' => session()->getId(),
+            'notes' => "User add payment on {$now}",
+        ]);
         return response()->json(['status' => 'success', 'message' => 'payment is in progress']);
         // return response()->json(['status' => 'error', 'message' => 'payment error'], 400);
     }
@@ -354,6 +378,17 @@ class FlightController extends Controller
 
             // 3. Create Flights and Segments
             $flights = app(FlightBookingService::class)->handleEmiratesBooking($bookFlight, $client->id, $cabinClass);
+
+            $now = now()->format('d M Y h:i A');
+            Log::create([
+                'session_id' => session()->getId(),
+                'notes' => "Temporary booking is generated on {$now}",
+            ]);
+            Log::where('session_id', session()->getId())->update([
+                'session_id' => null,
+                'booking_id' => $flights['booking']['id'],
+            ]);
+
             // dd($bookFlight);
             return response()->json($flights);
         } elseif ($airline === 'flyjinnah') {
@@ -687,6 +722,7 @@ class FlightController extends Controller
         // if (!$booking->payment) return response()->json(['status' => 'error', 'message' => 'No payment found for this booking.'], 400);
 
         $airline = strtolower($booking->airline);
+        $now = now()->format('d M Y h:i A');
 
         if ($airline === 'emirates') {
             $orderChange = $this->emiratesService->orderChange([
@@ -711,6 +747,10 @@ class FlightController extends Controller
                 });
                 // Only set status to ERROR if it's not already ticketed
                 if (!$alreadyTicketed) {
+                    Log::create([
+                        'booking_id' => $booking->id,
+                        'notes' => "Error found on approve tickets on {$now}",
+                    ]);
                     $booking->update(['status' => Booking::STATUS_ERROR]);
                     ErrorLog::create([
                         'client_id' => $booking->client_id,
@@ -771,6 +811,10 @@ class FlightController extends Controller
             }
             if (!empty($tickets)) Ticket::insert($tickets);
             $booking->load('bookingItems.penalties', 'client', 'tickets');
+            Log::create([
+                'booking_id' => $booking->id,
+                'notes' => "Ticket issued on {$now}",
+            ]);
             return response()->json(['status' => 'success', 'message' => 'Success! Your flight is booked. Safe travels!.', 'booking' => $booking]);
         }
         return response()->json(['status' => 'missing_airline', 'message' => 'Airline not supported'], 400);
@@ -784,7 +828,7 @@ class FlightController extends Controller
         $booking = Booking::with('tickets')->find($validatedData['bookingId']);
         if (!$booking) return response()->json(['status' => 'error', 'message' => 'Booking not found'], 404);
         if ($booking->client_id !== (int)$validatedData['clientId']) return response()->json(['status' => 'error', 'message' => 'Client does not match this booking.'], 403);
-
+        $now = now()->format('d M Y h:i A');
         $airline = strtolower($booking->airline);
         if ($airline === 'emirates') {
             $data = [
@@ -793,6 +837,10 @@ class FlightController extends Controller
             ];
             $orderCancel = $this->emiratesService->orderCancel($data ?? []);
             if (!empty($orderCancel['error'])) {
+                Log::create([
+                    'booking_id' => $booking->id,
+                    'notes' => "Error Cancel Order on {$now}",
+                ]);
                 $booking->update(['status' => Booking::STATUS_ERROR]);
                 ErrorLog::create([
                     'client_id' => $booking->client_id,
@@ -819,6 +867,10 @@ class FlightController extends Controller
             CancelResponse::create([
                 'xml_body' => json_encode($orderCancel),
                 'booking_id' => $booking->id
+            ]);
+            Log::create([
+                'booking_id' => $booking->id,
+                'notes' => "Cancel Order on {$now}",
             ]);
             return response()->json(['status' => 'success', 'message' => 'Success! Flight cancelled successfully!.', 'data' => $orderCancel]);
         }

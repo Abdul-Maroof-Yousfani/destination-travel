@@ -53,6 +53,7 @@ return [
         'url' => env('PIA_API_URL'),
         'username' => env('PIA_API_USERNAME'),
         'password' => env('PIA_API_PASSWORD'),
+        'email' => env('PIA_API_EMAIL'),
     ],
 
     'emirates_api' => [

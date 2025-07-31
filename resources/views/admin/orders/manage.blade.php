@@ -911,16 +911,13 @@
                 method: 'GET',
                 success: function (response) {
                     let logs = response.logs;
-                    if (logs.length === 0) {
-                        $('#logHistoryContent').html('<div class="alert alert-info">No notes found.</div>');
-                        return;
-                    }
+                    if (logs.length === 0) return $('#logHistoryContent').html('<div class="alert alert-info">No notes found.</div>');
 
                     let html = '<ul class="list-group">';
                     logs.forEach(log => {
                         html += `
                             <li class="list-group-item">
-                                <strong>${log.user?.name || 'Unknown Agent'}</strong>
+                                <strong>${log.user?.email || 'agent@edestination.com'}</strong>
                                 <span class="text-muted float-end">${new Date(log.created_at).toLocaleString()}</span>
                                 <p class="mb-1">${log.notes}</p>
                                 ${log.image ? `<img src="/storage/${log.image}" alt="note image" class="img-thumbnail" style="max-width: 200px;">` : ''}

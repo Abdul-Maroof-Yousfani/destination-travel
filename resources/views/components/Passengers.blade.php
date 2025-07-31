@@ -25,14 +25,14 @@
       <div class="col-md-12 col-lg-6">
          <div class="form-group">
             <label for="userPhoneCode">Phone Code</label>
-            <input type="text" name="userPhoneCode" id="userPhoneCode" class="form-control" required placeholder="Enter your phone code" maxlength="5" aria-describedby="helpId" value="{{ $user->phone_code ?? '' }}">
+            <input type="text" max="4" name="userPhoneCode" id="userPhoneCode" class="form-control" required placeholder="Enter your phone code" maxlength="5" aria-describedby="helpId" value="{{ $user->phone_code ?? '' }}">
             <small id="helpId" class="text-muted">e.g. 92</small>
          </div>
       </div>
       <div class="col-md-12 col-lg-6">
          <div class="form-group">
             <label for="userPhone">Phone Number</label>
-            <input type="text" name="userPhone" id="userPhone" class="form-control" required placeholder="Enter your phone number" aria-describedby="helpId" value="{{ $user->phone ?? '' }}">
+            <input type="number" name="userPhone" id="userPhone" class="form-control" required placeholder="Enter your phone number" aria-describedby="helpId" value="{{ $user->phone ?? '' }}">
             <small id="helpId" class="text-muted">e.g. 3320234557</small>
          </div>
       </div>
