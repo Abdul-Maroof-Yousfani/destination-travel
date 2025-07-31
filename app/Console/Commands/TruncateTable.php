@@ -41,6 +41,7 @@ class TruncateTable extends Command
             'penalties',
             'segments',
             'tickets',
+            'logs',
             // Add more table names as needed
         ];
         Schema::disableForeignKeyConstraints();
