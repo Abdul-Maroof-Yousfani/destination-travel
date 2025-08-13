@@ -120,7 +120,7 @@ class EmiratesService
                             ' . $paxXml . '
                         </DataLists>
                     </AirShoppingRQ>';
-        dd($this->getSoapEnvelope($body));
+        // dd($this->getSoapEnvelope($body));
         if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n");}
         try {
             $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('AirShoppingRQ'), $this->getSoapEnvelope($body));
