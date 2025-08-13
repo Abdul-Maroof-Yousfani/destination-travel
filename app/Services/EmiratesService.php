@@ -26,6 +26,7 @@ class EmiratesService
     protected $passwordIden;
     protected $agtPassword;
     protected $agencyId;
+    protected $agy;
     protected $subscriptionKey;
     protected $pcc;
     protected $role;
@@ -45,6 +46,7 @@ class EmiratesService
         $this->passwordIden = config('services.emirates_api.passwordIden');
         $this->agtPassword = config('services.emirates_api.agtPassword');
         $this->agencyId = config('services.emirates_api.agency_id');
+        $this->agy = config('services.emirates_api.agy');
         $this->subscriptionKey = config('services.emirates_api.subscription_key');
         $this->pcc = config('services.emirates_api.pcc');
         $this->role = config('services.emirates_api.role');
@@ -604,7 +606,7 @@ class EmiratesService
                 <SOAP-ENV:Header>
                     <t:TransactionControl>
                         <tc>
-                            <iden u="'.$this->u.'" p="'.$this->passwordIden.'" pseudocity="'.$this->pcc.'" agt="'.$this->user.'" agtpwd="'.$this->agtPassword.'" agtrole="'.$this->role.'" agy="'.$this->agencyId.'"/>
+                            <iden u="'.$this->u.'" p="'.$this->passwordIden.'" pseudocity="'.$this->pcc.'" agt="'.$this->user.'" agtpwd="'.$this->agtPassword.'" agtrole="'.$this->role.'" agy="'.$this->agy.'"/>
                             <agent user="'.$this->user.'"/>
                             <trace>'.$this->pcc.'_ek</trace>
                             <script engine="FLXDM" name="'.$this->agencyName.'"/>

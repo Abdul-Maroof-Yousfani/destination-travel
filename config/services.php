@@ -65,6 +65,7 @@ return [
         'passwordIden' => env('EMIRATES_PASSWORD_IDEN', 'Paktg24580'),
         'agtPassword' => env('EMIRATES_PASSWORD_AGT', 'Paktg24580'),
         'agency_id' => env('EMIRATES_AGENCY_ID', '27301245'),
+        'agy' => env('EMIRATES_AGY', '27301245'),
         'subscription_key' => env('EMIRATES_SUBSCRIPTION_KEY', 'ec71e1de4e224e82bac30f5a3c4c2803'),
         'pcc' => env('EMIRATES_PCC', 'ETXO')
     ],
