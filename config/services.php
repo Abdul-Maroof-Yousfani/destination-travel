@@ -57,13 +57,16 @@ return [
     ],
 
     'emirates_api' => [
-        'url' => env('EMIRATES_API_URL'),
-        'user' => env('EMIRATES_USER'),
-        'passwordIden' => env('EMIRATES_PASSWORD_IDEN'),
-        'agtPassword' => env('EMIRATES_PASSWORD_AGT'),
-        'agency_id' => env('EMIRATES_AGENCY_ID'),
-        'subscription_key' => env('EMIRATES_SUBSCRIPTION_KEY'),
-        'pcc' => env('EMIRATES_PCC')
+        'url' => env('EMIRATES_API_URL', 'https://ek.farelogix.com:443/sandbox-uat/oc'),
+        'role' => env('EMIRATES_ROLE', 'Ticketing Agent'),
+        'agency_name' => env('EMIRATES_AGENCY_NAME', 'DestinationsTravelTour-ek-dispatch.flxdm'),
+        'user' => env('EMIRATES_USER', 'otadestinations'),
+        'u' => env('EMIRATES_U', 'otadestinations'),
+        'passwordIden' => env('EMIRATES_PASSWORD_IDEN', 'Paktg24580'),
+        'agtPassword' => env('EMIRATES_PASSWORD_AGT', 'Paktg24580'),
+        'agency_id' => env('EMIRATES_AGENCY_ID', '27301245'),
+        'subscription_key' => env('EMIRATES_SUBSCRIPTION_KEY', 'ec71e1de4e224e82bac30f5a3c4c2803'),
+        'pcc' => env('EMIRATES_PCC', 'ETXO')
     ],
 
 ];

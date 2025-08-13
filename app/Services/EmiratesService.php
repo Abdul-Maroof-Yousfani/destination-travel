@@ -16,14 +16,19 @@ class EmiratesService
 {
     protected $helperService;
     protected $randomId;
-    protected $url;
-    protected $user;
-    protected $password;
-    protected $agencyId;
-    protected $pcc;
-    protected $subscriptionKey;
+
     protected $regenerateLogs;
     protected $logPath;
+    protected $agencyName;
+    protected $url;
+    protected $user;
+    protected $u;
+    protected $passwordIden;
+    protected $agtPassword;
+    protected $agencyId;
+    protected $subscriptionKey;
+    protected $pcc;
+    protected $role;
 
     public function __construct(HelperService $helperService)
     {
@@ -33,15 +38,16 @@ class EmiratesService
         $this->helperService = $helperService;
         $this->randomId = Str::random(30);
 
-        $this->agencyName = config('services.agency.name');
-        
+        $this->agencyName = config('services.emirates_api.agency_name');
         $this->url = config('services.emirates_api.url');
         $this->user = config('services.emirates_api.user');
+        $this->u = config('services.emirates_api.u');
         $this->passwordIden = config('services.emirates_api.passwordIden');
         $this->agtPassword = config('services.emirates_api.agtPassword');
         $this->agencyId = config('services.emirates_api.agency_id');
         $this->subscriptionKey = config('services.emirates_api.subscription_key');
         $this->pcc = config('services.emirates_api.pcc');
+        $this->role = config('services.emirates_api.role');
     }
     public function searchFlights($data) // AirShoppingRQ
     {
@@ -598,10 +604,10 @@ class EmiratesService
                 <SOAP-ENV:Header>
                     <t:TransactionControl>
                         <tc>
-                            <iden u="'.$this->user.'" p="'.$this->passwordIden.'" pseudocity="'.$this->pcc.'" agt="'.$this->user.'" agtpwd="'.$this->agtPassword.'" agy="'.$this->agencyId.'"/>
+                            <iden u="'.$this->u.'" p="'.$this->passwordIden.'" pseudocity="'.$this->pcc.'" agt="'.$this->user.'" agtpwd="'.$this->agtPassword.'" agtrole="'.$this->role.'" agy="'.$this->agencyId.'"/>
                             <agent user="'.$this->user.'"/>
                             <trace>'.$this->pcc.'_ek</trace>
-                            <script engine="FLXDM" name="'.$this->agencyName.'-ek-dispatch.flxdm"/>
+                            <script engine="FLXDM" name="'.$this->agencyName.'"/>
                         </tc>
                     </t:TransactionControl>
                 </SOAP-ENV:Header>
