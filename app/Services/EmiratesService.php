@@ -37,7 +37,8 @@ class EmiratesService
         
         $this->url = config('services.emirates_api.url');
         $this->user = config('services.emirates_api.user');
-        $this->password = config('services.emirates_api.password');
+        $this->passwordIden = config('services.emirates_api.passwordIden');
+        $this->agtPassword = config('services.emirates_api.agtPassword');
         $this->agencyId = config('services.emirates_api.agency_id');
         $this->subscriptionKey = config('services.emirates_api.subscription_key');
         $this->pcc = config('services.emirates_api.pcc');
@@ -597,7 +598,7 @@ class EmiratesService
                 <SOAP-ENV:Header>
                     <t:TransactionControl>
                         <tc>
-                            <iden u="'.$this->user.'" p="'.$this->password.'" pseudocity="'.$this->pcc.'" agt="'.$this->user.'" agtpwd="'.$this->password.'" agy="'.$this->agencyId.'"/>
+                            <iden u="'.$this->user.'" p="'.$this->passwordIden.'" pseudocity="'.$this->pcc.'" agt="'.$this->user.'" agtpwd="'.$this->agtPassword.'" agy="'.$this->agencyId.'"/>
                             <agent user="'.$this->user.'"/>
                             <trace>'.$this->pcc.'_ek</trace>
                             <script engine="FLXDM" name="'.$this->agencyName.'-ek-dispatch.flxdm"/>

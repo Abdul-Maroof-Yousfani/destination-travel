@@ -59,7 +59,8 @@ return [
     'emirates_api' => [
         'url' => env('EMIRATES_API_URL'),
         'user' => env('EMIRATES_USER'),
-        'password' => env('EMIRATES_PASSWORD'),
+        'passwordIden' => env('EMIRATES_PASSWORD_IDEN'),
+        'agtPassword' => env('EMIRATES_PASSWORD_AGT'),
         'agency_id' => env('EMIRATES_AGENCY_ID'),
         'subscription_key' => env('EMIRATES_SUBSCRIPTION_KEY'),
         'pcc' => env('EMIRATES_PCC')
