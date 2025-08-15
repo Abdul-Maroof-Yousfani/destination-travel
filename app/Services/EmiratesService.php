@@ -121,7 +121,7 @@ class EmiratesService
                         </DataLists>
                     </AirShoppingRQ>';
         // dd($this->getSoapEnvelope($body));
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n");}
+        if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
             $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('AirShoppingRQ'), $this->getSoapEnvelope($body));
             // dd($response->body());

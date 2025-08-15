@@ -670,7 +670,7 @@
                             <td>{{ $passenger['nationality'] ?? 'N/A' }}</td>
                             <td>{{ $passenger['passport_no'] ?? 'N/A' }}</td>
                             <td>{{ \Carbon\Carbon::parse($passenger['passport_exp'] ?? '')->format('d/m/Y') }}</td>
-                            <td>{{ $booking->flight_booking_id }}</td>
+                            <td>{{ $booking->airline_id }}</td>
                             <td>{{ $booking->flight_booking_id }}-{{ $loop->iteration }}</td>
 
                             @if ($ticket)
