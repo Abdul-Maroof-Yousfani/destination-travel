@@ -83,6 +83,13 @@
       });
     </script>
   @endif
+  @if (session('error'))
+    <script>
+      $(document).ready(function() {
+        _alert("{{ session('error') }}", "error");
+      });
+    </script>
+  @endif
   @if ($errors->any())
     <script>
       $(document).ready(function () {

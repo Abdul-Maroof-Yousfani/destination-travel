@@ -5,7 +5,18 @@
 @section('content')
 <div class="d-flex flex-column justify-content-between h-100">
     <div>
-        <h2 class="mb-4 fw-bold">Manage Orders</h2>
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-4 fw-bold">Manage Orders</h2>
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Download Logs
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.all') }}">All (Emirates)</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.bookings') }}">Only Bookings (Emirates)</a></li>
+                </ul>
+            </div>
+        </div>
         <div class="table-responsive">
             <table class="table table-bordered table-striped align-middle text-center">
                 <thead class="table-active">

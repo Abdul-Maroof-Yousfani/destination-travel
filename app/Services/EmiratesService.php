@@ -35,6 +35,7 @@ class EmiratesService
     {
         $this->regenerateLogs = true;
         $this->logPath = storage_path('logs/emirates_logs.txt');
+        $this->logPathBooking = storage_path('logs/emirates_logs_bookings.txt');
 
         $this->helperService = $helperService;
         $this->randomId = Str::random(30);
@@ -311,6 +312,8 @@ class EmiratesService
                     </Query>
                 </OrderCreateRQ>';
         // dd($this->getSoapEnvelope($body));
+        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCreateRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderCreateRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
             $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('OrderCreateRQ'), $this->getSoapEnvelope($body));
             if (!$response || !$response->successful()) {
@@ -322,6 +325,7 @@ class EmiratesService
             }
 
             if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCreateRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
+            if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderCreateRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
 
             $data = $this->helperService->XMLtoJSONEmirate($response->body());
             // dd($data);
@@ -473,6 +477,7 @@ class EmiratesService
                 </OrderChangeRQ>';
         // dd($this->getSoapEnvelope($body));
         if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderChangeRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
             $response = $this->helperService->postXml(
                 $this->url,
@@ -489,6 +494,7 @@ class EmiratesService
             }
 
             if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
+            if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
 
             $data = $this->helperService->XMLtoJSONEmirate($response->body());
 
@@ -546,6 +552,7 @@ class EmiratesService
                 </OrderCancelRQ>';
         // dd($this->getSoapEnvelope($body));
         if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCancelRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderCancelRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
             $response = $this->helperService->postXml(
                 $this->url,
@@ -562,6 +569,7 @@ class EmiratesService
             }
 
             if ($this->regenerateLogs) file_put_contents($this->logPath, "OrderCancelRS Response:\n" . (string) $response->body() . "\n", FILE_APPEND);
+            if ($this->regenerateLogs) file_put_contents($this->logPathBooking, "OrderCancelRS Response:\n" . (string) $response->body() . "\n", FILE_APPEND);
             $data = $this->helperService->XMLtoJSONEmirate($response->body());
 
             $orderCancelRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderCancelRS'] ?? null;

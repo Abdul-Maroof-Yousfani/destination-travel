@@ -9,6 +9,7 @@ use Filament\Notifications\Notification;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\AgentPermissionController;
 
 // Livewire::routes();
@@ -54,6 +55,10 @@ Route::view('login', 'login')->name('login');
 Route::view('register', 'register')->name('register');
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::view('dashboard', 'admin.dashboard')->name('dashboard');
+
+    Route::get('download-logs', [AdminDashboardController::class, 'downloadLogs'])->name('download.logs.all');
+    Route::get('download-logs/bookings', [AdminDashboardController::class, 'downloadLogsBookings'])->name('download.logs.bookings');
+
     Route::get('orders', [OrderController::class, 'list'])->name('orders');
     Route::get('orders-fetch', [OrderController::class, 'fetch'])->name('orders.fetch');
     Route::get('orders/{booking}', [OrderController::class, 'details'])->name('orders.details');

@@ -19,5 +19,23 @@ class DashboardController extends Controller
     {
         return view('admin.dashboard');
     }
+    public function downloadLogs()
+    {
+        $path = storage_path('logs/emirates_logs.txt');
+        if (!file_exists($path)) return redirect()->back()->with('error', 'Log file not found.');
+
+        return response()->download($path, 'emirates_logs.txt', [
+            'Content-Type' => 'text/plain',
+        ]);
+    }
+    public function downloadLogsBookings()
+    {
+        $path = storage_path('logs/emirates_logs_bookings.txt');
+        if (!file_exists($path)) return redirect()->back()->with('error', 'Log file not found.');
+
+        return response()->download($path, 'emirates_logs_bookings.txt', [
+            'Content-Type' => 'text/plain',
+        ]);
+    }
 
 }
