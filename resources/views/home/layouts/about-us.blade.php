@@ -229,6 +229,7 @@ body{font-family:'Inter',sans-serif;line-height:1.6;color:#333;}
             <h2>Our <span class="highlight">Culture</span></h2>
             <div class="culture-gallery">
                 <img src="https://edestinations.pk/assets/images/" alt="Office culture 1">
+                <img src="https://edestinations.pk/assets/images/" alt="Office culture 1">
                 <img src="https://edestinations.pk/assets/images/" alt="Office culture 2">
                 <img src="https://edestinations.pk/assets/images/" alt="Office culture 3">
             </div>

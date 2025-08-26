@@ -16,6 +16,12 @@ use App\Http\Controllers\Admin\AgentPermissionController;
 Route::view('/', 'home.home')->name('home');
 Route::view('terms-and-conditions', 'home.layouts.terms-and-conditions')->name('terms-and-conditions');
 Route::view('about-us', 'home.layouts.about-us')->name('about-us');
+
+// new route----------------------------
+Route::view('search-booking', 'home.layouts.search-booking')->name('search-booking');
+Route::view('view-booking-details', 'home.layouts.view-booking-details')->name('view-booking-details');
+// -------------------------------------
+
 Route::get('get-airport', [HomeController::class, 'airports'])->name('airport');
 Route::post('verify-client', [FlightController::class, 'verifyClient'])->name('verify.client');
 Route::view('mail', 'emails.sendBookingId')->name('mail');
@@ -39,10 +45,6 @@ Route::post('fetch-flight-details', [FlightController::class, 'fetchDetails'])->
 
 // Profile
 Route::post('update/client/{client}', [HomeController::class, 'updateClient'])->name('update.client');
-
-
-
-
 
 // -------------------------------------ADMIN----------------------------------------------
 Route::get('admin/login', 'App\Http\Controllers\Admin\AdminAuthController@loginPage')->name('admin.login');
