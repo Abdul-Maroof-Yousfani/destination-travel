@@ -5,8 +5,9 @@
 {{-- style --}}
 @endsection
 @section('content')
+
 <style>
- *{margin:0;padding:0;box-sizing:border-box;}
+*{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Arial,sans-serif;background:#f8f9fa;margin:0;padding:20px;}
 .container{max-width:900px;margin:auto;}
 .back-ground{background:#fff;border-radius:8px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
@@ -16,8 +17,8 @@ strong{font-weight:bold;}
 .view-bookings3{padding:50px 0px 10px 0px;}
 .header{display:flex;justify-content:space-between;align-items:center;padding:10px 0px;text-align:left;}
 .header div{font-size:14px;color:#333;}
-.btn{background:#007bff;color:#fff;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;font-size:14px;}
-.btn:hover{background:#0056b3;color:#fff;}
+.btn{background:#127F9F;color:#fff;border:1px solid #127F9F;font-weight:600;padding:8px 14px;border-radius:4px;cursor:pointer;font-size:14px;}
+.btn:hover{background:#0056b300;color:#127F9F;border:1px solid #127F9F;}
 .flight-box-depart{display:flex;justify-content:space-between;align-items:center;background:#ededed;border-radius:6px 6px 0px 0px;padding:8px 20px;}
 .flight-box{display:flex;justify-content:space-between;align-items:center;}
 .flight-info{display:flex;flex-direction:column;}
@@ -30,13 +31,14 @@ strong{font-weight:bold;}
 .flight-price h3{margin-bottom:5px;color:#474747;}
 .weight i{color:#474747;}
 .weight span{color:#474747;}
-.summary{margin-top:20px;padding:15px;border-radius:6px;background:#f8f9fa;}
-.summary h4{margin-bottom:10px;font-size:16px;}
-.summary-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px;color:#333;}
-.summary-row.total{font-weight:bold;font-size:16px;color:#007bff;}
-.traveler{margin-top:20px;padding:15px;background:#f1f5f9;border-radius:6px;}
-.traveler h4{margin-bottom:10px;font-size:16px;}
-.traveler p{margin:5px 0;font-size:14px;}
+.summary{margin-top:20px;}
+.travelers{margin-top:20px;}
+.travelers p{margin-bottom:20px;}
+.summary-row{display:flex;justify-content:space-between;font-size:14px;color:#333;margin-bottom:20px;}
+.summary-row.total{font-weight:bold;font-size:16px;color:#127F9F;margin:0;padding:30px 0px 20px 0px;border-top:1px solid #333;;margin-top:30px;}
+.travelers-row.total p{margin:0;padding:4px 0px;color:#333;}
+.travelers-row.total p i{color:#333;}
+.travelers-row.total{border-top:1px solid #333;padding:30px 0px 20px 0px;}
 .times{display:flex;justify-content:space-between;margin-bottom:10px;}
 .times h2{font-size:26px;padding:0px 15px;}
 .times span{font-size:13px;color:#0e0e0e;background:#ddd;line-height:25px;padding:0px 6px;}
@@ -48,10 +50,10 @@ strong{font-weight:bold;}
 .biniti{background:#fdfdfd;padding:5px 5px;border:1px solid #ddd;border-radius:5px;text-align:center;}
 .biniti i{color:#127F9F;}
 .complated{margin-top:20px;}
-
-
+.complated button.btn.btn-sm.btn_secondary{width:100%;padding:15px 0px;}
+.flight-box-depart h4{font-size:18px;font-weight:600;padding:10px 0px;}
+.flight-box-depart h3{font-weight:700;}
 </style>
-
 
 <div class="row">
     <div class="col-md-8">
@@ -83,7 +85,6 @@ strong{font-weight:bold;}
                 </div>
             <div>
         </section>
-
         <section class="view-bookings2">
             <div class="container">
                 <div class="flight-head">
@@ -99,49 +100,48 @@ strong{font-weight:bold;}
                 </div>
                 <div class="back-ground">
                     <!-- Flight Section -->
-             
-                        <div class="flight-box">
-                            <div class="flight-info">
-                                <img src="" alt="PIA">
-                                <br>
-                                <h3>PIA</h3>
-                                
-                            </div>
-                            <div class="flight-time">
-                                <div class="times">
-                                    <h2>04:00 PM</h2>
-                                    <span>1h 55m</span>
-                                    <h2>05:55 PM</h2>
-                                </div>
-                                <div class="city">
-                                    <span>Karachi (KHI) - Nonstop - Islamabad (ISB)</span>
-                                </div>
-                                
-                            </div>
-                            <div class="weight">
-                                <span><i class="fa-solid fa-suitcase-rolling"></i> Total: 20kg</span>
-                            </div>
-                            <div class="flight-price">
+                    <div class="flight-box">
+                        <div class="flight-info">
+                            <img src="" alt="PIA">
+                            <br>
+                            <h3>PIA</h3>
                             
-                                <h3> Total Price</h3>
-                                <p><strong>PKR 28,120</strong></p>
-                                    
-                            
+                        </div>
+                        <div class="flight-time">
+                            <div class="times">
+                                <h2>04:00 PM</h2>
+                                <span>1h 55m</span>
+                                <h2>05:55 PM</h2>
+                            </div>
+                            <div class="city">
+                                <span>Karachi (KHI) - Nonstop - Islamabad (ISB)</span>
                             </div>
                         </div>
-                      
+                        <div class="weight">
+                            <span><i class="fa-solid fa-suitcase-rolling"></i> Total: 20kg</span>
+                        </div>
+                        <div class="flight-price">
+                        
+                            <h3> Total Price</h3>
+                            <p><strong>PKR 28,120</strong></p>
+                        </div>
+                    </div>
                 </div>   
             </div> 
         </section>
     </div>
-
     <div class="col-md-4">
         <section class="view-bookings3">
             <div class="container">
+                <div class="flight-box-depart">
+                    <div class="flight-head">
+                         <h4>Price Summary</h4>
+                    </div>
+                </div>
                 <div class="back-ground">
                     <!-- Price Summary -->
                     <div class="summary">
-                        <h4>Price Summary</h4>
+                       
                         <div class="summary-row">
                             <span>PIA (Adult x1)</span>
                             <span>PKR 28,120</span>
@@ -164,15 +164,22 @@ strong{font-weight:bold;}
         </section>
         <section class="view-bookings2">
             <div class="container">
+                <div class="flight-box-depart">
+                    <div class="flight-head">
+                         <h4>Travelers</h4>
+                    </div>
+                </div>
                 <div class="back-ground">
                     <!-- Traveler Info -->
-                    <div class="traveler">
-                        <h4>Travelers</h4>
-                        <p><strong>MR. ali asim</strong></p>
-                        <p>📞 +923235690055</p>
-                        <p>✉️ adnanilyas1984@gmail.com</p>
-                    </div>  
-                   
+                    <div class="travelers">
+                        <div class="travelers-row">
+                           <p><strong><i class="fa-solid fa-user"></i> MR. ali asim</strong></p>
+                        </div>
+                        <div class="travelers-row total">
+                            <p><i class="fa fa-solid fa-mobile"></i> +923235690055</p>
+                            <p><i class="fa-solid fa-envelope"></i> adnanilyas1984@gmail.com</p>
+                        </div>
+                    </div>
                 </div>  
                 <div class="complated">
                     <button class="btn btn-sm btn_secondary">Complete Payment</button>
@@ -181,10 +188,6 @@ strong{font-weight:bold;}
         </section>
     </div>
 </div>
-
-
-
-
 
 @endsection
 @section('script')
