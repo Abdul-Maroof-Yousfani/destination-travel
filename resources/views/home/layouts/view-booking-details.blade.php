@@ -35,10 +35,10 @@ strong{font-weight:bold;}
 .travelers{margin-top:20px;}
 .travelers p{margin-bottom:20px;}
 .summary-row{display:flex;justify-content:space-between;font-size:14px;color:#333;margin-bottom:20px;}
-.summary-row.total{font-weight:bold;font-size:16px;color:#127F9F;margin:0;padding:30px 0px 20px 0px;border-top:1px solid #333;;margin-top:30px;}
+.summary-row.total{font-weight:bold;font-size:16px;color:#127F9F;margin:0;padding:30px 0px 20px 0px;border-top:1px solid #ddd;margin-top:30px;}
 .travelers-row.total p{margin:0;padding:4px 0px;color:#333;}
 .travelers-row.total p i{color:#333;}
-.travelers-row.total{border-top:1px solid #333;padding:30px 0px 20px 0px;}
+.travelers-row.total{border-top:1px solid #ddd;padding:30px 0px 20px 0px;}
 .times{display:flex;justify-content:space-between;margin-bottom:10px;}
 .times h2{font-size:26px;padding:0px 15px;}
 .times span{font-size:13px;color:#0e0e0e;background:#ddd;line-height:25px;padding:0px 6px;}
