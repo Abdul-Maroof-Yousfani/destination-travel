@@ -44,6 +44,8 @@ return [
         'authenticate' => env('FLYJINNAH_API_AUTHENTICATE'),
         'search' => env('FLYJINNAH_API_SEARCH'),
         'flight_details' => env('FLYJINNAH_API_FLIGHT_DETAILS'),
+        'auth_username' => env('FLYJINNAH_API_AUTH_USERNAME'),
+        'auth_password' => env('FLYJINNAH_API_AUTH_PASSWORD'),
         'username' => env('FLYJINNAH_API_USERNAME'),
         'password' => env('FLYJINNAH_API_PASSWORD'),
         'agent_code' => env('FLYJINNAH_AGENT_CODE'),

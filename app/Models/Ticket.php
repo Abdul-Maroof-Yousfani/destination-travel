@@ -14,6 +14,7 @@ class Ticket extends Model
         'passenger_reference',
         'place', // Ticket issue place
         'ticket_no',
+        'ticket_numbers',
         'type',
         'issue_date',
         'price_code',
@@ -27,6 +28,7 @@ class Ticket extends Model
 
     protected $casts = [
         'issue_date' => 'datetime',
+        'ticket_numbers' => 'array',
     ];
 
     public function client()
@@ -38,4 +40,11 @@ class Ticket extends Model
     {
         return $this->belongsTo(Booking::class);
     }
+
+    public function ancillaries()
+    {
+        return $this->hasMany(Ancillary::class);
+    }
+
+    protected $with = ['ancillaries'];
 }

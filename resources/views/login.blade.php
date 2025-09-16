@@ -1,41 +1,60 @@
-@extends('home/layouts/layout')
-
+@php
+    $layout = request()->routeIs('admin.login') ? 'home/layouts/layout' : 'home/layouts/master';
+@endphp
+@extends($layout)
 @section('title', 'Login')
 @section('style')
   <link rel="stylesheet" href="{{ url('assets/css/login.css') }}">
 @endsection
 @section('content')
     @php $isAdmin = request()->routeIs('admin.login') ? true : false; @endphp
-    <div class="container d-flex flex-column gap-3 m-auto w-50">
-        <p class="headline">{{ $isAdmin ? 'Admin' : '' }} Login</p>
+    <section class="search-bookings">
+        <div class="container d-flex justify-content-center">
+            <div class="booking-box">
+                <h2>Login to your account @if ($isAdmin) (Admin) @endif</h2>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="e.g. name@gmail.com" required>
+                    <div class="form-note">Enter your valid email address.</div>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
 
-        <div class="form-group">
-            <label for="name">Email</label>
-            <input type="email" id="email" name="email" class="form-control" placeholder="Enter your Email">
+                <button class="loginBtn" disabled>Login</button>
+                @if (!$isAdmin)
+                    <p class="registerText mt-2">Don't have an account? <a href="{{ route('register') }}">Register</a></p>
+                @endif
+            </div>
         </div>
-
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password">
-        </div>
-
-        <button class="loginBtn">Login</button>
-        @if (!$isAdmin)
-            <p class="registerText">Don't have an account? <a href="{{ route('register') }}">Register</a></p>
-        @endif
-    </div>
+    </section>
 @endsection
 @section('script')
     <script>
         $(document).ready(function () {
             const isAdmin = @json($isAdmin);
+
+            function validateForm() {
+                let email = $('#email').val().trim();
+                let password = $('#password').val().trim();
+                let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // basic email check
+
+                if (emailRegex.test(email) && password.length > 0) {
+                    $('.loginBtn').addClass('active').prop('disabled', false);
+                } else {
+                    $('.loginBtn').removeClass('active').prop('disabled', true);
+                }
+            }
+
+            // Run validation whenever user types
+            $('#email, #password').on('input', validateForm);
+
             $('.loginBtn').on('click', function (e) {
                 e.preventDefault();
                 let url = isAdmin ? "{{ route('admin.login.submit') }}" : "{{ route('login.submit') }}";
                 let email = $('#email').val().trim();
                 let password = $('#password').val().trim();
-                // console.log(url)
-                // return
 
                 if (!email || !password) {
                     _alert('Both fields are required.', 'error');

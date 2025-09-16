@@ -65,7 +65,7 @@
                     </div>
                     <div class="menuWrap2">
                         <ul class="menu2">
-                            <li><a href="{{route('home')}}"><i class="fa-solid fa-magnifying-glass"></i> Search Booking</a></li>
+                            <li><a href="{{ route('search.booking') }}"><i class="fa-solid fa-magnifying-glass"></i> Search Booking</a></li>
                             <li><a href="tel:{{ config('variables.contact.phone') }}">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-solid fa-phone"></i></div>

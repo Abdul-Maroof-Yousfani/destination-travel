@@ -14,7 +14,7 @@
         let sessionExpiredSwal = null;
 
         window.sessionTimer = function (action) {
-            console.log(action, '<=sessionTimer');
+            // console.log(action, '<=sessionTimer');
 
             if (!action) {
                 clearInterval(countdown);

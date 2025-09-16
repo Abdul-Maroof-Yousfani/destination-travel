@@ -10,6 +10,40 @@
             font-size: 20px;
         }
     </style>
+    <style>
+        .flight-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin: 20px auto;
+        }
+        .flight-duration {
+            background-color: #f2f2f2;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            margin: 5px 0;
+            display: inline-block;
+        }
+        .price-btn {
+            background-color: #127f9f;
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .airline-logo {
+            width: 40px;
+            height: auto;
+        }
+        .timesHeading{
+            font-size: 2em;
+            font-weight: bolder;
+        }
+    </style>
 @endsection
 @section('content')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -163,7 +197,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-12 col-lg-10">
+                <div class="col-md-12 col-lg-8">
                     {{-- <div class="departure-bo">
                         <div class="daparture-main">
                             <div class="derp-calender">
@@ -197,7 +231,6 @@
                     <div class="plane">
                         <ul>
                             @php
-                                // dd($data);
                                 $hasAvailableFlight = false;
                                 $departureHasFlights = false;
                                 if (!empty($data)) {
@@ -232,7 +265,6 @@
                                                     </p>
                                                     <i>
                                                         <p>{{ $flightData['route'] ?? '' }}</p>
-                                                        {{-- <small>{{ $flightData['date'] ?? '' }}</small> --}}
                                                     </i>
                                                 </div>
                                                 @foreach ($flightData['flights'] as $key => $flight)
@@ -304,24 +336,9 @@
                                                 @endforeach
                                             </div>
                                         @endforeach
-                                        {{-- @php
-                                            $totalExtraFlights = 0;
-                                            if (!empty($data)) {
-                                                foreach ($data as $flightData) {
-                                                    $availableFlights = array_filter($flightData['flights'], function ($flight) {
-                                                        return $flight['availabilityStatus'] === 'AVAILABLE';
-                                                    });
-                                                    if (count($availableFlights) > 1) {
-                                                        $totalExtraFlights += count($availableFlights) - 1;
-                                                    }
-                                                }
-                                            }
-                                        @endphp --}}
-                                        {{-- @if ($totalExtraFlights > 0) --}}
-                                            <div class="text-center mb-3 col-12">
-                                                <span id="toggleFlightsBtn" class="text-info font-weight-bolder pointer toggle-flights-btn" data-target=".extra-flight"></span>
-                                            </div>
-                                        {{-- @endif --}}
+                                        <div class="text-center mb-3 col-12">
+                                            <span id="toggleFlightsBtn" class="text-info font-weight-bolder pointer toggle-flights-btn" data-target=".extra-flight"></span>
+                                        </div>
                                      </div>
                                     <div class="prices2 mt-3">
                                         <div class="select-flight">
@@ -331,11 +348,9 @@
                                         </div>
                                     </div>
                                 </li>
-                            {{-- @else
-                                <p class="text-center">Flyjinnah flights not available</p> --}}
                             @endif
-                            {{-- @dd($emirates) --}}
                             <x-emirate-flights :flight="$emirates" :roundTrip="$isRoundTrip" />
+                            {{-- <x-pia-flights :flight="$pia" :roundTrip="$isRoundTrip" /> --}}
                             <div class="modal fade right" id="bundleModal" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -344,58 +359,143 @@
                                             <button type="button" class="btn btn-b" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i></button>
                                         </div>
                                         <div class="modal-body">
-                                            <!-- popup code -->
-                                            <!-- <div class="col-md-12 col-lg-12"> -->
-                                                <div class="tick modalFlights mb-4"></div>
-                                                <!-- tabs -->
-                                                <div class="directBookingBtn"></div>
-                                                @if ($isRoundTrip)
-                                                    <div class="departure-bo">
-                                                        <div class="daparture-main">
-                                                            <div class="pack-main mt-0">
-                                                                <div class="tab-links packg">
-                                                                    <ul class="tab-product">
-                                                                        <li data-targetit="box-16" class="current">
-                                                                            <a class="pointer" data-toggle="tab">Departure</a>
-                                                                        </li>
-                                                                        <li data-targetit="box-17" >
-                                                                            <a class="pointer" data-toggle="tab">Return</a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                                <div class="box-16 showfirst tab-content">
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <div class="main-border">
-                                                                <div class="flcul">
-                                                                    <ul class="directModalBundles"></ul>
-                                                                </div>
+                                            <div class="tick modalFlights mb-4"></div>
+                                            <!-- tabs -->
+                                            <div class="directBookingBtn"></div>
+                                            @if ($isRoundTrip)
+                                                <div class="departure-bo">
+                                                    <div class="daparture-main">
+                                                        <div class="pack-main mt-0">
+                                                            <div class="tab-links packg">
+                                                                <ul class="tab-product">
+                                                                    <li data-targetit="box-16" class="current">
+                                                                        <a class="pointer" data-toggle="tab">Departure</a>
+                                                                    </li>
+                                                                    <li data-targetit="box-17" >
+                                                                        <a class="pointer" data-toggle="tab">Return</a>
+                                                                    </li>
+                                                                </ul>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="box-17 tab-content">
-                                                    <div class="row">
-                                                        <div class="col-md-12 col-lg-12">
-                                                            <div class="main-border">
-                                                                <div class="flcul">
-                                                                    <ul class="returnModalBundles"></ul>
-                                                                </div>
+                                            @endif
+                                            <div class="box-16 showfirst tab-content">
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <div class="main-border">
+                                                            <div class="flcul">
+                                                                <ul class="directModalBundles"></ul>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            <!-- </div> -->
+                                            </div>
+                                            <div class="box-17 tab-content">
+                                                <div class="row">
+                                                    <div class="col-md-12 col-lg-12">
+                                                        <div class="main-border">
+                                                            <div class="flcul">
+                                                                <ul class="returnModalBundles"></ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </ul>
                     </div>
+                    {{-- <div class="border border-2 row">
+                        <div class="col-md-4">
+                            <div class="emri"><img src="assets/images/airblue.png" alt=""></div>  
+                        </div>
+                        <div class="col-md-8">
+                            <ul>
+                                <li><h2>06:10 PM</h2></li>
+                                <li><div class="stays"><p>2h 30m</p></div></li>
+                                <li><h2>07:40 PM</h2></li>
+                            </ul>
+                            <div class="citys">
+                                <div class="cit">
+                                    <ul>
+                                        <li><p>Karachi (KHI)</p></li>
+                                        <li><p>-</p></li>
+                                        <li><p>Nonstop</p></li>
+                                        <li>-</li>
+                                        <li><p>Dubai (DXB)</p></li>
+                                    </ul>
+                                    <div class="weig weig2">
+                                        <ul>
+                                            <li><p><i class="fa-solid fa-plate-wheat"></i> Meal</p></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-5 showfirst tab-content">
+                        <div class="sugge-tab sugge-tab-time2 ">
+                            <div class="flex1">
+                                <div class="emri"><img src="assets/images/airblue.png" alt=""></div>   
+                                <div class="der-time">
+                                    <ul>
+                                        <li><h2>06:10 PM</h2></li>
+                                        <li><div class="stays"><p>2h 30m</p></div></li>
+                                        <li><h2>07:40 PM</h2></li>
+                                    </ul>
+                                    <div class="citys">
+                                        <div class="cit">
+                                            <ul>
+                                                <li><p>Karachi (KHI)</p></li>
+                                                <li><p>-</p></li>
+                                                <li><p>Nonstop</p></li>
+                                                <li>-</li>
+                                                <li><p>Dubai (DXB)</p></li>
+                                            </ul>
+                                            <div class="weig weig2">
+                                                <ul>
+                                                    <li><p><i class="fa-solid fa-plate-wheat"></i> Meal</p></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="prices2">
+                                <a class="btn btn-b" role="button">PKR 91,100</a>
+                            </div>
+                        </div>
+                    </div> --}}
+
+                    {{-- <div class="flight-card row align-items-center text-center text-md-start">
+                        <!-- Airline Info -->
+                        <div class="col-12 col-md-2 mb-3 mb-md-0 d-flex flex-column align-items-center">
+                            <img src="assets/images/airblue.png" alt="PIA" class="airline-logo mb-1">
+                            <div><strong>PIA</strong></div>
+                            <div class="text-muted small">PK-306 (V)</div>
+                        </div>
+
+                        <div class="col-12 col-md-8">
+                            <!-- Time Info -->
+                            <div class="timesHeading mb-3 mb-md-0 d-flex align-items-center justify-content-center">
+                                <div><strong>08:00 PM</strong></div>
+                                <div class="flight-duration m-3">1h 45m</div>
+                                <div><strong>09:45 PM</strong></div>
+                            </div>
+                            <div class="my-3">Karachi (KHI) - Nonstop - Lahore (LHE)</div>
+                            <div class="text-muted small">🧳 Total: 20kg &nbsp;&nbsp; 🍴 Meal</div>
+                        </div>
+
+                        <!-- Price Info -->
+                        <div class="col-12 col-md-2 text-md-end">
+                            <button class="price-btn mb-2">PKR 35,340</button>
+                            <div class="text-muted small">Round Trip</div>
+                        </div>
+                    </div> --}}
+
                 </div>
             </div>
         </div>

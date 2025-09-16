@@ -99,9 +99,9 @@
                                     <input class="hidden-radio" type="radio" id="title_ms_{{ $key }}_{{ $i }}" value="Ms" name="title_{{ $key }}_{{ $i }}" />
                                     <span class="ml-2">Ms</span>
                                  </label>
+                              </div>
                            </div>
-                         </div>
-                      </div>
+                        </div>
                       <div class="col-md-12 col-lg-6">
                          <div class="form-group">
                          <label for="{{ $i }}_name">Given Name</label>

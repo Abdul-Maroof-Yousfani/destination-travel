@@ -1,58 +1,68 @@
-@extends('home/layouts/layout')
+@extends('home/layouts/master')
 
 @section('title', 'Register')
 @section('style')
-  <link rel="stylesheet" href="{{ url('assets/css/login.css') }}">
+    <link rel="stylesheet" href="{{ url('assets/css/login.css') }}">
 @endsection
 @section('content')
-    <div class="container d-flex flex-column gap-3 m-auto w-50">
-        <h1 class="headline">Register</h1>
-        <div class="form-group">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" class="form-control" placeholder="Enter your Fullname">
-        </div>
+    <section class="search-bookings">
+        <div class="container d-flex justify-content-center">
+            <div class="booking-box">
+                <h2>Create your account</h2>
 
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" class="form-control" placeholder="Enter your Email">
-        </div>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="Enter your Fullname">
+                </div>
 
-        <div class="form-group">
-            <label for="code">Phone Code</label>
-            <input type="text" id="code" name="code" class="form-control" placeholder="Enter your Phone Code">
-        </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your Email">
+                </div>
 
-        <div class="form-group">
-            <label for="phone">Phone</label>
-            <input type="number" id="phone" name="phone" class="form-control" placeholder="Enter your Phone">
-        </div>
+                <div class="form-group">
+                    <label for="code">Phone Code</label>
+                    <input type="text" id="code" name="code" placeholder="e.g. +1">
+                </div>
 
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" class="form-control" placeholder="Enter your Password">
-        </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="number" id="phone" name="phone" placeholder="Enter your Phone">
+                </div>
 
-        <button class="loginBtn">Register</button>
-        <p class="registerText">Already have an account? <a href="{{ route('login') }}">Login</a></p>
-    </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your Password">
+                </div>
+
+                <button class="loginBtn active">Register</button>
+                <p class="registerText mt-2">Already have an account? <a href="{{ route('login') }}">Login</a></p>
+            </div>
+        </div>
+    </section>
 @endsection
 @section('script')
     <script>
         $(document).ready(function () {
             $('.loginBtn').on('click', function (e) {
                 e.preventDefault();
+
                 let name = $('#name').val().trim();
                 let email = $('#email').val().trim();
                 let code = $('#code').val().trim();
                 let phone = $('#phone').val().trim();
                 let password = $('#password').val().trim();
-                // console.log(url)
-                // return
 
-                // if (!name || !email || !code || !phone || !password) {
-                //     _alert('Both fields are required.', 'error');
-                //     return;
-                // }
+                // basic email regex
+                let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (!name || !email || !code || !phone || !password) {
+                    return _alert('All fields are required.', 'warning');
+                }
+
+                if (!emailRegex.test(email)) {
+                    return _alert('Please enter a valid email address.', 'warning');
+                }
 
                 $.ajax({
                     url: "{{ route('register.submit') }}",
@@ -68,33 +78,14 @@
 
                         if (xhr.status === 422) {
                             let errors = xhr.responseJSON.errors;
-
                             for (let field in errors) {
                                 let messages = errors[field];
-                                let fieldName = field.replace(/\.\d+/g, '[]');
-                                let input = $(`[name="${fieldName}"]`);
-
-                                if (input.length > 1 || fieldName.endsWith('[]')) {
-                                    input.each(function () {
-                                        $(this).addClass('is-invalid');
-                                        $(this).after(`<div class="invalid-feedback d-block text-danger">${messages[0]}</div>`);
-                                    });
-                                } else {
-                                    input.addClass('is-invalid');
-                                    input.after(`<div class="invalid-feedback d-block text-danger">${messages[0]}</div>`);
-                                }
-                            }
-
-                            // Scroll to first error
-                            const firstInvalid = $('.is-invalid').first();
-                            if (firstInvalid.length) {
-                                $('html, body').animate({
-                                    scrollTop: firstInvalid.offset().top - 100
-                                }, 500);
+                                let input = $(`[name="${field}"]`);
+                                input.addClass('is-invalid');
+                                input.after(`<div class="invalid-feedback d-block text-danger">${messages[0]}</div>`);
                             }
                         } else {
                             _alert(xhr.responseJSON?.message || 'Registration failed.', 'error');
-                            console.error(xhr.responseJSON);
                         }
                     }
                 });

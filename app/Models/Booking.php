@@ -51,6 +51,7 @@ class Booking extends Model
         'payment_limit' => 'datetime',
         'is_oneway' => 'boolean',
         'only_search' => 'boolean',
+        'passenger_details' => 'array',
     ];
 
     public static function getStatuses(): array
@@ -151,19 +152,25 @@ class Booking extends Model
         return $this->hasOne(CancelResponse::class);
     }
 
-    protected function canceledAt(): Attribute
-    {
-        return Attribute::get(fn () => $this->cancelResponse?->created_at);
-    }
     public function payments()
     {
         return $this->hasMany(Payment::class);
     }
 
+    protected function canceledAt(): Attribute
+    {
+        return Attribute::get(function () {
+            if ($this->status === self::STATUS_CANCEL) {
+                return $this->cancelResponse?->created_at ?? $this->updated_at;
+            }
+            return null;
+        });
+    }
+
     public function getFlightSummary(): string
     {
         $tripType = $this->is_oneway ? 'ONEWAY' : 'RETURN';
-        $airlineCode = strtoupper($this->airline_id);
+        $airlineCode = strtoupper($this->airline_id ?? $this->order_id);
         $routes = $this->flights->map(function ($flight) {
             return strtoupper($flight->departure_code . '-' . $flight->arrival_code);
         })->implode("\n");

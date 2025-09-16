@@ -48,7 +48,8 @@
             confirmButtonText: confirmBtn,
             cancelButtonText: cancelBtn,
             showCancelButton: showCancel,
-            showCloseButton: showCancel
+            showCloseButton: showCancel,
+            allowOutsideClick: false,
         });
         return result.isConfirmed;
     };

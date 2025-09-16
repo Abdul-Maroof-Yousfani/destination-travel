@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Client;
 use App\Models\Airport;
+use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
@@ -53,5 +55,44 @@ class HomeController extends Controller
         $client->update($validated);
 
         return redirect()->back()->with('message', 'Client updated successfully.')->with('status', 'success');
+    }
+    public function searchBooking(Request $request)
+    {
+        $validated = $request->validate([
+            'order_id' => 'required|string|max:255',
+            'email'    => 'required|email',
+        ]);
+
+        $booking = Booking::where('airline_id', $validated['order_id'])
+            ->whereHas('client', function ($q) use ($validated) {
+                $q->where('email', $validated['email']);
+            })
+            ->first();
+
+        if (!$booking) {
+            $booking = Booking::where('order_id', $validated['order_id'])
+                ->whereHas('client', function ($q) use ($validated) {
+                    $q->where('email', $validated['email']);
+                })
+                ->first();
+        }
+
+        if (!$booking) return redirect()->back()->with(['status' => 'error', 'message' => 'Booking not found.']);
+
+        $cacheKey = 'verified_booking_' . session()->getId();
+        Cache::put($cacheKey, $booking->id, now()->addMinutes(5));
+
+        return redirect()->route('view.booking.details');
+    }
+    public function viewBookingDetails(Request $request)
+    {
+        $cacheKey = 'verified_booking_' . session()->getId();
+        $bookingId = Cache::get($cacheKey);
+        if (!$bookingId) return redirect()->route('search.booking')->with(['status' => 'error', 'message' => 'Please verify your booking first.']);
+
+        $booking = Booking::with('client', 'flights', 'bookingItems')->find($bookingId);
+        if (!$booking) return redirect()->route('search.booking')->with(['status' => 'error', 'message' => 'Booking not found.']);
+
+        return view('home.pages.view-booking-details', compact('booking'));
     }
 }

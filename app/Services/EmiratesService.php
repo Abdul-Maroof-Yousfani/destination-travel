@@ -19,6 +19,7 @@ class EmiratesService
 
     protected $regenerateLogs;
     protected $logPath;
+    protected $logPathBooking;
     protected $agencyName;
     protected $url;
     protected $user;
@@ -699,112 +700,6 @@ class EmiratesService
         if ($ticketInfos) {
             $data['ticketInfos'] = $this->ticketInfos($ticketInfos);
         }
-
-        // if ($ticketInfos) {
-        //     foreach ($ticketInfos as $ticketInfo) {
-        //         $data['ticketInfos'][] = [
-        //             'passengerReference' => $ticketInfo['PassengerReference']['value'] ?? '',
-        //             'agentId' => [
-        //                 'type' => $ticketInfo['AgentIDs']['AgentID']['Type']['value'] ?? '',
-        //                 'id' => $ticketInfo['AgentIDs']['AgentID']['ID']['value'] ?? '',
-        //             ],
-        //             'issuingAirlineInfo' => [
-        //                 'airline' => $ticketInfo['IssuingAirlineInfo']['AirlineName']['value'] ?? '',
-        //                 'place' => $ticketInfo['IssuingAirlineInfo']['Place']['value'] ?? '',
-        //             ],
-        //             'price' => [
-        //                 'passengerReferences' => $ticketInfo['Price']['PassengerReferences']['refs'] ?? '',
-        //                 'refs' => $ticketInfo['Price']['@attributes']['refs'] ?? '',
-        //                 'total' => [
-        //                     'code' => $ticketInfo['Price']['Total']['@attributes']['Code'] ?? '',
-        //                     'value' => $ticketInfo['Price']['Total']['value'] ?? '',
-        //                 ],
-        //                 'details' => [
-        //                     'application' => $ticketInfo['Price']['Details']['Detail']['Application']['value'] ?? '',
-        //                     'amount' => [
-        //                         'code' => $ticketInfo['Price']['Details']['Detail']['Amount']['@attributes']['Code'] ?? '',
-        //                         'value' => $ticketInfo['Price']['Details']['Detail']['Amount']['value'] ?? '',
-        //                     ],
-        //                     'taxes' => [
-        //                         'total' => [
-        //                             'code' => $ticketInfo['Price']['Taxes']['Total']['@attributes']['Code'] ?? '',
-        //                             'value' => $ticketInfo['Price']['Taxes']['Total']['value'] ?? '',
-        //                         ],
-        //                         'breakdown' => collect($ticketInfo['Price']['Taxes']['Breakdown']['Tax'] ?? [])
-        //                             ->map(fn($tax) => [
-        //                                 'amount' => [
-        //                                     'code' => $tax['Amount']['@attributes']['Code'] ?? '',
-        //                                     'value' => $tax['Amount']['value'] ?? 0,
-        //                                 ],
-        //                                 'taxCode' => $tax['TaxCode']['value'] ?? '',
-        //                                 'description' => $tax['Description']['value'] ?? '',
-        //                             ])->all(),
-        //                     ],
-        //                     'fees' => [
-        //                         'code' => $ticketInfo['Price']['Fees']['Total']['@attributes']['Code'] ?? '',
-        //                         'value' => $ticketInfo['Price']['Fees']['Total']['value'] ?? 0,
-        //                     ],
-        //                 ],
-        //             ],
-        //             'ticketDocument' => [
-        //                 'ticketDocNbr' => $ticketInfo['TicketDocument']['TicketDocNbr']['value'] ?? '',
-        //                 'type' => $ticketInfo['TicketDocument']['Type']['value'] ?? '',
-        //                 'numberOfBooklets' => $ticketInfo['TicketDocument']['NumberofBooklets']['value'] ?? '',
-        //                 'dateOfIssue' => $ticketInfo['TicketDocument']['DateOfIssue']['value'] ?? '',
-        //                 'timeOfIssue' => $ticketInfo['TicketDocument']['TimeOfIssue']['value'] ?? '',
-        //                 'ticketingLocation' => $ticketInfo['TicketDocument']['TicketingLocation']['value'] ?? '',
-        //                 'reportingType' => $ticketInfo['TicketDocument']['ReportingType']['value'] ?? '',
-        //                 'couponInfo' => collect($ticketInfo['TicketDocument']['CouponInfo'] ?? [])
-        //                     ->map(fn($coupon) => [
-        //                         'couponNumber' => $coupon['CouponNumber']['value'] ?? '',
-        //                         'couponReference' => $coupon['CouponReference']['value'] ?? '',
-        //                         'fareBasisCode' => $coupon['FareBasisCode']['Code']['value'] ?? '',
-        //                         'status' => $coupon['Status']['value'] ?? '',
-        //                         'validatingAirline' => $coupon['ValidatingAirline']['value'] ?? '',
-        //                         'couponMedia' => $coupon['CouponMedia']['value'] ?? '',
-        //                         'couponValid' => [
-        //                             'effective' => $coupon['CouponValid']['EffectiveDatePeriod']['Effective']['value'] ?? '',
-        //                             'expiration' => $coupon['CouponValid']['EffectiveDatePeriod']['Expiration']['value'] ?? '',
-        //                         ],
-        //                         'currentAirlineInfo' => [
-        //                             'departureDateTime' => Carbon::parse(($coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['DepartureDateTime']['@attributes']['Time']) ?? null),
-        //                             'arrivalDateTime' => Carbon::parse(($coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['ShortDate'] . ' ' . $coupon['CurrentAirlineInfo']['ArrivalDateTime']['@attributes']['Time']) ?? null),
-        //                             'status' => $coupon['CurrentAirlineInfo']['Status']['value'] ?? '',
-        //                             'departure' => [
-        //                                 'code' => $coupon['CurrentAirlineInfo']['Departure']['AirportCode']['value'] ?? '',
-        //                                 'date' => $coupon['CurrentAirlineInfo']['Departure']['Date']['value'] ?? '',
-        //                                 'time' => $coupon['CurrentAirlineInfo']['Departure']['Time']['value'] ?? '',
-        //                                 'airport' => $coupon['CurrentAirlineInfo']['Departure']['AirportName']['value'] ?? '',
-        //                                 'terminal' => $coupon['CurrentAirlineInfo']['Departure']['Terminal']['Name']['value'] ?? '',
-        //                             ],
-        //                             'arrival' => [
-        //                                 'code' => $coupon['CurrentAirlineInfo']['Arrival']['AirportCode']['value'] ?? '',
-        //                                 'date' => $coupon['CurrentAirlineInfo']['Arrival']['Date']['value'] ?? '',
-        //                                 'time' => $coupon['CurrentAirlineInfo']['Arrival']['Time']['value'] ?? '',
-        //                                 'airport' => $coupon['CurrentAirlineInfo']['Arrival']['AirportName']['value'] ?? '',
-        //                                 'terminal' => $coupon['CurrentAirlineInfo']['Arrival']['Terminal']['Name']['value'] ?? '',
-        //                             ],
-        //                             'marketingCarrier' => [
-        //                                 'name' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['Name']['value'] ?? '',
-        //                                 'airlineID' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['AirlineID']['value'] ?? '',
-        //                                 'flightNumber' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['FlightNumber']['value'] ?? '',
-        //                                 'resBookDesigCode' => $coupon['CurrentAirlineInfo']['MarketingCarrier']['ResBookDesigCode']['value'] ?? '',
-        //                             ],
-        //                             'equipment' => [
-        //                                 'name' => $coupon['CurrentAirlineInfo']['Equipment']['Name']['value'] ?? '',
-        //                                 'AircraftCode' => $coupon['CurrentAirlineInfo']['Equipment']['AircraftCode']['value'] ?? '',
-        //                             ],
-        //                         ],
-        //                         'AddlBaggageInfo' => [
-        //                             'number' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Number'] ?? '',
-        //                             'type' => $coupon['AddlBaggageInfo']['AllowableBag']['@attributes']['Type'] ?? '',
-        //                         ],
-        //                     ])->all(),
-        //             ]
-        //         ];
-        //     }
-        // }
-
         $matchedOffers = '';
         foreach ($destinations as $item) {
             $flightIds = explode(' ', $item['FlightReferences']['value'] ?? ''); // fetch bundle with this Aliiiiiiiiiii);

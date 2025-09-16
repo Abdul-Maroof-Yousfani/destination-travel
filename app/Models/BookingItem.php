@@ -28,4 +28,10 @@ class BookingItem extends Model
     {
         return $this->hasMany(Penalty::class);
     }
+    public function getTotalPriceAttribute(): string
+    {
+        $code = $this->price_code ?? 'Rs.';
+        $amount = is_numeric($this->price) ? number_format($this->price, 2) : '0.00';
+        return $code . ' ' . $amount;
+    }
 }

@@ -14,12 +14,13 @@ use App\Http\Controllers\Admin\AgentPermissionController;
 
 // Livewire::routes();
 Route::view('/', 'home.home')->name('home');
-Route::view('terms-and-conditions', 'home.layouts.terms-and-conditions')->name('terms-and-conditions');
-Route::view('about-us', 'home.layouts.about-us')->name('about-us');
+Route::view('terms-and-conditions', 'home.pages.terms-and-conditions')->name('terms-and-conditions');
+Route::view('about-us', 'home.pages.about-us')->name('about-us');
 
 // new route----------------------------
-Route::view('search-booking', 'home.layouts.search-booking')->name('search-booking');
-Route::view('view-booking-details', 'home.layouts.view-booking-details')->name('view-booking-details');
+Route::view('search-booking', 'home.pages.search-booking')->name('search.booking');
+Route::get('view-booking-details', [HomeController::class, 'viewBookingDetails'])->name('view.booking.details');
+Route::post('search-booking', [HomeController::class, 'searchBooking'])->name('search.booking.submit');
 // -------------------------------------
 
 Route::get('get-airport', [HomeController::class, 'airports'])->name('airport');
@@ -35,7 +36,7 @@ Route::prefix('flights')->group(function () {
     Route::post('get-meal', [FlightController::class, 'getMeal'])->name('get_meal');
     Route::post('get-baggage', [FlightController::class, 'getBaggage'])->name('get_baggage');
 
-    Route::post('get-final-price', [FlightController::class, 'getFinalPrice'])->name('get_final_price');
+    // Route::post('get-final-price', [FlightController::class, 'getFinalPrice'])->name('get_final_price');
     Route::post('payment', [FlightController::class, 'payment'])->name('payment');
     Route::post('bookFlight', [FlightController::class, 'bookFlight'])->name('bookFlight');
 });
@@ -50,8 +51,9 @@ Route::post('update/client/{client}', [HomeController::class, 'updateClient'])->
 Route::get('admin/login', 'App\Http\Controllers\Admin\AdminAuthController@loginPage')->name('admin.login');
 Route::post('admin/login', 'App\Http\Controllers\Admin\AdminAuthController@login')->name('admin.login.submit');
 Route::post('login', 'App\Http\Controllers\AuthController@login')->name('login.submit');
+Route::post('register', 'App\Http\Controllers\AuthController@register')->name('register.submit');
 
-Route::redirect('admin', 'admin/login')->name('admin.home');
+Route::redirect('admin', 'login')->name('admin.home');
 Route::redirect('agent', 'admin/login')->name('agent.home');
 Route::view('login', 'login')->name('login');
 Route::view('register', 'register')->name('register');
@@ -78,11 +80,11 @@ Route::post('admin/logout', 'App\Http\Controllers\Admin\AdminAuthController@logo
 // -------------------------------------ADMIN----------------------------------------------
 
 // -------------------------------------AGENT----------------------------------------------
-Route::middleware(['auth', 'role:agent'])->prefix('agent')->name('agent.')->group(function () {
-    Route::view('dashboard', 'agent.dashboard')->name('dashboard');
-    Route::view('orders', 'agent.orders.list')->name('orders');
-    Route::view('order/{order}', 'agent.orders.manage')->name('order');
-});
+// Route::middleware(['auth', 'role:agent'])->prefix('agent')->name('agent.')->group(function () {
+//     Route::view('dashboard', 'agent.dashboard')->name('dashboard');
+//     Route::view('orders', 'agent.orders.list')->name('orders');
+//     Route::view('order/{order}', 'agent.orders.manage')->name('order');
+// });
 // -------------------------------------AGENT----------------------------------------------
 // -------------------------------------BOTH----------------------------------------------
 

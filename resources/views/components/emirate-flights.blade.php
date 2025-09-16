@@ -82,7 +82,7 @@
         </div>
     </li>
 @else
-    <p class="text-center">Emirate flights not available</p>
+    {{-- <p class="text-center">Emirate flights not available</p> --}}
 @endif
 <script>
     $(document).ready(function () {

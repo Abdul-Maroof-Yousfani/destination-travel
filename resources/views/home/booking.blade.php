@@ -274,10 +274,10 @@
                      {{-- <input type="button" name="previous" class="previous btn btn btn-b" value="Previous" /> --}}
                      <input type="button" name="next" class="next d-none" id="paymentSend"/>
                      <input type="button" class="btn btn-b" value="Continue" id="paymentSendTest"/>
-                     <div class="custom-control custom-switch d-flex m-3">
+                     {{-- <div class="custom-control custom-switch d-flex m-3">
                         <input type="checkbox" class="custom-control-input" checked id="paymentOnHold">
                         <label class="custom-control-label paymentOnHoldText" for="paymentOnHold">Payment is ON HOLD</label>
-                      </div>
+                      </div> --}}
                   </fieldset>
                   <!-- payment done -->
                   <fieldset>
@@ -615,12 +615,14 @@
       //    isSubmitting = false;
       // }
    });
-   const getSegmentAttributes = flightNo => {
-      let segmenArry = data['segments'][0] ? data['segments'] : [data['segments']];
-      return segmenArry.find(s => s.flightNumber === flightNo);
-   }
+   // function getSegmentAttributes(flightNo) {
+   //    let segmenArry = data['segments'][0] ? data['segments'] : [data['segments']];
+   //    return segmenArry.find(s => s.flightNumber === flightNo);
+   // }
    $('#paymentSendTest').click(function () {
       let paymentType = $('#paymentType').val();
+      // console.log('paymentType');
+      // return;
 
       if(paymentType === 'card') {
          paymentdata = 'test';
@@ -728,6 +730,21 @@
          }
       })();
    }
+   $(".toggle-tax-details").on("click", function () {
+      const $toggleBtn = $(this);
+      const $details = $toggleBtn.closest(".emiTaxContainer").find(".taxDetailsEmi");
+
+      $details.slideToggle(200, function () {
+         const isVisible = $details.is(":visible");
+         $toggleBtn.text(isVisible ? "Show less" : "Show more");
+      });
+   });
+   const paxCapitalize = (type) => {
+      return type?.toUpperCase() === 'ADT' ? 'Adult'
+         : type?.toUpperCase() === 'CNN' ? 'Child'
+         : type?.toUpperCase() === 'INF' ? 'Infant'
+         : type || '';
+   };
 
    // Skip directly to ticket page (final screen) ////////////////////////ALLLLLLLLLLLLIIIIIIIIIIIIIIIIIIIIII::::::::::::::)))))))))))))
    // showTicketPage();
@@ -751,21 +768,8 @@
                      confirmationModal('Please confirm that all the provided details are correct.').then((result) => {
                         if (result.isConfirmed) {
                            $('#paymentSendTest').addClass('d-none');
-                           firstBtn = false;
-                           // -------------------------------------          Booking Create :)          ----------------------------------------------
-                              bookingAjax();
-                           // -------------------------------------          Booking Create :)          ----------------------------------------------
-                           let index = $("fieldset").index(next_fs);
-                           $("#progressbar li").eq(index).addClass("active");
-                           next_fs.show();
-                           current_fs.animate({ opacity: 0 }, {
-                              step: (now) => {
-                                 current_fs.css({ 'display': 'none', 'position': 'relative' });
-                                 next_fs.css({ 'opacity': 1 - now });
-                              },
-                              duration: 500
-                           });
-                           setProgressBar(++current);
+                           // firstBtn = false;
+                           bookingAjax(current_fs, next_fs, firstBtn); // Pass current_fs and next_fs to bookingAjax
                         } else {
                            _alert('Confirmation cancelled.', 'warning');
                         }
@@ -799,12 +803,12 @@
                }
             });
             // ------------------------------------ Booking Start ------------------------------------ //
-            const paxCapitalize = (type) => {
-               return type?.toUpperCase() === 'ADT' ? 'Adult'
-                  : type?.toUpperCase() === 'CNN' ? 'Child'
-                  : type?.toUpperCase() === 'INF' ? 'Infant'
-                  : type || '';
-            };
+            // const paxCapitalize = (type) => {
+            //    return type?.toUpperCase() === 'ADT' ? 'Adult'
+            //       : type?.toUpperCase() === 'CNN' ? 'Child'
+            //       : type?.toUpperCase() === 'INF' ? 'Infant'
+            //       : type || '';
+            // };
             const renderTravelerDetails = (data, tickets) => {
                if (!Array.isArray(data) || data.length === 0) {
                   return `<div class="alert alert-danger" role="alert">Data is missing :)</div>`;
@@ -958,7 +962,7 @@
                }
             }
             showOnHoldBooking();
-            function bookingAjax() {
+            function bookingAjax(current_fs, next_fs, firstBtn) {
                let user = {
                   userFullName: $('#userFullName').val(),
                   userEmail: $('#userEmail').val(),
@@ -984,16 +988,29 @@
                      $('#paymentSendTest').removeClass('d-none');
                      localStorage.setItem('booking', JSON.stringify(response));
                      showPaymentPage();
-                     // setTicketPage(response);
-                     // sessionTimer(false);
+
+                     // Move UI updates here to ensure they run only on success
+                     firstBtn = false;
+                     let index = $("fieldset").index(next_fs);
+                     $("#progressbar li").eq(index).addClass("active");
+                     next_fs.show();
+                     current_fs.animate({ opacity: 0 }, {
+                        step: (now) => {
+                           current_fs.css({ 'display': 'none', 'position': 'relative' });
+                           next_fs.css({ 'opacity': 1 - now });
+                        },
+                        duration: 500
+                     });
+                     setProgressBar(++current);
                   },
                   error: function (xhr) {
+                     firstBtn = true;
                      console.log(xhr);
                      (async () => {
-                        let alMsg = xhr.responseJSON.details.value || 'Please check your details, something seems incorrect.';
+                        let alMsg = xhr.responseJSON?.details?.value || 'Please check your details, something seems incorrect.';
                         if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
-                           let goBack = localStorage.getItem('flights') || null;
-                           goBack ? window.location.href = `/flights${goBack}` : window.history.back();
+                           // let goBack = localStorage.getItem('flights') || null;
+                           // goBack ? window.location.href = `/flights${goBack}` : window.history.back();
                         }
                      })();
                      // _alert(xhr.responseJSON.message || 'Booking Error', "error");
@@ -1046,15 +1063,15 @@
             }
             // ------------------------------------ Booking End ------------------------------------ //
             // -------------------------------- Combine Functions :) -------------------------------- //
-            $(".toggle-tax-details").on("click", function () {
-               const $toggleBtn = $(this);
-               const $details = $toggleBtn.closest(".emiTaxContainer").find(".taxDetailsEmi");
+            // $(".toggle-tax-details").on("click", function () {
+            //    const $toggleBtn = $(this);
+            //    const $details = $toggleBtn.closest(".emiTaxContainer").find(".taxDetailsEmi");
 
-               $details.slideToggle(200, function () {
-                  const isVisible = $details.is(":visible");
-                  $toggleBtn.text(isVisible ? "Show less" : "Show more");
-               });
-            });
+            //    $details.slideToggle(200, function () {
+            //       const isVisible = $details.is(":visible");
+            //       $toggleBtn.text(isVisible ? "Show less" : "Show more");
+            //    });
+            // });
             $(document).on("click", ".toggle-panelties-details", function () {
                const $toggleBtn = $(this);
                const $details = $toggleBtn.closest(".penaltiesContainer").find(".panelties-details");
@@ -1079,93 +1096,55 @@
                      PassengerRef: item?.services?.[0]?.passengerRefs || null
                }));
       </script>
-   {{-- New changes in FJ --}}
-   {{-- Comment session time func bcz i make compo for that :) --}}
-   {{-- add airline in rq ob bookingAjax :) --}}
    @elseif ($isFlyJinnah)
       <script>
-         // $(document).ready(function () {
-            let data = @json($data);
+         // ---------------------------------- /////////////////////////////////////---------FLYJINNAH-------------\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ ----------------------------------
+         $(document).ready(function () {
+            let rawData = @json($data);
+            let data = rawData;
             let totalFare = @json($totalFare);
             let isDirectBooking = @json($data['isDirectBooking']) ? true : false;
             let firstBtn = true;
-            // let current = 1, steps = $("fieldset").length;
-            // function setProgressBar(step) {
-            //    $(".progress-bar").css("width", (100 / steps * step) + "%");
-            // }
-            // function validateFields(fieldset) {
-            //    let isValid = true;
-            //    fieldset.find("input[required], select[required]").each(function () {
-            //       if (!$(this).val()) {
-            //          isValid = false;
-            //          $(this).addClass("border-danger");
-            //       } else {
-            //          $(this).removeClass("border-danger");
-            //       }
-            //    });
-            //    return isValid;
-            // }
-            $(".next").click(function () {
+            function getSegmentAttributes(flightNo) {
+               let segmenArry = data['segments'][0] ? data['segments'] : [data['segments']];
+               return segmenArry.find(s => s.flightNumber === flightNo);
+            }
+            $(".next").click(async function () {
                let current_fs = $(this).parent();
                let next_fs = current_fs.next();
 
                if (!validateFields(current_fs)) return;
                if (!isDirectBooking && !checkValidationForAncis()) return;
 
-               if (firstBtn) {
-                  confirmationModal('Please confirm that all the provided details are correct.').then((result) => {
-                     if (result.isConfirmed) {
-                        firstBtn = false;
-                        if (!isDirectBooking) {
-                           getFinalPrice();
+               try {
+                  await verifyClient();
+                  if (firstBtn) {
+                     confirmationModal('Please confirm that all the provided details are correct.').then((result) => {
+                        if (result.isConfirmed) {
+                           $('#paymentSendTest').addClass('d-none');
+                           // firstBtn = false;
+                           bookingAjax(current_fs, next_fs, firstBtn); // Pass current_fs and next_fs to bookingAjax
+                        } else {
+                           _alert('Confirmation cancelled.', 'warning');
                         }
-                        let index = $("fieldset").index(next_fs);
-                        $("#progressbar li").eq(index).addClass("active");
-                        next_fs.show();
-                        current_fs.animate({ opacity: 0 }, {
-                           step: (now) => {
-                              current_fs.css({ 'display': 'none', 'position': 'relative' });
-                              next_fs.css({ 'opacity': 1 - now });
-                           },
-                           duration: 500
-                        });
-                        setProgressBar(++current);
-                     } else {
-                        _alert('Confirmation cancelled.', 'warning');
-                     }
-                  });
-               } else {
-                  let index = $("fieldset").index(next_fs);
-                  $("#progressbar li").eq(index).addClass("active");
-                  next_fs.show();
-                  current_fs.animate({ opacity: 0 }, {
-                     step: (now) => {
-                        current_fs.css({ 'display': 'none', 'position': 'relative' });
-                        next_fs.css({ 'opacity': 1 - now });
-                     },
-                     duration: 500
-                  });
-                  setProgressBar(++current);
+                     });
+                  } else {
+                     let index = $("fieldset").index(next_fs);
+                     $("#progressbar li").eq(index).addClass("active");
+                     next_fs.show();
+                     current_fs.animate({ opacity: 0 }, {
+                        step: (now) => {
+                           current_fs.css({ 'display': 'none', 'position': 'relative' });
+                           next_fs.css({ 'opacity': 1 - now });
+                        },
+                        duration: 500
+                     });
+                     setProgressBar(++current);
+                  }
+               } catch (e) {
+                  return;
                }
             });
-            // $(".previous").click(function () {
-            //    let current_fs = $(this).parent();
-            //    let previous_fs = current_fs.prev();
-
-            //    let index = $("fieldset").index(current_fs);
-            //    $("#progressbar li").eq(index).removeClass("active");
-
-            //    previous_fs.show();
-            //    current_fs.animate({ opacity: 0 }, {
-            //       step: (now) => {
-            //          current_fs.css({ 'display': 'none', 'position': 'relative' });
-            //          previous_fs.css({ 'opacity': 1 - now });
-            //       },
-            //       duration: 500
-            //    });
-
-            //    setProgressBar(--current);
-            // });
             $(".submit").click(() => false);
             setProgressBar(current);
             $(document).on("input change", "input[required], select[required]", function () {
@@ -1175,13 +1154,16 @@
             });
 
             // ------------------------------------ Booking Start ------------------------------------ //
-            if(!isDirectBooking && !skipAncis) {
+            let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
+            if (!isDirectBooking && !createdBooking) {
                getSeatAjax();
                getMealAjax();
                getBaggageAjax();
             }
+            // if(!isDirectBooking) {
+            // }
             // IdsExpireTime end
-            let passengers = [];
+            // let passengers = [];
             // let paymentdata;
             let passengerList = [];
             let passengerListCode = [];
@@ -1213,25 +1195,12 @@
                }
             });
             // console.log(passengerListCode, passengerList, data['passengerTypes'], totalPassengers)
-            function paxCapitalize(pax) {
-               const name = {
-                  adt: 'Adult',
-                  chd: 'Child',
-                  inf: 'Infant'
-               };
-               return name[pax] || name[pax.toLowerCase()];
-            }
             let selectedSeatsGlobal = {};
             let selectedMealsGlobal = {};
             let selectedBaggagesGlobal = {};
             let segmentRph = {};
             let segmentFlightNo = {};
             let segmentDepDate = {};
-
-            // $('.seses').click(function () {
-            //    sessionTimer(false);
-            // });
-
 
             function getSeatAjax() {
                $.ajax({
@@ -1308,7 +1277,9 @@
                      }
                   },
                   error: function (xhr) {
-                     _alert(xhr.responseJSON.message, "error");
+                     console.log(xhr.responseJSON.message);
+                     showMissingDataMsg();
+                     // _alert(xhr.responseJSON.message, "error");
                   },
                   complete: function () {
                      _loader('hide');
@@ -1541,7 +1512,8 @@
                      }
                   },
                   error: function (xhr) {
-                     _alert(xhr.responseJSON.message, "error");
+                     console.log(xhr.responseJSON.message);
+                     showMissingDataMsg();
                   },
                   complete: function () {
                      // _loader('hide');
@@ -1749,7 +1721,7 @@
                      updatePassengerBaggages(activeTab);
                   });
 
-               }).fail(xhr => _alert(xhr.responseJSON.message, "error"))
+               }).fail(xhr => showMissingDataMsg())
                // .always(() => _loader('hide'));
                .always();
             };
@@ -1830,99 +1802,6 @@
             }
             let withOutAncis = false;
             let finalPriceTag = totalFare['TotalFare']['@attributes'];
-            let paymentOnHold = true;
-            $('#paymentOnHold').on('change', function () {
-            if ($(this).is(':checked')) {
-                  $('.paymentOnHoldText').text('Payment is ON HOLD');
-                  paymentOnHold = true;
-               } else {
-                  $('.paymentOnHoldText').text('Payment is DIRECT');
-                  paymentOnHold = false;
-               }
-            });
-            // let lastSubmittedData = null;
-            // let isSubmitting = false;
-
-            // $('#contactSubmit').click(function () {
-            //    if (isSubmitting) return;
-
-            //    passengers = [];
-            //    let hasError = false;
-            //    let firstErrorField = null;
-
-            //    $('.paxDetails .contact2').each(function () {
-            //       let passenger = {
-            //          type: $(this).find('input[name$="_type[]"]').val(),
-            //          name: $(this).find('input[name$="_name[]"]').val(),
-            //          surname: $(this).find('input[name$="_surname[]"]').val(),
-            //          title: $(this).find('input[name^="title_"]:checked').val(),
-            //          dob: $(this).find('input[name$="_dob[]"]').val(),
-            //          nationality: $(this).find('select[name$="_nationality[]"]').val(),
-            //          passportNumber: $(this).find('input[name$="_passportnumber[]"]').val(),
-            //          passportExpiry: $(this).find('input[name$="_passportexp[]"]').val()
-            //       };
-
-            //       $(this).find("input[required], select[required]").each(function () {
-            //          if (!$(this).val()) {
-            //             $(this).addClass("border-danger");
-            //             hasError = true;
-            //             if (!firstErrorField) firstErrorField = this;
-            //          } else {
-            //             $(this).removeClass("border-danger");
-            //          }
-            //       });
-
-            //       passengers.push(passenger);
-            //    });
-
-            //    let userData = {
-            //       fullName: $('#userFullName').val(),
-            //       email: $('#userEmail').val(),
-            //       phoneCode: $('#userPhoneCode').val(),
-            //       phone: $('#userPhone').val()
-            //    };
-
-            //    if (!userData.fullName || !userData.email || !userData.phoneCode || !userData.phone) {
-            //       hasError = true;
-            //       if (!firstErrorField) {
-            //          if (!userData.fullName) firstErrorField = $('#userFullName');
-            //          else if (!userData.email) firstErrorField = $('#userEmail');
-            //          else if (!userData.phoneCode) firstErrorField = $('#userPhoneCode');
-            //          else if (!userData.phone) firstErrorField = $('#userPhone');
-            //       }
-            //    }
-
-            //    if (hasError) {
-            //       if (firstErrorField) $(firstErrorField).focus();
-            //       _alert('Please fill all required fields', 'warning');
-            //       isSubmitting = false;
-            //       return false;
-            //    }
-
-            //    if (!isDirectBooking && !checkValidationForAncis()) return;
-            //    isSubmitting = true;
-            //    let currentData = JSON.stringify({ passengers, userData });
-
-            //    if (currentData === lastSubmittedData) {
-            //       // _alert('No changes detected. Data already submitted.', 'info');
-            //       // isSubmitting = false;
-
-            //       // if (!isDirectBooking) {
-            //       //    getFinalPrice();
-            //       // } else {
-            //       //    isSubmitting = false;
-            //       // }
-            //       return;
-            //    }
-
-            //    lastSubmittedData = currentData;
-            //    // if (!isDirectBooking) {
-            //    //    getFinalPrice();
-            //    // } else {
-            //    //    isSubmitting = false;
-            //    // }
-            // });
-
             function checkValidationForAncis() {
                let allValid = true;
                let missing = {
@@ -1960,7 +1839,7 @@
                   if (missing.baggage.length) msg += `\nBaggage: ${missing.baggage.join(', ')}`;
 
                   Swal.fire({
-                     icon: 'error',
+                     icon: 'warning',
                      title: 'Missing Selections',
                      text: msg,
                      customClass: {
@@ -1971,186 +1850,270 @@
                }
                return true;
             }
-            const getFinalPrice = () => {
-               // console.log(selectedSeatsGlobal, selectedMealsGlobal, selectedBaggagesGlobal)
-               // return
-               isSubmitting = false;
-               let paymentPriceContainer = $('.paymentPriceContainer');
-               paymentPriceContainer.empty();
+            // ------------------------------------ Booking End ------------------------------------ //
+            let orderId = null;
+            showOnHoldBooking();
+            function bookingAjax(current_fs, next_fs, firstBtn) {
+               let user = {
+                  userFullName: $('#userFullName').val(),
+                  userEmail: $('#userEmail').val(),
+                  userPhoneCode: $('#userPhoneCode').val(),
+                  userPhone: $('#userPhone').val(),
+                  acceptOffers: $('#acceptOffers').is(':checked'),
+               }
                $.ajax({
                   type: "POST",
-                  url: "{{route('get_final_price')}}",
+                  url: "{{route('bookFlight')}}",
                   data: {
-                     data: data,
+                     // airline: data['airline'], user, paymentOnHold, finalPriceTag, passengers, data, _token: "{{ csrf_token() }}"
+                     airline: rawData['airline'],
+                     user, passengers,
+                     data: rawData,
+                     isDirectBooking: isDirectBooking,
                      seats: selectedSeatsGlobal,
                      meals: selectedMealsGlobal,
                      baggages: selectedBaggagesGlobal,
                      _token: "{{ csrf_token() }}"
                   },
                   beforeSend: () => _loader('show'),
-                  success: function (res) {
-                     if (res.status === 'success') {
-                        finalPriceTag = res['data']['TotalFare']['@attributes'];
-                        let tax = @json($tax);
-                        let basePrice = (res['data']['TotalFare']['@attributes']['Amount']) || '-';
-                        paymentPriceContainer.html(`<div class="book-head">
-                              <div class="youbook">
-                                 <h2><span>Price Summary</span></h2>
-                              </div>
-                           </div>
-                           <div class="book-flex">
-                              <div class="emr w-25">
-                                 <img src="/assets/images/Fly_Jinnah_logo.png" alt="Fly Jinnah logo">
-                              </div>
-                           </div>
-                           <div class="der-time der-time3">
-                              <div class="emr-adul justify-content-between">
-                                 <p>Flight price</p>
-                                 <p>${(res['data']['TotalFare']['@attributes']['CurrencyCode']) || 'Pkr'} ${basePrice}</p>
-                              </div>
-                              <div class="emr-adul justify-content-between">
-                                 <p>Tax</p>
-                                 <p>PKR ${tax}</p>
-                              </div>
-                              <div class="pri-pak">
-                                 <h2>Total price you pay</h2>
-                                 <p>${(res['data']['TotalFare']['@attributes']['CurrencyCode']) || 'Pkr'} ${parseInt(basePrice) + parseInt(tax)}</p>
-                              </div>
-                           </div>
-                        `);
-                     }
+                  success: function (response) {
+                     $('#paymentSendTest').removeClass('d-none');
+                     localStorage.setItem('booking', JSON.stringify(response));
+                     showPaymentPage();
+
+                     // Move UI updates here to ensure they run only on success
+                     firstBtn = false;
+                     let index = $("fieldset").index(next_fs);
+                     $("#progressbar li").eq(index).addClass("active");
+                     next_fs.show();
+                     current_fs.animate({ opacity: 0 }, {
+                        step: (now) => {
+                           current_fs.css({ 'display': 'none', 'position': 'relative' });
+                           next_fs.css({ 'opacity': 1 - now });
+                        },
+                        duration: 500
+                     });
+                     setProgressBar(++current);
                   },
                   error: function (xhr) {
-                     _alert(xhr.responseJSON.message, "error");
+                     console.log(xhr.responseJSON || xhr);
+                     firstBtn = true;
+                     (async () => {
+                        let alMsg = xhr.responseJSON.message || 'Please check your details, something seems incorrect.';
+                        if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
+                           let goBack = localStorage.getItem('flights') || null;
+                           goBack ? window.location.href = `/flights${goBack}` : window.history.back();
+                        }
+                     })();
                   },
                   complete: function () {
                      _loader('hide');
                   }
-               })
+               });
+            }
+            const getCity = airport => airport?.City || airport?.["@attributes"]?.LocationCode || '--';
+         });
+         const renderTravelerDetails = booking => {
+            const passengers = JSON.parse(booking.passenger_details || "[]");
+            const tickets = booking.tickets || [];
+
+            if (!Array.isArray(passengers) || passengers.length === 0) {
+               return `<div class="alert alert-danger" role="alert">No passengers found :)</div>`;
             }
 
-            // ------------------------------------ Booking End ------------------------------------ //
-            // ------------------------------------ Payment Start ------------------------------------ //
+            return passengers.map((row, index) => {
+               const matchingTicket = tickets.find(
+                  t => t.passenger_reference === row.passenger_reference
+               );
 
-            // const paymentAjax = () => {
-            //    let isProcessing = false;
-            //    $.ajax({
-            //       type: "POST",
-            //       url: "{{route('payment')}}",
-            //       data: {
-            //          paymentdata: paymentdata || {},
-            //          _token: "{{ csrf_token() }}"
-            //       },
-            //       beforeSend: () => _loader('show'),
-            //       success: function (response) {
-            //          // console.log(response)
-            //          bookingAjax();
-            //          // $('#paymentSend').click();
-            //       },
-            //       error: function (xhr) {
-            //          _alert(xhr.responseJSON.message, "error");
-            //       },
-            //       complete: function () {
-            //          _loader('hide');
-            //       }
-            //    });
-            // }
-            const renderTrevelerDetails = data => {
-               if (!Array.isArray(data) || data.length === 0) {
-                  return `<div class="alert alert-danger" role="alert">Data is missing :)</div>`;
-               }
-               return data.map((row, index) => {
-                  const flights = (row.eTicketInfo || []).map(fli => `
-                        <div class="col-6">
-                           <div class="border rounded p-3 mt-2">
-                              <p>Route: <span>${fli.flightSegmentCode}</span></p>
-                              <p>ETicket No: <span class="copyText">${fli.eTicketNo}</span> &nbsp; <i class="copyBtn fa fa-copy text-black-50" style="cursor:pointer;"></i></p>
-                              <p>Coupon No: <span>${fli.couponNo}</span></p>
-                              <p>Status: <span>${fli.usedStatus}</span></p>
-                           </div>
-                        </div>
-                  `).join('');
-
-                  return `
-                        <div class="custom-method setp-bult traveler-bult row">
-                           <div class="col-md-6 col-12">
-                              <h1 class="font-weight-bold mb-3">Passenger Details</h1>
-                              <p>Traveler ${index + 1}: <span>${paxCapitalize(row.type)}</span></p>
-                              <p><span>Name</span>: ${row.name}</p>
-                              <p><span>Surname</span>: ${row.surName}</p>
-                           </div>
-                           <div class="col-md-6 col-12">
-                              <h1 class="font-weight-bold mb-3">${flights ?? 'Ticket Details'}</h1>
-                              <div class="row">
-                                    ${flights}
-                              </div>
-                           </div>
-                        </div>
-                  `;
-               }).join('');
-            };
-            const renderPaxWithPrice = data => {
-               if (data.length === 0) return ``;
-               return data.map((row) => `
-                  <div class="pri-eid">
-                     <p>FlyJinnah Airline - (${row.code} X1)</p>
-                     <p>Price: ${row.price.CurrencyCode} ${row.price.Amount}</p>
+            const eTicketInfo = (matchingTicket?.ticket_numbers || [])
+               .sort((a, b) => Number(a.coupon_no) - Number(b.coupon_no))
+               .map(fli => `
+                  <div class="col-6">
+                     <div class="border rounded p-3 mt-2">
+                        <p>Coupon No: <span>${fli.coupon_no}</span></p>
+                        <p>Route: <span>${fli.flight_segment}</span></p>
+                        <p>ETicket No: <span class="copyText">${fli.e_ticket_no}</span> &nbsp; 
+                           <i class="copyBtn fa fa-copy text-black-50" style="cursor:pointer;"></i>
+                        </p>
+                     </div>
                   </div>
                `).join('');
+               return `
+                  <div class="custom-method setp-bult traveler-bult row">
+                     <div class="col-md-6 col-12">
+                        <h1 class="font-weight-bold mb-3">Passenger Details</h1>
+                        <p>Traveler ${index + 1}: <span>${paxCapitalize(row.type)}</span></p>
+                        <p><span>Name</span>: ${row.given_name}</p>
+                        <p><span>Surname</span>: ${row.surname}</p>
+                     </div>
+                     <div class="col-md-6 col-12">
+                        <h1 class="font-weight-bold mb-3">Ticket Details</h1>
+                        ${eTicketInfo ? `<div class="row">${eTicketInfo}</div>` : `<div><p>No tickets found</p></div>`}
+                     </div>
+                  </div>
+               `;
+            }).join('');
+         };
+         const renderPaxWithPrice = data => {
+            if (data.length === 0) return ``;
+            return data.map((row) => `
+               <div class="pri-eid">
+                  <p>Flyjinnah Airline - (${row.passenger_code})</p>
+                  <p>Price: ${row.price_code} ${formatCurrency(row.price)}</p>
+               </div>
+            `).join('');
+         };
+         const renderTimeLimitsEmi = data => {
+            if (data.length === 0) return ``;
+            const payTimeLimit = formatDateTime(data.payment_limit);
+            const ticketTimeLimit = formatDateTime(data.ticket_limit);
+            return `
+               <div class="pri-eid font-weight-bold">
+                  <p>Payment Time Limit</p>
+                  <p class="font-bold">${payTimeLimit}</p>
+               </div>
+               <div class="pri-eid font-weight-bold">
+                  <p>Ticket Time Limit</p>
+                  <p class="font-bold">${ticketTimeLimit}</p>
+               </div>
+            `;
+         };
+         const renderTaxDetailsEmi = data => {
+            if (!Array.isArray(data) || data.length === 0) return '';
+            return data.map(row => {
+               if (!row.taxes || !row.price || !row.price_code || !row.passenger_code) {
+                  console.warn('Missing required fields in row:', row);
+                  return '';
+               }
+               let taxArray;
+               try {
+                  taxArray = JSON.parse(row.taxes);
+                  if (!Array.isArray(taxArray)) {
+                     taxArray = [taxArray];
+                  }
+               } catch (e) {
+                  console.error('Error parsing taxes:', e);
+                  return '';
+               }
+
+               const totalPrice = parseFloat(row.price) || 0;
+               const totalPriceCode = row.price_code;
+               const passengers = row.passenger_code;
+               const taxSum = taxArray.reduce((sum, tax) => {
+                  const amount = parseFloat(tax?.['@attributes']?.Amount) || 0;
+                  return sum + amount;
+               }, 0);
+               const baseAmount = (totalPrice - taxSum).toFixed(2);
+               const baseAmountCode = totalPriceCode;
+
+               const taxDetails = taxArray
+                  .filter(taxItem => taxItem?.['@attributes']?.TaxName && taxItem?.['@attributes']?.Amount)
+                  .map(taxItem => {
+                     const tax = taxItem['@attributes'];
+                     const description = tax.TaxName;
+                     const currency = tax.CurrencyCode || totalPriceCode;
+                     return `
+                        <div class="pri-eid">
+                              <p>${description}</p>
+                              <p>Price: ${currency} ${formatCurrency(tax.Amount)}</p>
+                        </div>
+                     `;
+                  })
+                  .join('');
+
+               return `
+                  <div class="pri-eid font-weight-bold">
+                     <h1 class="text-info">Passenger Info: ${passengers}</h1>
+                  </div>
+                  <div class="pri-eid font-weight-bold">
+                     <p>Base Amount</p>
+                     <p class="font-bold">Price: ${baseAmountCode} ${formatCurrency(baseAmount)}</p>
+                  </div>
+                  ${taxDetails}
+                  <div class="pri-eid font-weight-bold">
+                     <p>Final Amount (${passengers})</p>
+                     <p class="font-bold">Price: ${totalPriceCode} ${formatCurrency(totalPrice)}</p>
+                  </div>
+               `;
+            }).join('');
+         };
+         function setTicketPage (response) {
+            let ticketIssued = JSON.parse((localStorage.getItem('ticketIssued') || false));
+            let totalPrice = parseInt(response.booking?.price) + parseInt(tax);
+            $(".totalPricePaid").text(`Price: ${response.booking?.price_code ?? 'PKR'} ${formatCurrency(totalPrice) ?? 0}`);
+            $(".taxPaid").text(`Price: PKR ${formatCurrency(tax)}`);
+            $(".guestName").text(response.booking.client.name);
+            $(".ticketMsg").text(response.message);
+            $(".contactDetails").html(renderTravelerDetails(response.booking));
+            $(".paxWithPrice").html(renderPaxWithPrice(response.booking?.booking_items));
+            if (!ticketIssued) {
+               $(".emiTimeLimitContainer").removeClass('d-none');
+               $(".timeLimitsEmi").html(renderTimeLimitsEmi(response.booking));
             }
-         // });
-         function bookingAjax() {
-            let user = {
-               userFullName: $('#userFullName').val(),
-               userEmail: $('#userEmail').val(),
-               userPhoneCode: $('#userPhoneCode').val(),
-               userPhone: $('#userPhone').val(),
-               acceptOffers: $('#acceptOffers').is(':checked'),
+            $(".taxDetailsEmi").html(renderTaxDetailsEmi(response.booking?.booking_items));
+            $(".emiTaxContainer").removeClass('d-none');
+            $(".orderId").html(response.booking.order_id);
+            // $(".emiServiceContainer").removeClass('d-none');
+            // $(".serviceDetailsEmi").html(renderServiceDetailsEmi(response.booking?.booking_items));
+         }
+         function showOnHoldBooking(){
+            let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
+            let approvePayCash = JSON.parse((localStorage.getItem('approvePayCash') || false));
+            let ticketIssued = JSON.parse((localStorage.getItem('ticketIssued') || false));
+            
+            if (createdBooking) {
+               orderId = createdBooking.booking.order_id;
+               showPaymentPage();
             }
+            if(createdBooking && (approvePayCash || ticketIssued)) {
+               sessionTimer(false);
+               setTicketPage(createdBooking);
+               showTicketPage();
+            }
+         }
+         function approveBookingAjax() {
+            showOnHoldBooking();
+            let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
+            if (!createdBooking.booking.id || !createdBooking.booking.client_id) return showMissingDataMsg();
             $.ajax({
                type: "POST",
-               url: "{{route('bookFlight')}}",
+               url: "{{route('confirm.booking')}}",
                data: {
-                  airline: data['airline'], user, paymentOnHold, finalPriceTag, passengers, data, _token: "{{ csrf_token() }}"
+                  bookingId: createdBooking.booking.id,
+                  clientId: createdBooking.booking.client_id,
+                  transactionId: createdBooking.booking.transaction_id,
+                  _token: "{{ csrf_token() }}"
                },
                beforeSend: () => _loader('show'),
                success: function (response) {
-                  sessionTimer(false);
-                  let tax = @json($tax);
-                  let totalPrice = parseInt(response.totalPrice?.Amount) + parseInt(tax);
-                  _alert(response.message, response.status)
-                  $('#paymentSend').click();
-                  $(".guestName").text(response.userDetails.name);
-                  $(".taxPaid").text(`Price: PKR ${tax}`);
-                  $(".ticketMsg").text(response.ticketMsg.TicketAdvisory);
-                  $(".totalPricePaid").text(`Price: ${response.totalPrice?.CurrencyCode ?? 'PKR'} ${totalPrice ?? '-'}`);
-                  $(".contactDetails").html(renderTrevelerDetails(response.data));
-                  $(".paxWithPrice").html(renderPaxWithPrice(response.paxPricing));
-                  $(".orderId").html(response.bookingRefID);
-                  console.log(response.emailStatus); // Show this in alert after set live email sending
+                  localStorage.setItem('ticketIssued', JSON.stringify(true));
+                  localStorage.setItem('booking', JSON.stringify(response));
+                  (async () => {
+                     let alMsg = 'Your payment was successful. Ticket details are shown below and will also be sent to your email.';
+                     if (await _confirm(alMsg, false, 'success', 'Continue')) {
+                        _alert(response.message)
+                        setTicketPage(response);
+                        showTicketPage();
+                        sessionTimer(false);
+                     }
+                  })();
                },
                error: function (xhr) {
-                  _alert(xhr.responseJSON.message || 'bookingAjax Error', "error");
+                  (async () => {
+                     let phone = "{{ config('variables.contact.phone') }}";
+                     let alMsg = `Ticket issue error. please contact us at ${phone} your Order Id is ${orderId ?? 'N/A'}.`;
+                     if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
+                        let goBack = localStorage.getItem('flights') || null;
+                        goBack ? window.location.href = `/flights${goBack}` : window.history.back();
+                     }
+                  })();
                },
                complete: function () {
                   _loader('hide');
                }
             });
          }
-         // $('#paymentSendTest').click(function () {
-         //    paymentAjax();
-         //    paymentdata = 'test';
-         // });
-
-         // ------------------------------------ Payment End ------------------------------------ //
-
-         // -------------------------------- Combine Functions :) -------------------------------- //
-
-         const getCity = airport => airport?.City || airport?.["@attributes"]?.LocationCode || '--';
-         // const getSegmentAttributes = flightNo => {
-         //    let segmenArry = data['segments'][0] ? data['segments'] : [data['segments']];
-         //    return segmenArry.find(s => s.flightNumber === flightNo);
-         // }
       </script>
    @endif
 @endif

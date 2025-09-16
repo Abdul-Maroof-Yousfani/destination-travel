@@ -3,17 +3,18 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
-use App\Models\Log;
 use App\Mail\SendMail;
 use App\Models\Client;
 use App\Models\Ticket;
 use App\Models\Booking;
 use App\Models\ErrorLog;
+use App\Models\Ancillary;
 use App\Models\BookingId;
 use App\Services\PiaService;
 use Illuminate\Http\Request;
 use App\Models\CancelResponse;
 use App\Services\HelperService;
+use App\Models\Log as BookingLog;
 use App\Services\EmiratesService;
 use App\Services\FlyJinnahService;
 use Illuminate\Support\Facades\App;
@@ -21,6 +22,7 @@ use App\Services\UserBookingService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use App\Services\FlightBookingService;
+use App\Services\FlightAggregatorService;
 
 class FlightController extends Controller
 {
@@ -37,9 +39,9 @@ class FlightController extends Controller
         protected HelperService $helperService,
         protected UserBookingService $bookingService
     ) {}
-    public function search(Request $request)
+    public function search(Request $request, FlightAggregatorService $aggregator)
     {
-        // try {
+        try {
             $tax = config('variables.flyjinnah_api.tax') ?? 0;
             $validatedData = $request->validate([
                 'arr' => 'required|string',
@@ -52,20 +54,32 @@ class FlightController extends Controller
                 'inf' => 'nullable|numeric',
             ]);
             session(['cabinClass' => $validatedData['cabinClass']]);
+            // $flights = $aggregator->searchAllFlights($validatedData);
+
+            if ($request->ajax()) {
+                return response()->json($flights);
+            }
+
+            // return view('flights.index', compact('flights'));
             // dd($validatedData);
             // $validatedData = $request->only(['arr', 'dest', 'dep', 'return', 'cabinClass','adt', 'chd', 'inf']);
-            // $piaFlights = $this->piaService->airShopping($validatedData);
+
+            $piaFlights = null;
+            // $piaFlights = $this->piaService->searchFlights($validatedData);
             // dd($piaFlights);
-            $emirateFlights = $this->emiratesService->searchFlights($validatedData);
-            // dd($emirateFlights);
+            $flyjinnahFlights = null;
             $flyjinnahFlights = $this->flyJinnahService->searchFlights($validatedData);
             // dd($flyjinnahFlights);
+            $emirateFlights = null;
+            $emirateFlights = $this->emiratesService->searchFlights($validatedData);
+            // dd($emirateFlights);
+
             // if ($flights['error']) {
             //     return back()->with('error', $flights['error']);
             // }
             $searchKey = "{$validatedData['arr']}_{$validatedData['dest']}";
             $now = now()->format('d M Y h:i A');
-            Log::updateOrCreate(
+            BookingLog::updateOrCreate(
                 [
                     'session_id' => session()->getId(),
                     'changes' => $searchKey,
@@ -75,7 +89,7 @@ class FlightController extends Controller
                     'updated_at' => now(),
                 ]
             );
-
+            // dd($emirateFlights);
             $paxCount = [
                 'adt' => $validatedData['adt'] ?? 1,
                 'chd' => $validatedData['chd'] ?? 0,
@@ -86,12 +100,13 @@ class FlightController extends Controller
                 'isRoundTrip' => isset($validatedData['return']) ? true : false,
                 'data' => $flyjinnahFlights,
                 'emirates' => $emirateFlights,
+                'pia' => $piaFlights,
             ]);
     
-        // } catch (\Exception $e) {
-        //     \Log::error('Flight search failed: ' . $e->getMessage());
-        //     return back()->with('error', 'An error occurred while searching for flights. Please try again.');
-        // }
+        } catch (\Exception $e) {
+            \Log::error('Flight search failed: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while searching for flights. Please try again.');
+        }
     }
     public function getBundles(Request $request) // skip in emirates
     {
@@ -113,7 +128,7 @@ class FlightController extends Controller
             'inf' => 'Infant'
         ];
         $now = now()->format('d M Y h:i A');
-        Log::create([
+        BookingLog::create([
             'session_id' => session()->getId(),
             'notes' => "User fetch booking details on {$now}",
         ]);
@@ -151,57 +166,56 @@ class FlightController extends Controller
                 'status' => 'success',
                 'redirect' => route('flightBooking')
             ], 200);
-        }
-        // dd('flyjinnah');
-        $isDirectBooking = filter_var($request->isDirectBooking, FILTER_VALIDATE_BOOLEAN);
-        // dd($isDirectBooking);
-        $flightTotalFare = $request->flightTotalFare ?? null;
-        $data = [
-            'airline' => $airline,
-            'logo' => 'Fly_Jinnah_logo.png',
-            'paxCount' => $request->paxCount ?? null,
-            'segments' => $request->segments ?? null,
-            'firstFlightBundleId' => $request->firstBundleId ?? null,
-            'returnFlightBundleId' => $request->secondBundleId ?? null,
-            'returnFlight' => $request->rtnSelectedFlight ?? null,
-            'departureFlight' => $request->depSelectedFlight ?? null,
-            'isDirectBooking' => $isDirectBooking,
-            'passengerTypes' => $passengerTypes,
-        ];
-        if ($isDirectBooking) {
+        } else if ($airline === 'flyjinnah') {
+            // dd('flyjinnah');
+            $isDirectBooking = filter_var($request->isDirectBooking, FILTER_VALIDATE_BOOLEAN);
+            // dd($isDirectBooking);
+            $flightTotalFare = $request->flightTotalFare ?? null;
+            $data = [
+                'airline' => $airline,
+                'logo' => 'Fly_Jinnah_logo.png',
+                'paxCount' => $request->paxCount ?? null,
+                'segments' => $request->segments ?? null,
+                'firstFlightBundleId' => $request->firstBundleId ?? null,
+                'returnFlightBundleId' => $request->secondBundleId ?? null,
+                'returnFlight' => $request->rtnSelectedFlight ?? null,
+                'departureFlight' => $request->depSelectedFlight ?? null,
+                'isDirectBooking' => $isDirectBooking,
+                'passengerTypes' => $passengerTypes,
+            ];
+            if ($isDirectBooking) {
+                session([
+                    'data' => $data,
+                    'totalFare' => $flightTotalFare ?? null
+                ]);
+                return response()->json([
+                    'status' => 'success',
+                    'redirect' => route('flightBooking')
+                ], 200);
+            };
+
+            // merge bundle with transaction id and now add ancis (required) :)
+            $farePrice = $this->flyJinnahService->getBundlePrice([
+                'data' => $data ?? null
+            ]);
+            // dd($farePrice);
+            $errorMessage = $farePrice['Body']['OTA_AirPriceRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($farePrice['error'] ?? null);
+            if ($errorMessage) {
+                $filteredMessage = strtok($errorMessage, '[');
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $filteredMessage
+                ], 400);
+            }
+            $totalFarePrice = $farePrice['Body']['OTA_AirPriceRS']['PricedItineraries']['PricedItinerary']['AirItineraryPricingInfo']['ItinTotalFare'] ?? '';
+            // dd($totalFarePrice);
             session([
                 'data' => $data,
-                'totalFare' => $flightTotalFare ?? null
+                'totalFare' => $totalFarePrice ?? null
             ]);
-            return response()->json([
-                'status' => 'success',
-                'redirect' => route('flightBooking')
-            ], 200);
-        };
-
-        // merge bundle with transaction id and now add ancis (required) :)
-        $farePrice = $this->flyJinnahService->getBundlePrice([
-            'data' => $data ?? null
-        ]);
-        // dd($farePrice);
-        $errorMessage = $farePrice['Body']['OTA_AirPriceRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($farePrice['error'] ?? null);
-        if ($errorMessage) {
-            $filteredMessage = strtok($errorMessage, '[');
-            return response()->json([
-                'status' => 'error',
-                'message' => $filteredMessage
-            ], 400);
+            return response()->json(['status' => 'success', 'redirect' => route('flightBooking')]);
         }
-        $totalFarePrice = $farePrice['Body']['OTA_AirPriceRS']['PricedItineraries']['PricedItinerary']['AirItineraryPricingInfo']['ItinTotalFare'] ?? '';
-        // dd($totalFarePrice);
-        session([
-            'data' => $data,
-            'totalFare' => $totalFarePrice ?? null
-        ]);
-        return response()->json([
-            'status' => 'success',
-            'redirect' => route('flightBooking')
-        ], 200);
+        return response()->json(['status' => 'error', 'message' => 'Missing flight name!'], 400);
     }
     public function booking()
     {
@@ -309,36 +323,36 @@ class FlightController extends Controller
             'data' => $baggageXml
         ], 200);
     }
-    public function getFinalPrice(Request $request)
-    {
-        // dd($request->all());
-        $data = [
-            'data' => $request->data ?? null,
-            'meals' => $request->meals ?? null,
-            'baggages' => $request->baggages ?? null,
-            'seats' => $request->seats ?? null
-        ];
-        $finalPrice = $this->flyJinnahService->finalPrice($data);
-        // dd($finalPrice);
-        $errorMessage = $finalPrice['Body']['OTA_AirPriceRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($finalPrice['error'] ?? null);
-        if ($errorMessage) {
-            $filteredMessage = strtok($errorMessage, '[');
-            return response()->json([
-                'status' => 'error',
-                'message' => $filteredMessage
-            ], 400);
-        }
-        $totalFarePrice = $finalPrice['Body']['OTA_AirPriceRS']['PricedItineraries']['PricedItinerary']['AirItineraryPricingInfo']['ItinTotalFare'] ?? '';
-        // dd($totalFarePrice);
-        return response()->json([
-            'status' => 'success',
-            'data' => $totalFarePrice
-        ], 200);
-    }
+    // public function getFinalPrice(Request $request) // USELESS
+    // {
+    //     // dd($request->all());
+    //     $data = [
+    //         'data' => $request->data ?? null,
+    //         'meals' => $request->meals ?? null,
+    //         'baggages' => $request->baggages ?? null,
+    //         'seats' => $request->seats ?? null
+    //     ];
+    //     $finalPrice = $this->flyJinnahService->finalPrice($data);
+    //     // dd($finalPrice);
+    //     $errorMessage = $finalPrice['Body']['OTA_AirPriceRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($finalPrice['error'] ?? null);
+    //     if ($errorMessage) {
+    //         $filteredMessage = strtok($errorMessage, '[');
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => $filteredMessage
+    //         ], 400);
+    //     }
+    //     $totalFarePrice = $finalPrice['Body']['OTA_AirPriceRS']['PricedItineraries']['PricedItinerary']['AirItineraryPricingInfo']['ItinTotalFare'] ?? '';
+    //     // dd($totalFarePrice);
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'data' => $totalFarePrice
+    //     ], 200);
+    // }
     public function payment(Request $request)
     {
         $now = now()->format('d M Y h:i A');
-        Log::create([
+        BookingLog::create([
             'session_id' => session()->getId(),
             'notes' => "User add payment on {$now}",
         ]);
@@ -348,20 +362,13 @@ class FlightController extends Controller
     public function bookFlight(Request $request)
     {
         $airline = $request->airline ?? '';
+        $flights = [];
+        $now = now()->format('d M Y h:i A');
         // dd($request->all(), session('data'), session('totalFare'));
         if ($airline === 'emirate') {
-            $cabinClass = session('cabinClass') ?? 'Y';
-            $data = [
-                'user' => $request->user ?? null,
-                'paymentOnHold' => $request->paymentOnHold ?? null,
-                'offerIds' => $request->offerIds ?? null,
-                'bundleId' => $request->bundleId ?? null,
-                'responseId' => $request->responseId ?? null,
-                'paxCount' => $request->paxCount ?? null,
-                'passengers' => $request->passengers ?? null,
-            ];
+            $cabinClass = session('cabinClass', 'Y');
+            $data = $request->only(['user', 'paymentOnHold', 'offerIds', 'bundleId', 'responseId', 'paxCount', 'passengers']);
             $bookFlight = $this->emiratesService->bookFlight($data ?? null);
-            // dd($bookFlight);
             if (!empty($bookFlight['error'])) {
                 return response()->json([
                     'status'  => 'error',
@@ -369,280 +376,48 @@ class FlightController extends Controller
                     'details' => $bookFlight['details'] ?? null,
                 ], 400);
             }
-
-            // 1. Create User
             $client = $this->bookingService->createUser($request->user);
-
-            // 2. Create Passengers
             $passengers = $this->bookingService->createPassengers($request->passengers, $client->id);
-
-            // 3. Create Flights and Segments
-            $flights = app(FlightBookingService::class)->handleEmiratesBooking($bookFlight, $client->id, $cabinClass);
-
-            $now = now()->format('d M Y h:i A');
-            Log::create([
-                'session_id' => session()->getId(),
-                'notes' => "Temporary booking is generated on {$now}",
-            ]);
-            Log::where('session_id', session()->getId())->update([
-                'session_id' => null,
-                'booking_id' => $flights['booking']['id'],
-            ]);
-
-            // dd($bookFlight);
-            return response()->json($flights);
+            $flights = app(FlightBookingService::class)->handleBookingEmi($bookFlight, $client->id, $cabinClass);
         } elseif ($airline === 'flyjinnah') {
             $data = [
-                'data' => $request->data ?? null,
+                'data' => session('data') ?? null,
+                'meals' => $request->meals ?? null,
+                'baggages' => $request->baggages ?? null,
+                'seats' => $request->seats ?? null,
                 'user' => $request->user ?? null,
                 'passengers' => $request->passengers ?? null,
-                'paymentOnHold' => $request->paymentOnHold ?? null,
-                'finalPriceTag' => $request->finalPriceTag ?? null
             ];
+            // dd($request->all(), $data);
+            $isDirectBooking = filter_var($request->isDirectBooking, FILTER_VALIDATE_BOOLEAN);
+            // $finalPrice = [];
+            if (!$isDirectBooking) {
+                $finalPrice = $this->flyJinnahService->finalPrice($data);
+                $errorMessage = $finalPrice['Body']['OTA_AirPriceRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($finalPrice['error'] ?? null);
+
+                if ($errorMessage) return response()->json(['status' => 'error', 'message' => strtok($errorMessage, '['), 'details' => $errorMessage,], 400);
+            }
             // dd($data);
-            $bookingResponse = $this->flyJinnahService->bookFlight([
-                'data' => $data ?? null
-            ]);
-            // dd($booking);
-            $errorMessage = $bookingResponse['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($booking['error'] ?? null);
-            if ($errorMessage) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => strtok($errorMessage, '[')
-                ], 400);
-            }
-            $booking = $bookingResponse['Body']['OTA_AirBookRS']['AirReservation'];
-            $bookingData = $booking['TravelerInfo'] ?? [];
-            $bookingRefID = $booking['BookingReferenceID']['@attributes']['ID'] ?? '--';
-            $paxPriceArray = $booking['PriceInfo']['PTC_FareBreakdowns']['PTC_FareBreakdown'] ?? [];
-            $ticketMsg = $booking['Ticketing'] ?? [];
-            $userData = [
-                'user' => $request->user,
-                'bookingRefID' => $bookingRefID,
-                'ticketStatusMsg' => $ticketMsg['TicketAdvisory'],
-                'ticketLimit' => null,
-                'paymentLimit' => null,
-                'airlineIds' => null,
-                'airline' => 'flyjinnah',
-            ];
-            $userDetails = $this->bookingService->createUser($userData);
-    
-            $data = [];
-            $airTravelers = isset($bookingData['AirTraveler'][0]) ? $bookingData['AirTraveler'] : [$bookingData['AirTraveler'] ?? []];
-    
-            foreach ($airTravelers as $item) {
-                if (empty($item)) continue;
-                $eTicketInfo = [];
-                $ticketArray = $item['ETicketInfo']['ETicketInfomation'] ?? [];
-    
-                if (isset($ticketArray[0])) {
-                    foreach ($ticketArray as $ticket) {
-                        $eTicketInfo[] = [
-                            'couponNo' => $ticket['@attributes']['couponNo'] ?? '',
-                            'eTicketNo' => $ticket['@attributes']['eTicketNo'] ?? '',
-                            'flightSegmentCode' => str_replace('/', ' to ', $ticket['@attributes']['flightSegmentCode'] ?? ''),
-                            'usedStatus' => $ticket['@attributes']['usedStatus'] ?? '',
-                        ];
-                    }
-                } elseif (!empty($ticketArray)) {
-                    $eTicketInfo[] = [
-                        'couponNo' => $ticketArray['@attributes']['couponNo'] ?? '',
-                        'eTicketNo' => $ticketArray['@attributes']['eTicketNo'] ?? '',
-                        'flightSegmentCode' => str_replace('/', ' to ', $ticketArray['@attributes']['flightSegmentCode'] ?? ''),
-                        'usedStatus' => $ticketArray['@attributes']['usedStatus'] ?? '',
-                    ];
-                }
-                $data[] = [
-                    'name' => $item['PersonName']['GivenName'] ?? 'Unknown',
-                    'surName' => $item['PersonName']['Surname'] ?? 'Unknown',
-                    // 'phoneNumber' => $item['Telephone']['@attributes']['PhoneNumber'] ?? 'Unknown',
-                    'type' => $item['@attributes']['PassengerTypeCode'] ?? 'Unknown',
-                    'travelerRefNumber' => $item['TravelerRefNumber']['@attributes']['RPH'] ?? 'Unknown',
-                    'eTicketInfo' => $eTicketInfo
-                ];
-            }
-            $paxPricingArray = is_array($paxPriceArray) && isset($paxPriceArray[0]) ? $paxPriceArray : [$paxPriceArray];
-            $paxPricing = [];
-            foreach ($paxPricingArray as $pax) {
-                if (empty($pax)) continue;
-                $paxPricing[] = [
-                    'code' => $pax['PassengerTypeQuantity']['@attributes']['Code'] ?? '-',
-                    'price' => $pax['PassengerFare']['TotalFare']['@attributes'] ?? '-',
-                    'travelerRefNumber' => $pax['TravelerRefNumber']['@attributes'] ?? '-',
-                ];
-            }
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Success! Your flight is booked. Safe travels!.',
-                'data' => $data,
-                'bookingRefID' => $bookingRefID,
-                'ticketMsg' => $ticketMsg,
-                'userDetails' => ['name' => $userDetails['user']['name'], 'email' => $userDetails['user']['email']],
-                'paxPricing' => $paxPricing,
-                'totalPrice' => $booking['PriceInfo']['ItinTotalFare']['TotalFare']['@attributes'] ?? '--',
-                'emailStatus' => $userDetails['emailMessage']
-            ], 200);
+            $bookingResponse = $this->flyJinnahService->bookFlight(['data' => $data]);
+            // dd($bookingResponse);
+            $errorMessage = $bookingResponse['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($bookingResponse['error'] ?? null);
+            if ($errorMessage) return response()->json(['status' => 'error','message' => strtok($errorMessage, '[')], 400);
+
+            $client = $this->bookingService->createUser($request->user);
+            $passengers = $this->bookingService->createPassengers($request->passengers, $client->id);
+            $flights = app(FlightBookingService::class)->handleBookingFJ($bookingResponse, $client->id);
         }
+        BookingLog::create([
+            'session_id' => session()->getId(),
+            'notes' => "Temporary booking is generated on {$now}",
+        ]);
+
+        BookingLog::where('session_id', session()->getId())->update([
+            'session_id' => null,
+            'booking_id' => $flights['booking']['id'] ?? null,
+        ]);
+        return response()->json($flights, empty($flights) ? 404 : 200);
     }
-    // book flight wala btn create data kryga sirf phr admin approve kryga booking
-    // public function confirmBooking(Request $request)
-    // {
-    //     $airline = $request->airline ?? '';
-    //     // dd($request->all(), session('data'), session('totalFare'));
-    //     if ($airline === 'emirate') {
-    //         $passengers = $request->passengers ?? null;
-    //         $data = [
-    //             'user' => $request->user ?? null,
-    //             'paymentOnHold' => $request->paymentOnHold ?? null,
-    //             'offerIds' => $request->offerIds ?? null,
-    //             'bundleId' => $request->bundleId ?? null,
-    //             'responseId' => $request->responseId ?? null,
-    //             'paxCount' => $request->paxCount ?? null,
-    //             'passengers' => $passengers,
-    //         ];
-    //         $bookFlight = $this->emiratesService->bookFlight($data ?? null);
-    //         // dd($bookFlight);
-    //         if (!empty($bookFlight['error'])) {
-    //             return response()->json([
-    //                 'status' => 'error',
-    //                 'message' => $bookFlight['error'],
-    //                 'details' => $bookFlight['details'],
-    //             ], 400);
-    //         }
-    //         $bookingRefID = $bookFlight['bundle']['bookingReferences']['bookingId'] ?? null;
-    //         $ticketMsg = 'Booking is OnHold';
-    //         // dd($bookFlight['bundle']['timeLimits']);
-    //         $userData = [
-    //             'user' => $request->user,
-    //             'bookingRefID' => $bookingRefID,
-    //             'ticketStatusMsg' => $ticketMsg,
-    //             'ticketLimit' => $bookFlight['bundle']['timeLimits']['ticketingTimeLimit'] ?? null,
-    //             'paymentLimit' => $bookFlight['bundle']['timeLimits']['paymentTimeLimit'] ?? null,
-    //             'airlineIds' => $bookFlight['bundle']['bookingReferences']['airlineID'] ?? null,
-    //             'airline' => $bookFlight['bundle']['bookingReferences']['airline'] ?? null,
-    //         ];
-    //         $userDetails = [];
-    //         if (App::environment('local')) {
-    //             $cacheKey = 'useremi';
-    //             $userDetails = Cache::remember($cacheKey, now()->addHours(30), function () use ($userData) {
-    //                 return $this->bookingService->createUser($userData);
-    //             });
-    //         } elseif (App::environment('production')) {
-    //             $userDetails = $this->bookingService->createUser($userData);
-    //         }
-    //         // $flightDetails = [
-    //         //     'paxCount' => $request->paxCount ?? null,
-    //         //     'ticketLimit' => $bookFlight['bundle']['timeLimits']['ticketingTimeLimit'] ?? null,
-    //         //     'paymentLimit' => $bookFlight['bundle']['timeLimits']['paymentTimeLimit'] ?? null,
-    //         //     'airline' => $airline,
-    //         // ];
-    //         // $userDetails = $this->bookingService->createUser($request->user);
-    //         // $userPassengers = $this->bookingService->createPassengers($passengers, $userDetails->id);
-    //         // $userFlight = $this->bookingService->createFlight($passengers, $userDetails->id);
-    //         return response()->json([
-    //             'status' => 'success',
-    //             'message' => 'Success! Your flight is booked. Safe travels!.',
-    //             'data' => $bookFlight,
-    //             'passengers' => $passengers,
-    //             'bookingRefID' => $bookingRefID,
-    //             'ticketMsg' => $ticketMsg,
-    //             'userDetails' => ['name' => $userDetails['user']['name'], 'email' => $userDetails['user']['email']],
-    //             'totalPrice' => $bookFlight['bundle']['totalPrice'] ?? [],
-    //             'emailStatus' => $userDetails['emailMessage'] ?? 'Failed to send email'
-    //         ], 200);
-    //     } elseif ($airline === 'flyjinnah') {
-    //         $data = [
-    //             'data' => $request->data ?? null,
-    //             'user' => $request->user ?? null,
-    //             'passengers' => $request->passengers ?? null,
-    //             'paymentOnHold' => $request->paymentOnHold ?? null,
-    //             'finalPriceTag' => $request->finalPriceTag ?? null
-    //         ];
-    //         // dd($data);
-    //         $bookingResponse = $this->flyJinnahService->bookFlight([
-    //             'data' => $data ?? null
-    //         ]);
-    //         // dd($booking);
-    //         $errorMessage = $bookingResponse['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($booking['error'] ?? null);
-    //         if ($errorMessage) {
-    //             return response()->json([
-    //                 'status' => 'error',
-    //                 'message' => strtok($errorMessage, '[')
-    //             ], 400);
-    //         }
-    //         $booking = $bookingResponse['Body']['OTA_AirBookRS']['AirReservation'];
-    //         $bookingData = $booking['TravelerInfo'] ?? [];
-    //         $bookingRefID = $booking['BookingReferenceID']['@attributes']['ID'] ?? '--';
-    //         $paxPriceArray = $booking['PriceInfo']['PTC_FareBreakdowns']['PTC_FareBreakdown'] ?? [];
-    //         $ticketMsg = $booking['Ticketing'] ?? [];
-    //         $userData = [
-    //             'user' => $request->user,
-    //             'bookingRefID' => $bookingRefID,
-    //             'ticketStatusMsg' => $ticketMsg['TicketAdvisory'],
-    //             'ticketLimit' => null,
-    //             'paymentLimit' => null,
-    //             'airlineIds' => null,
-    //             'airline' => 'flyjinnah',
-    //         ];
-    //         $userDetails = $this->bookingService->createUser($userData);
-    
-    //         $data = [];
-    //         $airTravelers = isset($bookingData['AirTraveler'][0]) ? $bookingData['AirTraveler'] : [$bookingData['AirTraveler'] ?? []];
-    
-    //         foreach ($airTravelers as $item) {
-    //             if (empty($item)) continue;
-    //             $eTicketInfo = [];
-    //             $ticketArray = $item['ETicketInfo']['ETicketInfomation'] ?? [];
-    
-    //             if (isset($ticketArray[0])) {
-    //                 foreach ($ticketArray as $ticket) {
-    //                     $eTicketInfo[] = [
-    //                         'couponNo' => $ticket['@attributes']['couponNo'] ?? '',
-    //                         'eTicketNo' => $ticket['@attributes']['eTicketNo'] ?? '',
-    //                         'flightSegmentCode' => str_replace('/', ' to ', $ticket['@attributes']['flightSegmentCode'] ?? ''),
-    //                         'usedStatus' => $ticket['@attributes']['usedStatus'] ?? '',
-    //                     ];
-    //                 }
-    //             } elseif (!empty($ticketArray)) {
-    //                 $eTicketInfo[] = [
-    //                     'couponNo' => $ticketArray['@attributes']['couponNo'] ?? '',
-    //                     'eTicketNo' => $ticketArray['@attributes']['eTicketNo'] ?? '',
-    //                     'flightSegmentCode' => str_replace('/', ' to ', $ticketArray['@attributes']['flightSegmentCode'] ?? ''),
-    //                     'usedStatus' => $ticketArray['@attributes']['usedStatus'] ?? '',
-    //                 ];
-    //             }
-    //             $data[] = [
-    //                 'name' => $item['PersonName']['GivenName'] ?? 'Unknown',
-    //                 'surName' => $item['PersonName']['Surname'] ?? 'Unknown',
-    //                 // 'phoneNumber' => $item['Telephone']['@attributes']['PhoneNumber'] ?? 'Unknown',
-    //                 'type' => $item['@attributes']['PassengerTypeCode'] ?? 'Unknown',
-    //                 'travelerRefNumber' => $item['TravelerRefNumber']['@attributes']['RPH'] ?? 'Unknown',
-    //                 'eTicketInfo' => $eTicketInfo
-    //             ];
-    //         }
-    //         $paxPricingArray = is_array($paxPriceArray) && isset($paxPriceArray[0]) ? $paxPriceArray : [$paxPriceArray];
-    //         $paxPricing = [];
-    //         foreach ($paxPricingArray as $pax) {
-    //             if (empty($pax)) continue;
-    //             $paxPricing[] = [
-    //                 'code' => $pax['PassengerTypeQuantity']['@attributes']['Code'] ?? '-',
-    //                 'price' => $pax['PassengerFare']['TotalFare']['@attributes'] ?? '-',
-    //                 'travelerRefNumber' => $pax['TravelerRefNumber']['@attributes'] ?? '-',
-    //             ];
-    //         }
-    //         return response()->json([
-    //             'status' => 'success',
-    //             'message' => 'Success! Your flight is booked. Safe travels!.',
-    //             'data' => $data,
-    //             'bookingRefID' => $bookingRefID,
-    //             'ticketMsg' => $ticketMsg,
-    //             'userDetails' => ['name' => $userDetails['user']['name'], 'email' => $userDetails['user']['email']],
-    //             'paxPricing' => $paxPricing,
-    //             'totalPrice' => $booking['PriceInfo']['ItinTotalFare']['TotalFare']['@attributes'] ?? '--',
-    //             'emailStatus' => $userDetails['emailMessage']
-    //         ], 200);
-    //     }
-    // }
     public function fetchDetails(Request $request) // OrderRetrieveRQ
     {
         $validatedData = $request->validate([
@@ -652,7 +427,7 @@ class FlightController extends Controller
         $booking = Booking::with('bookingRequest')->find($validatedData['bookingId']);
         if (!$booking) return response()->json(['status' => 'error', 'message' => 'Booking not found'], 404);
         if ($booking->client_id !== (int)$validatedData['clientId']) return response()->json(['status' => 'error', 'message' => 'Client does not match this booking.'], 403);
-
+        // dd($booking);
         $airline = strtolower($booking->airline);
         if ($airline === 'emirates') {
             $orderRetrieve = $this->emiratesService->orderRetrieve([
@@ -673,24 +448,23 @@ class FlightController extends Controller
             $skipComparison = $latest['price_code'] === null || $latest['price'] <= 0;
 
             if ($skipComparison) {
-                // You can decide to not update booking at all in this case
                 return response()->json([
-                    'status'   => 'success',
+                    'status'   => 'error',
                     'message'  => 'Fetched latest order details. Could not find a valid total price in the response.',
                     'note'     => 'Price comparison skipped due to missing/invalid amounts in OrderRetrieve response.',
                     'latest'   => $latest,
                     'data'     => $orderRetrieve,
-                ]);
+                ], 400);
             }
 
             // Compare
-            $comparison = $this->buildPriceComparison(
+            $comparison = $this->generatePriceComparisonEmi(
                 (float) $booking->price,
                 $booking->price_code,
                 (float) $latest['price'],
                 $latest['price_code']
             );
-            $updatedBooking = app(FlightBookingService::class)->updateBookingFieldsFromResponse($orderRetrieve, $booking->id);
+            $updatedBooking = app(FlightBookingService::class)->updateBookingFieldsEmi($orderRetrieve, $booking->id);
             return response()->json([
                 'status'      => 'success',
                 'message'     => 'Fetched latest order details.',
@@ -705,6 +479,51 @@ class FlightController extends Controller
                     'price_code' => $updatedBooking->price_code,
                 ],
             ]);
+        } else if($airline === 'flyjinnah') {
+            $orderRetrieve = $this->flyJinnahService->getReservationbyPNR(['orderId' => $booking->order_id]);
+            // dd($orderRetrieve);
+
+            $errorMessage = $orderRetrieve['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($orderRetrieve['error'] ?? null);
+            if ($errorMessage) {
+                $filteredMessage = strtok($errorMessage, '[');
+                return response()->json(['status' => 'error', 'message' => $filteredMessage, 'details' => $errorMessage], 400);
+            }
+            $skipComparison = $orderRetrieve['code'] === null || $orderRetrieve['amount'] <= 0;
+
+            if ($skipComparison) {
+                // You can decide to not update booking at all in this case
+                return response()->json([
+                    'status'   => 'error',
+                    'message'  => 'Fetched latest order details. Could not find a valid total price in the response.',
+                    'note'     => 'Price comparison skipped due to missing/invalid amounts in GetReservationbyPNR response.',
+                    'data'     => $orderRetrieve,
+                ], 400);
+            }
+            $comparison = $this->generatePriceComparisonFJ(
+                (float) $booking->price,
+                $booking->price_code,
+                (float) $orderRetrieve['amount'],
+                $orderRetrieve['code']
+            );
+            $updatedBooking = app(FlightBookingService::class)->updateBookingFieldsFJ($orderRetrieve, $booking->id);
+            // dd($updatedBooking);
+            return response()->json([
+                'status'      => 'success',
+                'message'     => 'Fetched latest order details.',
+                'comparison'  => $comparison,
+                'booking_old' => [
+                    'price'      => (float) $booking->price,
+                    'price_code' => $booking->price_code,
+                ],
+                'booking_new' => [
+                    'price'      => (float) $updatedBooking->price,
+                    'price_code' => $updatedBooking->price_code,
+                ],
+                'data' => [
+                    'transactionId' => $orderRetrieve['transactionId'],
+                    'jsessionId'    => $orderRetrieve['jsessionId'],
+                ],
+            ]);
         }
         return response()->json(['status' => 'error', 'message' => 'Airline Missing!.'], 401);
     }
@@ -713,11 +532,13 @@ class FlightController extends Controller
         $validatedData = $request->validate([
             'bookingId' => 'required|exists:bookings,id',
             'clientId' => 'required|exists:clients,id',
+            'jsessionId' => 'nullable|string',
+            'transactionId' => 'nullable|string',
         ]);
         $booking = Booking::with('bookingRequest', 'payment')->find($validatedData['bookingId']);
         if (!$booking) return response()->json(['status' => 'error', 'message' => 'Booking not found'], 404);
         if ($booking->client_id !== (int)$validatedData['clientId']) return response()->json(['status' => 'error', 'message' => 'Client does not match this booking.'], 403);
-
+        // dd($booking);
         // ✅ Check if payment exists
         // if (!$booking->payment) return response()->json(['status' => 'error', 'message' => 'No payment found for this booking.'], 400);
 
@@ -747,7 +568,7 @@ class FlightController extends Controller
                 });
                 // Only set status to ERROR if it's not already ticketed
                 if (!$alreadyTicketed) {
-                    Log::create([
+                    BookingLog::create([
                         'booking_id' => $booking->id,
                         'notes' => "Error found on approve tickets on {$now}",
                     ]);
@@ -769,55 +590,53 @@ class FlightController extends Controller
                     'details' => $messages,
                 ], $alreadyTicketed ? 409 : 400);
             }
-            $ticketTimeLimit = $orderChange['bundle']['timeLimits']['ticketingTimeLimit'] ?? $booking->ticket_limit;
-            $paymentTimeLimit = $orderChange['bundle']['timeLimits']['paymentTimeLimit'] ?? $booking->payment_limit;
-            // ----------------------------------------- Update Booking -----------------------------------------
-            $booking->update([
-                'status' => Booking::STATUS_ISSUED,
-                'only_search' => false,
-                'ticket_limit' => $ticketTimeLimit,
-                'payment_limit' => $paymentTimeLimit,
+            $updatedBooking = app(FlightBookingService::class)->issueTicketsEmi($orderChange, $booking->id);
+            BookingLog::create(['booking_id' => $booking->id, 'notes' => "Ticket issued on {$now}"]);
+            return response()->json(['status' => 'success', 'message' => 'Success! Your flight is booked. Safe travels!.', 'booking' => $updatedBooking]);
+        } else if($airline === 'flyjinnah') {
+            $orderChange = $this->flyJinnahService->orderChange([
+                'amount' => $booking->price,
+                'code' => $booking->price_code,
+                'orderId' => $booking->order_id,
+                'transactionId' => $validatedData['transactionId'],
+                'jsessionId' => $validatedData['jsessionId'] ?? null
             ]);
-            // ----------------------------------------- Update Booking Request Body -----------------------------------------
-            if ($booking->bookingRequest) {
-                $booking->bookingRequest()->update([
-                    'status' => 'change',
-                    'ticket_limit' => $ticketTimeLimit,
-                    'payment_limit' => $paymentTimeLimit,
-                    'xml_body' => json_encode($orderChange ?? []),
-                ]);
+            // dd($orderChange);
+            $alreadyTicketedMsg = str_contains(strtolower($orderChange['message'] ?? ''), 'already paid');
+            if ($alreadyTicketedMsg) return response()->json(['status' => 'error', 'message' => 'This flight was already ticketed.'], 409);
+            $errorMessage = $orderChange['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($orderChange['error'] ?? null);
+            if ($errorMessage) {
+                $details = $orderChange['Body'] ?? [];
+                $alreadyTicketed = collect($errorMessage)->contains(function ($errorMessage) {
+                    return str_contains(strtolower($errorMessage), 'already paid');
+                });
+                if (!$alreadyTicketed) {
+                    BookingLog::create([
+                        'booking_id' => $booking->id,
+                        'notes' => "Error found on approve tickets on {$now}",
+                    ]);
+                    $booking->update(['status' => Booking::STATUS_ERROR]);
+                    ErrorLog::create([
+                        'client_id' => $booking->client_id,
+                        'booking_id' => $booking->id,
+                        'error_type' => 'ticketing',
+                        'error_message' => json_encode($errorMessage),
+                        'details' => json_encode($details),
+                    ]);
+                };
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $alreadyTicketed ? 'This flight was already ticketed.' : 'Flight booking failed.',
+                    'code' => $alreadyTicketed ? 409 : 400,
+                    'details' => $errorMessage,
+                ], $alreadyTicketed ? 409 : 400);
             }
-            // ----------------------------------------- Create Tickets -----------------------------------------
-            $tickets = [];
-            foreach ($orderChange['ticketInfos'] ?? [] as $ticketInfo) {
-                $tickets[] = [
-                    'airline' => $ticketInfo['issuingAirlineInfo']['airline'] ?? null,
-                    'passenger_reference' => $ticketInfo['passengerReference'] ?? null,
-                    'place' => $ticketInfo['issuingAirlineInfo']['place'] ?? null,
-                    'ticket_no' => $ticketInfo['ticketDocument']['ticketDocNbr'] ?? null,
-                    'type' => $ticketInfo['ticketDocument']['type'] ?? null,
-                    'issue_date' => isset($ticketInfo['ticketDocument']['dateOfIssue'], $ticketInfo['ticketDocument']['timeOfIssue'])
-                        ? Carbon::parse($ticketInfo['ticketDocument']['dateOfIssue'] . ' ' . $ticketInfo['ticketDocument']['timeOfIssue'])
-                        : now(),
-                    'price_code' => $ticketInfo['price']['total']['code'] ?? null,
-                    'price' => $ticketInfo['price']['total']['value'] ?? null,
-                    'price_reference' => $ticketInfo['price']['refs'] ?? null,
-                    'ticket_details' => json_encode($ticketInfo),
-                    'client_id' => $booking->client_id,
-                    'booking_id' => $booking->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-            if (!empty($tickets)) Ticket::insert($tickets);
-            $booking->load('bookingItems.penalties', 'client', 'tickets');
-            Log::create([
-                'booking_id' => $booking->id,
-                'notes' => "Ticket issued on {$now}",
-            ]);
-            return response()->json(['status' => 'success', 'message' => 'Success! Your flight is booked. Safe travels!.', 'booking' => $booking]);
+            $updatedBooking = app(FlightBookingService::class)->issueTicketsFJ($orderChange, $booking->id);
+            // dd($updatedBooking);
+            BookingLog::create(['booking_id' => $booking->id, 'notes' => "Ticket issued on {$now}"]);
+            return response()->json(['status' => 'success', 'message' => 'Success! Your flight is booked. Safe travels!.', 'booking' => $updatedBooking]);
         }
-        return response()->json(['status' => 'missing_airline', 'message' => 'Airline not supported'], 400);
+        return response()->json(['status' => 'error', 'message' => 'Airline not supported'], 400);
     }
     public function orderCancel(Request $request) // OrderCancelRQ
     {
@@ -828,6 +647,7 @@ class FlightController extends Controller
         $booking = Booking::with('tickets')->find($validatedData['bookingId']);
         if (!$booking) return response()->json(['status' => 'error', 'message' => 'Booking not found'], 404);
         if ($booking->client_id !== (int)$validatedData['clientId']) return response()->json(['status' => 'error', 'message' => 'Client does not match this booking.'], 403);
+        if ($booking->status === Booking::STATUS_INITIAL) return response()->json(['status' => 'error', 'message' => 'The booking is in its initial stage and cannot be canceled.'], 200);
         $now = now()->format('d M Y h:i A');
         $airline = strtolower($booking->airline);
         if ($airline === 'emirates') {
@@ -837,7 +657,7 @@ class FlightController extends Controller
             ];
             $orderCancel = $this->emiratesService->orderCancel($data ?? []);
             if (!empty($orderCancel['error'])) {
-                Log::create([
+                BookingLog::create([
                     'booking_id' => $booking->id,
                     'notes' => "Error Cancel Order on {$now}",
                 ]);
@@ -868,11 +688,19 @@ class FlightController extends Controller
                 'xml_body' => json_encode($orderCancel),
                 'booking_id' => $booking->id
             ]);
-            Log::create([
+            BookingLog::create([
                 'booking_id' => $booking->id,
                 'notes' => "Cancel Order on {$now}",
             ]);
             return response()->json(['status' => 'success', 'message' => 'Success! Flight cancelled successfully!.', 'data' => $orderCancel]);
+        } elseif ($airline === 'flyjinnah') {
+            $booking->update(['status' => Booking::STATUS_CANCEL]);
+            $booking->tickets()->update(['status' => 'cancel']);
+            BookingLog::create([
+                'booking_id' => $booking->id,
+                'notes' => "Cancel Order on {$now}",
+            ]);
+            return response()->json(['status' => 'success', 'message' => 'Success! Flight cancelled successfully!.']);
         }
         return response()->json(['status' => 'warning', 'message' => 'Missing Airline'], 400);
     }
@@ -896,33 +724,6 @@ class FlightController extends Controller
     }
 
     // Helper Emirates
-    protected function buildPriceComparison(float $oldPrice, ?string $oldCode, float $newPrice, ?string $newCode): array
-    {
-        $delta      = $newPrice - $oldPrice;
-        $direction  = $delta > 0 ? 'increased' : ($delta < 0 ? 'decreased' : 'same');
-        $absDelta   = abs($delta);
-        $pctChange  = $oldPrice > 0 ? round(($absDelta / $oldPrice) * 100, 2) : null;
-        // {
-        // "old_price": 262926,
-        // "old_price_code": "PKR",
-        // "new_price": 270000,
-        // "new_price_code": "PKR",
-        // "difference": 7074,
-        // "difference_label": "increased",
-        // "percent_change": 2.69,
-        // "same_currency": true
-        // }
-        return [
-            'old_price'        => $oldPrice,
-            'old_price_code'   => $oldCode,
-            'new_price'        => $newPrice,
-            'new_price_code'   => $newCode,
-            'difference'       => $absDelta,
-            'difference_label' => $direction,
-            'percent_change'   => $pctChange,   // null when old price = 0
-            'same_currency'    => $oldCode === $newCode,
-        ];
-    }
     protected function extractTotalPriceAndCode(array $response, float $fallbackPrice, ?string $fallbackCode): array
     {
         // Try all likely places for total price in different payloads
@@ -957,6 +758,51 @@ class FlightController extends Controller
             'price'      => $fallbackPrice,
             'price_code' => $fallbackCode,
             'source'     => 'fallback',
+        ];
+    }
+    protected function generatePriceComparisonEmi(float $oldPrice, ?string $oldCode, float $newPrice, ?string $newCode): array
+    {
+        $delta      = $newPrice - $oldPrice;
+        $direction  = $delta > 0 ? 'increased' : ($delta < 0 ? 'decreased' : 'same');
+        $absDelta   = abs($delta);
+        $pctChange  = $oldPrice > 0 ? round(($absDelta / $oldPrice) * 100, 2) : null;
+        // {
+        // "old_price": 262926,
+        // "old_price_code": "PKR",
+        // "new_price": 270000,
+        // "new_price_code": "PKR",
+        // "difference": 7074,
+        // "difference_label": "increased",
+        // "percent_change": 2.69,
+        // "same_currency": true
+        // }
+        return [
+            'old_price'        => $oldPrice,
+            'old_price_code'   => $oldCode,
+            'new_price'        => $newPrice,
+            'new_price_code'   => $newCode,
+            'difference'       => $absDelta,
+            'difference_label' => $direction,
+            'percent_change'   => $pctChange,   // null when old price = 0
+            'same_currency'    => $oldCode === $newCode,
+        ];
+    }
+    protected function generatePriceComparisonFJ($oldPrice, $oldPriceCode, $newPrice, $newPriceCode)
+    {
+        $difference = $newPrice - $oldPrice;
+        $differenceLabel = $difference == 0 ? 'same' : ($difference > 0 ? 'increased' : 'decreased');
+        $percentChange = $oldPrice != 0 ? round(($difference / $oldPrice) * 100, 2) : 0;
+        $sameCurrency = $oldPriceCode === $newPriceCode;
+
+        return [
+            'old_price' => $oldPrice,
+            'old_price_code' => $oldPriceCode,
+            'new_price' => $newPrice,
+            'new_price_code' => $newPriceCode,
+            'difference' => $difference,
+            'difference_label' => $differenceLabel,
+            'percent_change' => $percentChange,
+            'same_currency' => $sameCurrency,
         ];
     }
 

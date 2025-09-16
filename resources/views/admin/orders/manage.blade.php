@@ -32,6 +32,9 @@
   </style>
 @endsection
 @section('content')
+@php
+    $airline = $booking->airline ? strtolower($booking->airline) : 'N/A';
+@endphp
 <div class="row">
     <!-- Left Side -->
     <div class="col-md-3 left-side">
@@ -116,129 +119,117 @@
             <!-- Approve Flight Modal -->
             <x-modal id="cacelOrderDetailsModal" title="Cancel / Change / Refund Fees" size="modal-lg">
                 <div class="modal-body">
-                    @forelse($booking->bookingItems as $item)
+                    @if ($airline === 'flyjinnah' && $booking->status !== 'issued')
+                        <p>Cancellation policies are not available for FlyJinnah bookings at this time.</p>
+                    @else
                         <div class="card mb-3 shadow-sm">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <span class="fw-semibold">
-                                    Passenger(s): {{ $item->passenger_code }}
-                                </span>
-                            </div>
-
                             <div class="card-body p-0">
-                                @forelse($item->penalties as $penalty)
+                                @if ($airline === 'emirates')
+                                    @forelse ($booking->bookingItems as $item)
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <span class="fw-semibold">Passenger(s): {{ $item->passenger_code }}</span>
+                                        </div>
+                                        @forelse ($item->penalties as $penalty)
+                                            @php
+                                                $cancel = is_array($penalty->cancel_fee) ? $penalty->cancel_fee : json_decode($penalty->cancel_fee, true);
+                                                $change = is_array($penalty->change_fee) ? $penalty->change_fee : json_decode($penalty->change_fee, true);
+                                                $refund = is_array($penalty->refund_fee) ? $penalty->refund_fee : json_decode($penalty->refund_fee, true);
+                                            @endphp
+                                            <div class="p-3 border-bottom">
+                                                <h6 class="mb-3 text-muted">{{ $penalty->destination }} → {{ $penalty->arrival }}</h6>
+                                                @php
+                                                    $sections = [
+                                                        'Cancel Fees' => $cancel,
+                                                        'Change Fees' => $change,
+                                                        'Refund Policy / Fees' => $refund
+                                                    ];
+                                                @endphp
+                                                @foreach ($sections as $title => $data)
+                                                    @if (!empty($data))
+                                                        <h6 class="mb-2">{{ $title }}</h6>
+                                                        @if ($title === 'Refund Policy / Fees' && isset($data['Status']))
+                                                            <p class="mb-0"><strong>Status:</strong> {{ $data['Status'] }}</p>
+                                                        @else
+                                                            <table class="table table-sm align-middle mb-3">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width: 40%">When</th>
+                                                                        <th style="width: 30%">Amount</th>
+                                                                        <th style="width: 30%">Application</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach ($data as $when => $fee)
+                                                                        <tr>
+                                                                            <td>{{ $when }}</td>
+                                                                            <td>{{ isset($fee['price']) ? ($fee['price']['amount'] ?? '') . ' ' . ($fee['price']['code'] ?? '') : '' }}</td>
+                                                                            <td>{{ $fee['amountApplication'] ?? '' }}</td>
+                                                                        </tr>
+                                                                    @endforeach
+                                                                </tbody>
+                                                            </table>
+                                                        @endif
+                                                    @endif
+                                                @endforeach
+                                                @if (empty($cancel) && empty($change) && empty($refund))
+                                                    <p class="text-muted mb-0">No penalty info available.</p>
+                                                @endif
+                                            </div>
+                                        @empty
+                                            <div class="p-3">
+                                                <p class="text-muted mb-0">No penalties found for this booking item.</p>
+                                            </div>
+                                        @endforelse
+                                    @empty
+                                        <p class="text-muted mb-0">No booking items found.</p>
+                                    @endforelse
+                                @elseif ($airline === 'flyjinnah')
                                     @php
-                                        // If you didn't cast in the model, decode here
-                                        $cancel = is_array($penalty->cancel_fee) ? $penalty->cancel_fee : json_decode($penalty->cancel_fee, true);
-                                        $change = is_array($penalty->change_fee) ? $penalty->change_fee : json_decode($penalty->change_fee, true);
-                                        $refund = is_array($penalty->refund_fee) ? $penalty->refund_fee : json_decode($penalty->refund_fee, true);
+                                        $xmlBody = $booking->bookingRequest && isset($booking->bookingRequest->xml_body) ? json_decode($booking->bookingRequest->xml_body, true) : null;
+                                        $airReservation = $xmlBody['response']['Body']['OTA_AirBookRS']['AirReservation'] ?? $xmlBody['Body']['OTA_AirBookRS']['AirReservation'] ?? null;
+                                        $options = $airReservation['AirItinerary']['OriginDestinationOptions']['OriginDestinationOption'] ?? [];
+                                        $options = is_array($options) && isset($options[0]) ? $options : [$options];
+                                        $hasPenalties = false;
                                     @endphp
-
-                                    <div class="p-3 border-bottom">
-                                        <h6 class="mb-3 text-muted">
-                                            {{ $penalty->destination }} → {{ $penalty->arrival }}
-                                        </h6>
-
-                                        {{-- Cancel Fees --}}
-                                        @if(!empty($cancel))
-                                            <h6 class="mb-2">Cancel Fees</h6>
-                                            <table class="table table-sm align-middle mb-3">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width: 40%">When</th>
-                                                        <th style="width: 30%">Amount</th>
-                                                        <th style="width: 30%">Application</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($cancel as $when => $fee)
-                                                        <tr>
-                                                            <td>{{ $when }}</td>
-                                                            <td>
-                                                                @if(isset($fee['price']))
-                                                                    {{ $fee['price']['amount'] ?? '' }} {{ $fee['price']['code'] ?? '' }}
+                                    @foreach ($options as $option)
+                                        @if (!empty($option['FlightSegment']) && is_array($option['FlightSegment']))
+                                            @foreach ($option['FlightSegment'] as $segment)
+                                                @if (!empty($segment['AvailableFlexiOperations']['FlexiOperations']) && is_array($segment['AvailableFlexiOperations']['FlexiOperations']))
+                                                    @php $hasPenalties = true; @endphp
+                                                    <div class="p-3 border-bottom">
+                                                        <h6 class="mb-3 text-muted">
+                                                            {{ $segment['DepartureAirport']['@attributes']['LocationCode'] ?? 'N/A' }} → {{ $segment['ArrivalAirport']['@attributes']['LocationCode'] ?? 'N/A' }}
+                                                        </h6>
+                                                        <h6>Flexi Operations</h6>
+                                                        <ul class="list-group list-group-flush">
+                                                            @foreach ($segment['AvailableFlexiOperations']['FlexiOperations'] as $operation)
+                                                                @if (is_array($operation) && !empty($operation['@attributes']))
+                                                                    <li class="list-group-item">
+                                                                        <strong>{{ $operation['@attributes']['AllowedOperationName'] ?? 'N/A' }}:</strong>
+                                                                        Allowed {{ $operation['@attributes']['NumberOfAllowedOperations'] ?? 'N/A' }} time(s),
+                                                                        Cutoff: {{ $operation['@attributes']['FlexiOperationCutoverTimeInMinutes'] ?? 'N/A' }} minutes
+                                                                    </li>
                                                                 @endif
-                                                            </td>
-                                                            <td>{{ $fee['amountApplication'] ?? '' }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @endif
+                                            @endforeach
                                         @endif
-
-                                        {{-- Change Fees --}}
-                                        @if(!empty($change))
-                                            <h6 class="mb-2">Change Fees</h6>
-                                            <table class="table table-sm align-middle mb-3">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width: 40%">When</th>
-                                                        <th style="width: 30%">Amount</th>
-                                                        <th style="width: 30%">Application</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($change as $when => $fee)
-                                                        <tr>
-                                                            <td>{{ $when }}</td>
-                                                            <td>
-                                                                @if(isset($fee['price']))
-                                                                    {{ $fee['price']['amount'] ?? '' }} {{ $fee['price']['code'] ?? '' }}
-                                                                @endif
-                                                            </td>
-                                                            <td>{{ $fee['amountApplication'] ?? '' }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        @endif
-
-                                        {{-- Refund Fees --}}
-                                        @if(!empty($refund))
-                                            <h6 class="mb-2">Refund Policy / Fees</h6>
-                                            @if(isset($refund['Status']))
-                                                <p class="mb-0">
-                                                    <strong>Status:</strong> {{ $refund['Status'] }}
-                                                </p>
-                                            @else
-                                                <table class="table table-sm align-middle mb-0">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width: 40%">When</th>
-                                                            <th style="width: 30%">Amount</th>
-                                                            <th style="width: 30%">Application</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($refund as $when => $fee)
-                                                            <tr>
-                                                                <td>{{ $when }}</td>
-                                                                <td>
-                                                                    @if(isset($fee['price']))
-                                                                        {{ $fee['price']['amount'] ?? '' }} {{ $fee['price']['code'] ?? '' }}
-                                                                    @endif
-                                                                </td>
-                                                                <td>{{ $fee['amountApplication'] ?? '' }}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            @endif
-                                        @endif
-
-                                        @if(empty($cancel) && empty($change) && empty($refund))
-                                            <p class="text-muted mb-0">No penalty info available.</p>
-                                        @endif
-                                    </div>
-                                @empty
+                                    @endforeach
+                                    @if (!$hasPenalties)
+                                        <div class="p-3">
+                                            <p class="text-muted mb-0">No penalty information available.</p>
+                                        </div>
+                                    @endif
+                                @else
                                     <div class="p-3">
-                                        <p class="text-muted mb-0">No penalties found for this booking item.</p>
+                                        <p class="text-muted mb-0">Unsupported airline for penalty information.</p>
                                     </div>
-                                @endforelse
+                                @endif
                             </div>
                         </div>
-                    @empty
-                        <p class="text-muted mb-0">No booking items found.</p>
-                    @endforelse
+                    @endif
                 </div>
                 <x-slot name="footer">
                     <button type="button" class="btn btn-danger cancelOrderBtn" data-booking-id="{{ $booking->id }}" data-client-id="{{ $booking->client_id }}">Cancel Booking</button>
@@ -312,224 +303,31 @@
             </div>
             <!-- Detailed Overview Modal -->
             <x-modal id="detailedOverviewModal" title="Detailed Overview" size="modal-lg">
-                <div class="modal-body">
-                    @php
-                        $bookingRequest = $booking->bookingRequest ?? null;
-                        $xmlBody = $bookingRequest && isset($bookingRequest->xml_body) ? json_decode($bookingRequest->xml_body, true) : null;
-                    @endphp
-
-                    @if ($bookingRequest)
-                        <div class="accordion" id="bookingAccordion">
-                            <!-- General Booking Information -->
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="generalInfoHeading">
-                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#generalInfo" aria-expanded="true" aria-controls="generalInfo">
-                                        General Booking Information
-                                    </button>
-                                </h2>
-                                <div id="generalInfo" class="accordion-collapse collapse show" aria-labelledby="generalInfoHeading" data-bs-parent="#bookingAccordion">
-                                    <div class="accordion-body">
-                                        <ul class="list-group list-group-flush">
-                                            <li class="list-group-item"><strong>ID:</strong> {{ $bookingRequest->id ?? 'N/A' }}</li>
-                                            <li class="list-group-item"><strong>Airline:</strong> {{ $bookingRequest->airline ?? 'N/A' }}</li>
-                                            <li class="list-group-item"><strong>Ticket Limit:</strong> {{ isset($bookingRequest->ticket_limit) ? \Carbon\Carbon::parse($bookingRequest->ticket_limit)->format('d M Y, H:i') : 'N/A' }}</li>
-                                            <li class="list-group-item"><strong>Payment Limit:</strong> {{ isset($bookingRequest->payment_limit) ? \Carbon\Carbon::parse($bookingRequest->payment_limit)->format('d M Y, H:i') : 'N/A' }}</li>
-                                            <li class="list-group-item"><strong>Status:</strong> {{ isset($bookingRequest->status) ? ucfirst($bookingRequest->status) : 'N/A' }}</li>
-                                            <li class="list-group-item"><strong>Client ID:</strong> {{ $bookingRequest->client_id ?? 'N/A' }}</li>
-                                            <li class="list-group-item"><strong>Booking ID:</strong> {{ $bookingRequest->booking_id ?? 'N/A' }}</li>
-                                            <li class="list-group-item"><strong>Created At:</strong> {{ isset($bookingRequest->created_at) ? \Carbon\Carbon::parse($bookingRequest->created_at)->format('d M Y, H:i') : 'N/A' }}</li>
-                                            <li class="list-group-item"><strong>Updated At:</strong> {{ isset($bookingRequest->updated_at) ? \Carbon\Carbon::parse($bookingRequest->updated_at)->format('d M Y, H:i') : 'N/A' }}</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Passenger Information -->
-                            @if ($xmlBody && isset($xmlBody['passengers']) && !empty($xmlBody['passengers']))
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="passengerInfoHeading">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#passengerInfo" aria-expanded="false" aria-controls="passengerInfo">
-                                            Passenger Information
-                                        </button>
-                                    </h2>
-                                    <div id="passengerInfo" class="accordion-collapse collapse" aria-labelledby="passengerInfoHeading" data-bs-parent="#bookingAccordion">
-                                        <div class="accordion-body">
-                                            @foreach ($xmlBody['passengers'] as $passenger)
-                                                <div class="card mb-3">
-                                                    <div class="card-header">
-                                                        Passenger {{ $passenger['id'] ?? 'Unknown' }} ({{ $passenger['type'] ?? 'N/A' }})
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <ul class="list-group list-group-flush">
-                                                            <li class="list-group-item"><strong>Name:</strong> {{ isset($passenger['title']) ? $passenger['title'] : '' }} {{ $passenger['givenName'] ?? '' }} {{ $passenger['surname'] ?? '' }}</li>
-                                                            <li class="list-group-item"><strong>Birthdate:</strong> {{ isset($passenger['birthdate']) ? \Carbon\Carbon::parse($passenger['birthdate'])->format('d M Y') : 'N/A' }}</li>
-                                                            <li class="list-group-item"><strong>Gender:</strong> {{ $passenger['gender'] ?? 'N/A' }}</li>
-                                                            <li class="list-group-item"><strong>Contact Ref:</strong> {{ $passenger['contactRef'] ?? 'N/A' }}</li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="alert alert-warning">No passenger information available.</div>
-                            @endif
-
-                            <!-- Flight Segments -->
-                            @if ($xmlBody && isset($xmlBody['segments']) && !empty($xmlBody['segments']))
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="segmentsHeading">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#segments" aria-expanded="false" aria-controls="segments">
-                                            Flight Segments
-                                        </button>
-                                    </h2>
-                                    <div id="segments" class="accordion-collapse collapse" aria-labelledby="segmentsHeading" data-bs-parent="#bookingAccordion">
-                                        <div class="accordion-body">
-                                            @foreach ($xmlBody['segments'] as $index => $segment)
-                                                <div class="card mb-3">
-                                                    <div class="card-header">
-                                                        Segment: {{ $segment['departureCode'] ?? 'N/A' }} to {{ $segment['arrivalCode'] ?? 'N/A' }}
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <h6>Flight Details</h6>
-                                                        <ul class="list-group list-group-flush">
-                                                            <li class="list-group-item"><strong>Departure:</strong> {{ $segment['flights']['Departure']['AirportName']['value'] ?? 'N/A' }} ({{ $segment['flights']['Departure']['AirportCode']['value'] ?? 'N/A' }}) on {{ isset($segment['flights']['Departure']['Date']['value']) ? \Carbon\Carbon::parse($segment['flights']['Departure']['Date']['value'])->format('d M Y') : 'N/A' }} at {{ $segment['flights']['Departure']['Time']['value'] ?? 'N/A' }}</li>
-                                                            <li class="list-group-item"><strong>Arrival:</strong> {{ $segment['flights']['Arrival']['AirportName']['value'] ?? 'N/A' }} ({{ $segment['flights']['Arrival']['AirportCode']['value'] ?? 'N/A' }}) on {{ isset($segment['flights']['Arrival']['Date']['value']) ? \Carbon\Carbon::parse($segment['flights']['Arrival']['Date']['value'])->format('d M Y') : 'N/A' }} at {{ $segment['flights']['Arrival']['Time']['value'] ?? 'N/A' }}</li>
-                                                            <li class="list-group-item"><strong>Duration:</strong> {{ $segment['duration'] ?? 'N/A' }}</li>
-                                                            <li class="list-group-item"><strong>Price:</strong> {{ isset($segment['price']) ? $segment['price']['code'] . ' ' . number_format($segment['price']['amount'], 2) : 'N/A' }}</li>
-                                                            <li class="list-group-item"><strong>Aircraft:</strong> {{ $segment['flights']['equipment']['Name']['value'] ?? 'N/A' }} ({{ $segment['flights']['equipment']['AircraftCode']['value'] ?? 'N/A' }})</li>
-                                                            <li class="list-group-item"><strong>Carrier:</strong> {{ $segment['flights']['marketingCarrier']['Name']['value'] ?? 'N/A' }} (Flight {{ $segment['flights']['marketingCarrier']['FlightNumber']['value'] ?? 'N/A' }})</li>
-                                                        </ul>
-                                                        @if (isset($segment['flights']['secondFlight']))
-                                                            <h6 class="mt-3">Connecting Flight</h6>
-                                                            <ul class="list-group list-group-flush">
-                                                                <li class="list-group-item"><strong>Departure:</strong> {{ $segment['flights']['secondFlight']['departure']['AirportName']['value'] ?? 'N/A' }} ({{ $segment['flights']['secondFlight']['departure']['AirportCode']['value'] ?? 'N/A' }}) on {{ isset($segment['flights']['secondFlight']['departure']['Date']['value']) ? \Carbon\Carbon::parse($segment['flights']['secondFlight']['departure']['Date']['value'])->format('d M Y') : 'N/A' }} at {{ $segment['flights']['secondFlight']['departure']['Time']['value'] ?? 'N/A' }}</li>
-                                                                <li class="list-group-item"><strong>Arrival:</strong> {{ $segment['flights']['secondFlight']['arrival']['AirportName']['value'] ?? 'N/A' }} ({{ $segment['flights']['secondFlight']['arrival']['AirportCode']['value'] ?? 'N/A' }}) on {{ isset($segment['flights']['secondFlight']['arrival']['Date']['value']) ? \Carbon\Carbon::parse($segment['flights']['secondFlight']['arrival']['Date']['value'])->format('d M Y') : 'N/A' }} at {{ $segment['flights']['secondFlight']['arrival']['Time']['value'] ?? 'N/A' }}</li>
-                                                                <li class="list-group-item"><strong>Aircraft:</strong> {{ $segment['flights']['secondFlight']['equipment']['Name']['value'] ?? 'N/A' }} ({{ $segment['flights']['secondFlight']['equipment']['AircraftCode']['value'] ?? 'N/A' }})</li>
-                                                                <li class="list-group-item"><strong>Carrier:</strong> {{ $segment['flights']['secondFlight']['marketingCarrier']['Name']['value'] ?? 'N/A' }} (Flight {{ $segment['flights']['secondFlight']['marketingCarrier']['FlightNumber']['value'] ?? 'N/A' }})</li>
-                                                            </ul>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="alert alert-warning">No flight segments available.</div>
-                            @endif
-
-                            <!-- Pricing Information -->
-                            @if ($xmlBody && isset($xmlBody['ticketInfos']) && !empty($xmlBody['ticketInfos']))
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="pricingInfoHeading">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pricingInfo" aria-expanded="false" aria-controls="pricingInfo">
-                                            Pricing Information
-                                        </button>
-                                    </h2>
-                                    <div id="pricingInfo" class="accordion-collapse collapse" aria-labelledby="pricingInfoHeading" data-bs-parent="#bookingAccordion">
-                                        <div class="accordion-body">
-                                            @foreach ($xmlBody['ticketInfos'] as $ticket)
-                                                <div class="card mb-3">
-                                                    <div class="card-header">
-                                                        Ticket for Passenger {{ $ticket['passengerReference'] ?? 'N/A' }}
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <ul class="list-group list-group-flush">
-                                                            <li class="list-group-item"><strong>Ticket Number:</strong> {{ $ticket['ticketDocument']['ticketDocNbr'] ?? 'N/A' }}</li>
-                                                            <li class="list-group-item"><strong>Base Fare:</strong> {{ isset($ticket['price']['details']['amount']) ? $ticket['price']['details']['amount']['code'] . ' ' . number_format($ticket['price']['details']['amount']['value'], 2) : 'N/A' }}</li>
-                                                            <li class="list-group-item"><strong>Total Price:</strong> {{ isset($ticket['price']['total']) ? $ticket['price']['total']['code'] . ' ' . number_format($ticket['price']['total']['value'], 2) : 'N/A' }}</li>
-                                                        </ul>
-                                                        @if (isset($ticket['price']['details']['taxes']['breakdown']) && !empty($ticket['price']['details']['taxes']['breakdown']))
-                                                            <h6 class="mt-3">Tax Breakdown</h6>
-                                                            <ul class="list-group list-group-flush">
-                                                                @foreach ($ticket['price']['details']['taxes']['breakdown'] as $tax)
-                                                                    <li class="list-group-item">{{ $tax['description'] ?? 'Unknown Tax' }}: {{ isset($tax['amount']) ? $tax['amount']['code'] . ' ' . number_format($tax['amount']['value'], 2) : 'N/A' }}</li>
-                                                                @endforeach
-                                                            </ul>
-                                                        @else
-                                                            <p>No tax breakdown available.</p>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="alert alert-warning">No pricing information available.</div>
-                            @endif
-
-                            <!-- Penalties -->
-                            @if ($xmlBody && isset($xmlBody['bundle']['offerItem']) && !empty($xmlBody['bundle']['offerItem']))
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="penaltiesHeading">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#penalties" aria-expanded="false" aria-controls="penalties">
-                                            Penalties
-                                        </button>
-                                    </h2>
-                                    <div id="penalties" class="accordion-collapse collapse" aria-labelledby="penaltiesHeading" data-bs-parent="#bookingAccordion">
-                                        <div class="accordion-body">
-                                            @foreach ($xmlBody['bundle']['offerItem'] as $offer)
-                                                @if (isset($offer['fareDetail']['penalties']) && !empty($offer['fareDetail']['penalties']))
-                                                    @foreach ($offer['fareDetail']['penalties'] as $penalty)
-                                                        <div class="card mb-3">
-                                                            <div class="card-header">
-                                                                {{ $penalty['arrival'] ?? 'N/A' }} to {{ $penalty['destination'] ?? 'N/A' }} ({{ $penalty['cabinType'] ?? 'N/A' }})
-                                                            </div>
-                                                            <div class="card-body">
-                                                                <h6>Cancellation Fees</h6>
-                                                                <ul class="list-group list-group-flush">
-                                                                    <li class="list-group-item"><strong>Prior to Departure:</strong> {{ isset($penalty['fareRules']['cancelFee']['Prior to Departure']['price']) ? $penalty['fareRules']['cancelFee']['Prior to Departure']['price']['code'] . ' ' . number_format($penalty['fareRules']['cancelFee']['Prior to Departure']['price']['amount'], 2) : 'N/A' }}</li>
-                                                                    <li class="list-group-item"><strong>No Show:</strong> {{ isset($penalty['fareRules']['cancelFee']['No Show']['price']) ? $penalty['fareRules']['cancelFee']['No Show']['price']['code'] . ' ' . number_format($penalty['fareRules']['cancelFee']['No Show']['price']['amount'], 2) : 'N/A' }}</li>
-                                                                </ul>
-                                                                <h6>Change Fees</h6>
-                                                                <ul class="list-group list-group-flush">
-                                                                    <li class="list-group-item"><strong>Prior to Departure:</strong> {{ isset($penalty['fareRules']['changeFee']['Prior to Departure']['price']) ? $penalty['fareRules']['changeFee']['Prior to Departure']['price']['code'] . ' ' . number_format($penalty['fareRules']['changeFee']['Prior to Departure']['price']['amount'], 2) : 'N/A' }}</li>
-                                                                    <li class="list-group-item"><strong>After Departure:</strong> {{ isset($penalty['fareRules']['changeFee']['After Departure']['price']) ? $penalty['fareRules']['changeFee']['After Departure']['price']['code'] . ' ' . number_format($penalty['fareRules']['changeFee']['After Departure']['price']['amount'], 2) : 'N/A' }}</li>
-                                                                    <li class="list-group-item"><strong>No Show:</strong> {{ isset($penalty['fareRules']['changeFee']['No Show']['price']) ? $penalty['fareRules']['changeFee']['No Show']['price']['code'] . ' ' . number_format($penalty['fareRules']['changeFee']['No Show']['price']['amount'], 2) : 'N/A' }}</li>
-                                                                </ul>
-                                                                <h6>Refund Status</h6>
-                                                                <ul class="list-group list-group-flush">
-                                                                    <li class="list-group-item"><strong>Status:</strong> {{ $penalty['fareRules']['refundFee']['Status'] ?? 'N/A' }}</li>
-                                                                </ul>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                @else
-                                                    <p>No penalties available for this offer.</p>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="alert alert-warning">No penalties information available.</div>
-                            @endif
-                        </div>
-                    @else
-                        <div class="alert alert-danger">No booking request data available.</div>
-                    @endif
-                </div>
+                <x-admin.show-xml-data :booking="$booking" />
+                
                 <x-slot name="footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </x-slot>
             </x-modal>
-            <x-modal id="fareRulesModal" title="Fare Rules" size="modal-lg">
-                <div class="modal-body">
-                    @forelse ($booking->bookingItems as $item)
+            <x-modal id="fareRulesModal" title="Fare Rules" size="modal-lg"><div class="modal-body">
+                @forelse ($booking->bookingItems as $item)
                     <div class="border p-2 mb-3 rounded">
                         <h4><strong>Passenger:</strong> {{ $item->passenger_code }}<br></h4>
                         @php
-                            $services = json_decode($item['services'], true);
-                            $taxes = json_decode($item['taxes'], true);
+                            $services = json_decode($item->services, true);
+                            $taxes = json_decode($item->taxes, true);
+                            $totalTax = null;
+                            if ($airline === 'flyjinnah' && is_array($taxes)) {
+                                $totalTax = array_sum(array_map(function($tax) {
+                                    return isset($tax['@attributes']['Amount']) ? (float) $tax['@attributes']['Amount'] : 0;
+                                }, $taxes));
+                            }
                         @endphp
                         <div class="row">
                             <div class="col-md-6">
                                 <h6>Taxes</h6>
                                 @if ($taxes && is_array($taxes))
-                                    @if (isset($taxes['tax']) && is_array($taxes['tax']))
+                                    @if ($airline === 'emirates' && isset($taxes['tax']) && is_array($taxes['tax']))
                                         <ul class="mb-0">
                                             @foreach ($taxes['tax'] as $tax)
                                                 <li>
@@ -543,8 +341,23 @@
                                             <strong>Base Amount:</strong> {{ $taxes['baseAmount']['amount'] }} {{ $taxes['baseAmount']['code'] }}<br>
                                             <strong>Total Tax:</strong> {{ $taxes['total']['amount'] }} {{ $taxes['total']['code'] }}
                                         </div>
+                                    @elseif ($airline === 'flyjinnah')
+                                        <ul class="mb-0">
+                                            @foreach ($taxes as $tax)
+                                                <li>
+                                                    <strong>{{ $tax['@attributes']['TaxCode'] }}</strong>:
+                                                    {{ $tax['@attributes']['TaxName'] }}
+                                                    ({{ $tax['@attributes']['Amount'] }} {{ $tax['@attributes']['CurrencyCode'] }})
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                        @if ($totalTax !== null)
+                                            <div class="mt-2">
+                                                <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }} {{ $item->price_code }}
+                                            </div>
+                                        @endif
                                     @else
-                                        <p>No taxes available.</p>
+                                        <p>Unsupported tax format for airline.</p>
                                     @endif
                                 @else
                                     <p>No taxes available.</p>
@@ -555,8 +368,10 @@
                                 @if ($services && is_array($services))
                                     <ul class="mb-0">
                                         @foreach ($services as $service)
-                                            @if (!empty($service['details']['details']))
+                                            @if ($airline === 'emirates' && !empty($service['details']['details']))
                                                 <li>{{ $service['details']['details'] }}</li>
+                                            @elseif ($airline === 'flyjinnah')
+                                                <li>{{ $service }}</li>
                                             @endif
                                         @endforeach
                                     </ul>
@@ -565,11 +380,16 @@
                                 @endif
                             </div>
                         </div>
+                        @if ($airline === 'flyjinnah')
+                            <div class="mt-2">
+                                <strong>Total Price:</strong> {{ number_format($item->price, 2) }} {{ $item->price_code }}
+                            </div>
+                        @endif
                     </div>
-                    @empty
-                        <p>No booking items found.</p>
-                    @endforelse
-                </div>
+                @empty
+                    <p>No booking items found.</p>
+                @endforelse
+            </div>
                 <x-slot name="footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </x-slot>
@@ -604,8 +424,8 @@
                 <thead>
                 <tr>
                     <th>Airline Ref</th>
-                    {{-- <th>RBD Code</th> --}}
-                    {{-- <th>Cancellation Fee</th> --}}
+                    {{-- <th>RBD Code</th>
+                    <th>Cancellation Fee</th> --}}
                     <th>Flight No</th>
                     <th>Origin/Destination</th>
                     <th>Stops</th>
@@ -670,7 +490,7 @@
                             <td>{{ $passenger['nationality'] ?? 'N/A' }}</td>
                             <td>{{ $passenger['passport_no'] ?? 'N/A' }}</td>
                             <td>{{ \Carbon\Carbon::parse($passenger['passport_exp'] ?? '')->format('d/m/Y') }}</td>
-                            <td>{{ $booking->airline_id }}</td>
+                            <td>{{ $booking->airline_id ?? $booking->order_id }}</td>
                             <td>{{ $booking->flight_booking_id }}-{{ $loop->iteration }}</td>
 
                             @if ($ticket)
@@ -686,9 +506,7 @@
                             @endif
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="11" class="text-center text-muted">No passengers found.</td>
-                        </tr>
+                        <tr><td colspan="11" class="text-center text-muted">No passengers found.</td></tr>
                     @endforelse
 
                 </tbody>
@@ -715,8 +533,8 @@
                 <tbody>
                     <tr>
                         <td>{{ $booking->is_oneway ? 'Oneway' : 'Return' }} Flight</td>
-                        <td>EmiratesApi</td>
-                        <td>Emirate</td>
+                        <td>{{ $booking->airline ?? '' }}Api</td>
+                        <td>{{ $booking->airline ?? '' }}</td>
                         <td>{{ $booking->total_price ?? 0 }}</td>
                         <td>{{ $booking->tax ?? 0 }}</td>
                         <td>Affiliation POS Rule</td>
@@ -852,6 +670,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-lite.min.js"></script>
 <script>
     $(document).ready(function() {
+        let jsessionId, transactionId;
+        let airline = "{{ $booking->airline }}".toLowerCase();
         $(document).on({
             ajaxStart: () => _loader('show'),
             ajaxStop: () => _loader('hide')
@@ -943,6 +763,7 @@
                 document.getElementById('delete-payment-' + id).submit();
             }
         });
+        // Issue Tickets (Fetch Details)
         $('.updatePriceBtn').on('click', async function (e) {
             let bookingId = $(this).data('booking-id');
             let clientId = $(this).data('client-id');
@@ -962,6 +783,10 @@
                         if (res.status === 'success') {
                             // Build price comparison HTML
                             let comp = res.comparison;
+                            if (airline === 'flyjinnah') {
+                                jsessionId = res.data.jsessionId;
+                                transactionId = res.data.transactionId;
+                            }
                             let html = `
                                 <div class="p-3">
                                     <h5>Price Comparison</h5>
@@ -1002,15 +827,14 @@
                 });
             }
         });
-        // payment
+        // Issue Tickets
         $('.issueTicketBtn').on('click', async function (e) {
             let bookingId = $(this).data('booking-id');
             let clientId = $(this).data('client-id');
-
             $.ajax({
                 url: "{{ route('confirm.booking') }}",
                 type: "POST",
-                data: { bookingId, clientId },
+                data: {bookingId, clientId, jsessionId, transactionId},
                 headers: {
                     'X-CSRF-TOKEN': "{{ csrf_token() }}",
                     'Accept': 'application/json'

@@ -30,6 +30,10 @@ class Segment extends Model
     public function getFormattedDurationAttribute(): string
     {
         try {
+            // If it's already a formatted string (e.g., "02h 30m"), just return it
+            if (!str_starts_with($this->flight_duration, 'PT')) {
+                return $this->flight_duration;
+            }
             $interval = new \DateInterval($this->flight_duration);
             $parts = [];
             if ($interval->h > 0) {

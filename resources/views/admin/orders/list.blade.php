@@ -135,7 +135,7 @@
                                 <td><a href="${url}" class="text-decoration-underline">${booking.id}</a></td>
                                 <td>${booking.order_id}</td>
                                 <td>${booking.product}</td>
-                                <td>${booking.flight_booking_id ?? ''}</td>
+                                <td>${booking.flight_booking_id ?? booking.order_id ?? ''}</td>
                                 <td><span class="badge bg_${booking.status === 'issued' ? 'success' : 'danger'}">${booking.status.toUpperCase()}</span></td>
                                 <td>${booking.is_oneway ? 'ONEWAY' : 'RETURN'}</td>
                                 <td>${booking.agent_name ?? 'Unassigned'}</td>

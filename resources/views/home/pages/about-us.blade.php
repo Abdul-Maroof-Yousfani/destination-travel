@@ -2,93 +2,92 @@
 
 @section('title', 'Home')
 @section('style')
-{{-- style --}}
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Inter',sans-serif;line-height:1.6;color:#333;}
+        .container{max-width:1200px;margin:0 auto;padding:0 20px;}
+
+        /* Hero Section */
+        .hero-section{background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);padding:60px 0;}
+        .hero-content{display:grid;grid-template-columns:2fr 1fr;gap:40px;align-items:center;margin-bottom:40px;}
+        .hero-text h1{font-size:3rem;font-weight:700;margin-bottom:20px;color:#1e293b;}
+        .highlight{color:#f59e0b;}
+        .hero-text p{font-size:16px;line-height:1.7;color:#64748b;}
+        .hero-image img{width:100%;height:auto;border-radius:10px;}
+        .customer-support{background:white;border-radius:15px;padding:30px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,0.1);}
+        .support-info{display:flex;align-items:center;gap:15px;}
+        .support-avatar{width:60px;height:60px;border-radius:50%;}
+        .support-text h3{font-size:18px;font-weight:600;margin-bottom:5px;}
+        .support-text p{color:#64748b;font-size:14px;}
+        .support-contact{display:flex;gap:30px;}
+        .contact-item{text-align:center;}
+        .contact-item span{display:block;font-size:12px;color:#64748b;margin-bottom:5px;}
+        .contact-item strong{color:#2563eb;font-size:14px;}
+        .contact-item i{color:#30819c;}
+        .contact-item a strong{color:#30819c;font-weight:500;}
+        /* Mission & Vision */
+        .mission-vision{background:#127F9F;color:white;padding:80px 0;}
+        .mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;}
+        .mission h2,.vision h2{font-size:2.5rem;font-weight:700;margin-bottom:20px;}
+        .mission p,.vision p{font-size:18px;line-height:1.6;opacity:0.9;}
+        /* Values */
+        .values-section{padding:80px 0;background:#f8fafc;}
+        .values-section h2{text-align:center;font-size:2.5rem;font-weight:700;margin-bottom:50px;color:#1e293b;}
+        .values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;}
+        .value-item{text-align:center;padding:30px;background:white;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+        .value-icon{font-size:3rem;margin-bottom:20px;}
+        .value-item h3{font-size:1.5rem;font-weight:600;margin-bottom:15px;color:#1e293b;}
+        .value-item p{color:#64748b;line-height:1.6;}
+        /* Journey */
+        .journey-section{background:#127F9F;color:white;padding:80px 0;text-align:center;}
+        .journey-section h2{font-size:2.5rem;font-weight:700;margin-bottom:40px;}
+        .timeline{display:flex;justify-content:center;align-items:center;margin-bottom:30px;gap:20px;}
+        .timeline-item{position:relative;}
+        .year{background:white;color:#127F9F;padding:10px 20px;border-radius:25px;font-weight:600;font-size:18px;}
+        .timeline-item.active .year{background:#f59e0b;color:white;}
+        .timeline-line{width:100px;height:2px;background:rgba(255,255,255,0.3);}
+        .journey-text{font-size:16px;opacity:0.9;}
+        /* Management */
+        .management-section{padding:80px 0;background:#f8fafc;}
+        .management-section h2{text-align:center;font-size:2.5rem;font-weight:700;margin-bottom:50px;color:#1e293b;}
+        .management-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;}
+        .team-member{background:white;border-radius:15px;padding:30px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.08);position:relative;}
+        .team-member img{width:150px;height:150px;border-radius:50%;margin-bottom:20px;object-fit:cover;}
+        .team-member h3{font-size:18px;font-weight:600;margin-bottom:10px;color:#1e293b;}
+        .team-member p{color:#64748b;font-size:14px;margin-bottom:15px;}
+        .contact-btn{background:#f3f4f6;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;font-size:16px;}
+        /* Culture */
+        .culture-section{padding:80px 0;}
+        .culture-section h2{text-align:center;font-size:2.5rem;font-weight:700;margin-bottom:50px;color:#1e293b;}
+        .culture-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+        .culture-gallery img{width:100%;height:250px;object-fit:cover;border-radius:10px;}
+        /* Partners */
+        .partners-section{padding:80px 0;background:#f8fafc;}
+        .partners-section h2{text-align:center;font-size:2.5rem;font-weight:700;margin-bottom:50px;color:#1e293b;}
+        .partners-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:30px;align-items:center;}
+        .partners-grid img{width:100%;height:60px;object-fit:contain;filter:grayscale(100%);opacity:0.7;transition:all 0.3s ease;}
+        .partners-grid img:hover{filter:grayscale(0%);opacity:1;}
+
+        /* Responsive */
+        @media (max-width:768px){.hero-content{grid-template-columns:1fr;text-align:center;}
+        .mv-grid{grid-template-columns:1fr;gap:40px;}
+        .values-grid{grid-template-columns:1fr;}
+        .management-grid{grid-template-columns:repeat(2,1fr);}
+        .culture-gallery{grid-template-columns:1fr;}
+        .partners-grid{grid-template-columns:repeat(3,1fr);}
+        .footer-content{grid-template-columns:repeat(2,1fr);}
+        .customer-support{flex-direction:column;gap:20px;text-align:center;}
+        .support-contact{flex-direction:column;gap:15px;}
+        }
+        @media (max-width:480px){.management-grid{grid-template-columns:1fr;}
+        .partners-grid{grid-template-columns:repeat(2,1fr);}
+        .footer-content{grid-template-columns:1fr;}
+        .hero-text h1{font-size:2rem;}
+        .mission h2,.vision h2,.values-section h2,.journey-section h2,.management-section h2,.culture-section h2,.partners-section h2{font-size:2rem;}
+        }
+    </style>
 @endsection
 @section('content')
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;line-height:1.6;color:#333;}
-.container{max-width:1200px;margin:0 auto;padding:0 20px;}
-
-/* Hero Section */
-.hero-section{background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);padding:60px 0;}
-.hero-content{display:grid;grid-template-columns:2fr 1fr;gap:40px;align-items:center;margin-bottom:40px;}
-.hero-text h1{font-size:3rem;font-weight:700;margin-bottom:20px;color:#1e293b;}
-.highlight{color:#f59e0b;}
-.hero-text p{font-size:16px;line-height:1.7;color:#64748b;}
-.hero-image img{width:100%;height:auto;border-radius:10px;}
-.customer-support{background:white;border-radius:15px;padding:30px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,0.1);}
-.support-info{display:flex;align-items:center;gap:15px;}
-.support-avatar{width:60px;height:60px;border-radius:50%;}
-.support-text h3{font-size:18px;font-weight:600;margin-bottom:5px;}
-.support-text p{color:#64748b;font-size:14px;}
-.support-contact{display:flex;gap:30px;}
-.contact-item{text-align:center;}
-.contact-item span{display:block;font-size:12px;color:#64748b;margin-bottom:5px;}
-.contact-item strong{color:#2563eb;font-size:14px;}
-.contact-item i{color:#30819c;}
-.contact-item a strong{color:#30819c;font-weight:500;}
-/* Mission & Vision */
-.mission-vision{background:#127F9F;color:white;padding:80px 0;}
-.mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;}
-.mission h2,.vision h2{font-size:2.5rem;font-weight:700;margin-bottom:20px;}
-.mission p,.vision p{font-size:18px;line-height:1.6;opacity:0.9;}
-/* Values */
-.values-section{padding:80px 0;background:#f8fafc;}
-.values-section h2{text-align:center;font-size:2.5rem;font-weight:700;margin-bottom:50px;color:#1e293b;}
-.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;}
-.value-item{text-align:center;padding:30px;background:white;border-radius:15px;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
-.value-icon{font-size:3rem;margin-bottom:20px;}
-.value-item h3{font-size:1.5rem;font-weight:600;margin-bottom:15px;color:#1e293b;}
-.value-item p{color:#64748b;line-height:1.6;}
-/* Journey */
-.journey-section{background:#127F9F;color:white;padding:80px 0;text-align:center;}
-.journey-section h2{font-size:2.5rem;font-weight:700;margin-bottom:40px;}
-.timeline{display:flex;justify-content:center;align-items:center;margin-bottom:30px;gap:20px;}
-.timeline-item{position:relative;}
-.year{background:white;color:#127F9F;padding:10px 20px;border-radius:25px;font-weight:600;font-size:18px;}
-.timeline-item.active .year{background:#f59e0b;color:white;}
-.timeline-line{width:100px;height:2px;background:rgba(255,255,255,0.3);}
-.journey-text{font-size:16px;opacity:0.9;}
-/* Management */
-.management-section{padding:80px 0;background:#f8fafc;}
-.management-section h2{text-align:center;font-size:2.5rem;font-weight:700;margin-bottom:50px;color:#1e293b;}
-.management-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;}
-.team-member{background:white;border-radius:15px;padding:30px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.08);position:relative;}
-.team-member img{width:150px;height:150px;border-radius:50%;margin-bottom:20px;object-fit:cover;}
-.team-member h3{font-size:18px;font-weight:600;margin-bottom:10px;color:#1e293b;}
-.team-member p{color:#64748b;font-size:14px;margin-bottom:15px;}
-.contact-btn{background:#f3f4f6;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;font-size:16px;}
-/* Culture */
-.culture-section{padding:80px 0;}
-.culture-section h2{text-align:center;font-size:2.5rem;font-weight:700;margin-bottom:50px;color:#1e293b;}
-.culture-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
-.culture-gallery img{width:100%;height:250px;object-fit:cover;border-radius:10px;}
-/* Partners */
-.partners-section{padding:80px 0;background:#f8fafc;}
-.partners-section h2{text-align:center;font-size:2.5rem;font-weight:700;margin-bottom:50px;color:#1e293b;}
-.partners-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:30px;align-items:center;}
-.partners-grid img{width:100%;height:60px;object-fit:contain;filter:grayscale(100%);opacity:0.7;transition:all 0.3s ease;}
-.partners-grid img:hover{filter:grayscale(0%);opacity:1;}
-
-/* Responsive */
-@media (max-width:768px){.hero-content{grid-template-columns:1fr;text-align:center;}
-.mv-grid{grid-template-columns:1fr;gap:40px;}
-.values-grid{grid-template-columns:1fr;}
-.management-grid{grid-template-columns:repeat(2,1fr);}
-.culture-gallery{grid-template-columns:1fr;}
-.partners-grid{grid-template-columns:repeat(3,1fr);}
-.footer-content{grid-template-columns:repeat(2,1fr);}
-.customer-support{flex-direction:column;gap:20px;text-align:center;}
-.support-contact{flex-direction:column;gap:15px;}
-}
-@media (max-width:480px){.management-grid{grid-template-columns:1fr;}
-.partners-grid{grid-template-columns:repeat(2,1fr);}
-.footer-content{grid-template-columns:1fr;}
-.hero-text h1{font-size:2rem;}
-.mission h2,.vision h2,.values-section h2,.journey-section h2,.management-section h2,.culture-section h2,.partners-section h2{font-size:2rem;}
-}
-</style>
 
     <!-- Hero Section -->
     <section class="hero-section">
