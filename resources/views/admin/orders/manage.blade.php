@@ -475,7 +475,7 @@
                     </tr>
                 </thead>
                 @php
-                    $passengers = json_decode($booking->passenger_details, true);
+                    $passengers = $booking->passenger_details;
                     $tickets = $booking->tickets->keyBy('passenger_reference');
                 @endphp
                 <tbody>
