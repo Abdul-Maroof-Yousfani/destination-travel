@@ -13,12 +13,12 @@
           @csrf
           <div class="form-group">
             <label>Order ID</label>
-            <input type="text" placeholder="4546385" id="order_id" name="order_id" required>
+            <input type="text" placeholder="4546385" id="order_id" name="order_id" required value="{{ old('order_id') }}">
             <div class="form-note">Your Order ID is emailed with booking confirmation.</div>
           </div>
           <div class="form-group">
             <label>Email Address</label>
-            <input type="email" name="email" id="email" placeholder="e.g. name@gmail.com" required>
+            <input type="email" name="email" id="email" placeholder="e.g. name@gmail.com" required value="{{ old('email') }}">
             <div class="form-note">The email address entered during booking.</div>
           </div>
           <button type="submit" class="loginBtn" disabled>Search</button>

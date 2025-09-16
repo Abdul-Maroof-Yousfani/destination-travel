@@ -970,7 +970,7 @@ class FlyJinnahService
                 </soap:Body>
             </soap:Envelope>
         ';
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "BookFlightRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         // dd($xmlBody);
         try {
             $response = Http::withHeaders([
@@ -985,7 +985,7 @@ class FlyJinnahService
             ->withBody($xmlBody, 'text/xml')
             ->post($soapUrl);
             // dd($response->body());
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "BookFlightRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+            if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
             // \Log::info('SOAP XML Booking Request:', ['xml' => $xmlBody]);
             if (!$response->successful()) {
                 \Log::error('Flight booking request failed', [

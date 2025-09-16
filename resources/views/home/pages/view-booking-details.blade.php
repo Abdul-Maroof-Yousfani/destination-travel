@@ -205,7 +205,7 @@
 </div>
 @endsection
 @section('script')
-@if($booking->status === 'expired' || !$booking->payment_limit || now()->greaterThan($booking->payment_limit))
+@if($booking->status !== 'expired' || $booking->payment_limit || now()->greaterThan($booking->payment_limit))
     <script>
         $(function() {
             let paymentLimit = new Date("{{ $booking->payment_limit }}").getTime();

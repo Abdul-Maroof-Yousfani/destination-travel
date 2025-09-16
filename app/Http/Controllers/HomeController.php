@@ -77,7 +77,7 @@ class HomeController extends Controller
                 ->first();
         }
 
-        if (!$booking) return redirect()->back()->with(['status' => 'error', 'message' => 'Booking not found.']);
+        if (!$booking) return redirect()->back()->withInput()->with(['status' => 'error', 'message' => 'Booking not found.']);
 
         $cacheKey = 'verified_booking_' . session()->getId();
         Cache::put($cacheKey, $booking->id, now()->addMinutes(5));
