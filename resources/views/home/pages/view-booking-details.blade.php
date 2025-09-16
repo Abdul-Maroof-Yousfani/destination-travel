@@ -177,9 +177,12 @@
                          <h4>Travelers</h4>
                     </div>
                 </div>
+                @php
+                    $passengers = is_string($booking->passenger_details) ? (json_decode($booking->passenger_details, true) ?? []) : $booking->passenger_details;
+                @endphp
                 <div class="back-ground">
                     <!-- Traveler Info -->
-                    @forelse ($booking->passenger_details as $passenger)
+                    @forelse ($passengers as $passenger)
                         <div class="travelers">
                             <div class="travelers-row">
                             <p><strong><i class="fa-solid fa-user"></i> {{ $passenger['title'] ?? 'MR' }}. {{ $passenger['given_name'] ?? '' }} {{ $passenger['surname'] ?? '' }}</strong></p>
