@@ -842,22 +842,6 @@ class FlyJinnahService
         if ($returnFlight) {
             $flightSegmentsXml .= $this->addFlightSegments(2, $returnFlight, $segments);
         }
-
-        $paymentTag = '';
-        // if($finalPriceTag){
-        //     $paymentTag = '
-        //     <ns2:Fulfillment>
-        //         <ns2:PaymentDetails>
-        //             <ns2:PaymentDetail>
-        //                 <ns2:DirectBill>
-        //                     <ns2:CompanyName Code="'.$this->agentCode.'">'.$this->agencyName.'</ns2:CompanyName>
-        //                 </ns2:DirectBill>
-        //                 <ns2:PaymentAmount Amount="'.$finalPriceTag['Amount'].'" CurrencyCode="'.$finalPriceTag['CurrencyCode'].'" DecimalPlaces="'.$finalPriceTag['DecimalPlaces'].'"/>
-        //             </ns2:PaymentDetail>
-        //         </ns2:PaymentDetails>
-        //     </ns2:Fulfillment>';
-        // };
-        $loggedInUser = '';
         // $loggedInUser = '
         // <ns1:ContactInfo>
         //     <ns1:PersonName>
@@ -898,11 +882,8 @@ class FlyJinnahService
                         <ns2:TravelerInfo>
                             ' . $passengerXml . '
                         </ns2:TravelerInfo>
-                        ' . $paymentTag . '
                     </ns2:OTA_AirBookRQ>
-                    <ns1:AAAirBookRQExt>
-                        ' . $loggedInUser . '
-                    </ns1:AAAirBookRQExt>
+                    <ns1:AAAirBookRQExt></ns1:AAAirBookRQExt>
                 </soap:Body>
             </soap:Envelope>
         ';
