@@ -765,6 +765,7 @@ class FlyJinnahService
                 'JSESSIONID' => $jsessionId,
             ])
             ->withOptions([
+                'timeout' => 120,
                 'verify' => false,
                 'cookies' => $cookieJar,
             ])
@@ -896,6 +897,7 @@ class FlyJinnahService
                 'JSESSIONID' => $jsessionId,
             ])
             ->withOptions([
+                'timeout' => 120,
                 'verify' => false,
                 'cookies' => $cookieJar,
             ])
@@ -1091,7 +1093,24 @@ class FlyJinnahService
     // ------------------  Helper Functions  ---------------------
     private function getFlights($fjData)
     {
-        if(empty($fjData)) return '';
+        if (empty($fjData['ondWiseFlightCombinations'])) {
+            return [];
+        }
+        
+        foreach ($fjData['ondWiseFlightCombinations'] as $ondData) {
+            foreach ($ondData['dateWiseFlightCombinations'] as $combo) {
+                $options = $combo['flightOptions'] ?? [];
+        
+                // Filter out NOT_AVAILABLE flights
+                $validOptions = array_filter($options, function ($opt) {
+                    return ($opt['availabilityStatus'] ?? '') !== 'NOT_AVAILABLE';
+                });
+        
+                if (empty($validOptions)) {
+                    return [];
+                }
+            }
+        }
         $flightsData = $fjData['ondWiseFlightCombinations'] ?? [];
         $data = [];
         $tax = config('variables.flyjinnah_api.tax') ?? 0;
@@ -1106,7 +1125,7 @@ class FlyJinnahService
                         return $data = [
                             'route' => '',
                             'date' => '',
-                            'flights' => ''
+                            'flights' => []
                         ];
                     }
                     $flightSegments = collect($option['flightSegments']);
@@ -1383,5 +1402,9 @@ class FlyJinnahService
             'passengers' => $passengers,
             'response' => $jsonResponse,
         ];
+    }
+    public function getCarrierName()
+    {
+        return 'FlyJinnah';
     }
 }
