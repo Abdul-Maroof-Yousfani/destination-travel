@@ -66,6 +66,10 @@ class FlyJinnahService
             dd('env error run config cache cmd :)', $this->authUsername);
         }
         try {
+            if ($this->regenerateLogs) {file_put_contents($this->logPath, "Authenticate Request:\n" . json_encode([
+                'login' => $this->authUsername,
+                'password' => $this->authPassword,
+            ], JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);}
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
@@ -75,6 +79,10 @@ class FlyJinnahService
                 'login' => $this->authUsername,
                 'password' => $this->authPassword,
             ]);
+            if ($this->regenerateLogs) {file_put_contents($this->logPath, "Authenticate Response:\n" . json_encode([
+                'response' => $response->body(),
+                'status' => $response->status(),
+            ], JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);}
             // dd($response->body());
             if (!$response->successful()) {
                 \Log::error('Authentication Failed', [
@@ -1405,6 +1413,6 @@ class FlyJinnahService
     }
     public function getCarrierName()
     {
-        return 'FlyJinnah';
+        return 'flyJinnah';
     }
 }

@@ -12,8 +12,14 @@
                     Download Logs
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.all') }}">All (Emirates)</a></li>
-                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.bookings') }}">Only Bookings (Emirates)</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.all', ['type' => 'emirates']) }}">All (Emirates)</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.bookings', ['type' => 'emirates']) }}">Only Bookings (Emirates)</a></li>
+                    <hr>
+                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.all', ['type' => 'flyjinnah']) }}">All (Fly Jinnah)</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.bookings', ['type' => 'flyjinnah']) }}">Only Bookings (Fly Jinnah)</a></li>
+                    <hr>
+                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.all', ['type' => 'pia']) }}">All (PIA)</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.download.logs.bookings', ['type' => 'pia']) }}">Only Bookings (PIA)</a></li>
                 </ul>
             </div>
         </div>
