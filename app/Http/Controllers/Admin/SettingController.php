@@ -20,11 +20,13 @@ class SettingController extends Controller
         $request->validate(['airline' => 'required|string']);
         $airline = $request->airline;
 
-        $path = str_replace('/', '\\', storage_path("logs/{$airline}"));
+        $path = storage_path("logs/{$airline}");
+        // dd($path);
         $dates = [];
 
         if (is_dir($path)) {
             $files = scandir($path);
+            // dd($files);
             foreach ($files as $file) {
                 // Match both "2025_10_23.log" and "bookings_2025_10_23.txt"
                 if (preg_match('/(\d{4})_(\d{2})_(\d{2})\.(log|txt)$/', $file, $matches)) {
