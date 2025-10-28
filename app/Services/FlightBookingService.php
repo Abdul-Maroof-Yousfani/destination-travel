@@ -742,7 +742,7 @@ class FlightBookingService
                     'services' => json_encode($passenger['services'] ?? []),
                     'taxes' => json_encode($farePrice['taxes'] ?? []),
                     'price' => $farePrice['total_amount'] ?? 0,
-                    'price_code' => $farePrice['currency'] ?? null,
+                    'price_code' => $farePrice['currency'] ?? '-',
                     'booking_id' => $booking->id,
                 ]);
                 $penaltyData = [
