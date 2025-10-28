@@ -66,8 +66,15 @@ class FlightAggregatorService
         }
 
         // Sort by price
-        $outboundFlights = $outboundFlights->sortBy('price')->values();
-        $inboundFlights = $inboundFlights->sortBy('price')->values();
+        // $outboundFlights = $outboundFlights->sortBy('price')->values();
+        // $inboundFlights = $inboundFlights->sortBy('price')->values();
+        $outboundFlights = $outboundFlights->sortBy(function ($flight) {
+            return (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0);
+        })->values();
+
+        $inboundFlights = $inboundFlights->sortBy(function ($flight) {
+            return (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0);
+        })->values();
 
         $flights = collect([$outboundFlights, $inboundFlights]);
         $departureCount = $outboundFlights->count();

@@ -469,7 +469,7 @@
                 <div class="sugge-tab sugge-tab-time2">
                     <div class="flex1">
                         <div class="emri">
-                            <img class="w-75 p-2" src="/assets/images/logos/modal/${info.logo}.png" alt="${info.carrier}">
+                            <img class="${rtnInfo ? 'w-75' : 'w-50'} p-2" src="/assets/images/logos/modal/${info.logo}.png" alt="${info.carrier}">
                         </div>
                         <div class="der-time">
                             <ul>
@@ -955,42 +955,185 @@
         // };
         const renderPiaBundles = bundles => {
             const normalizedData = Array.isArray(bundles) ? bundles : (bundles ? [bundles] : []);
+            console.log(normalizedData);
             if (normalizedData.length === 0) {
                 return `<div class="alert alert-danger" role="alert">No PIA bundles available</div>`;
             }
 
             const getPassengerType = (paxRef) => {
+                console.log(paxRef)
+                if (!paxRef || typeof paxRef !== 'string') return 'Passenger';
                 if (paxRef.includes('ADT')) return 'Adult';
                 if (paxRef.includes('CHD')) return 'Child';
                 if (paxRef.includes('INF')) return 'Infant';
                 return 'Passenger';
             };
 
+            // const getPassengerCounts = (offerItems) => {
+            //     const counts = { Adult: 0, Child: 0, Infant: 0 };
+            //     offerItems.forEach(item => {
+            //         const paxRefs = item.fareDetail?.[0]?.PaxRefID || [];
+            //         (Array.isArray(paxRefs) ? paxRefs : [paxRefs]).forEach(ref => {
+            //             counts[getPassengerType(ref)]++;
+            //         });
+            //     });
+            //     return counts;
+            // };
             const getPassengerCounts = (offerItems) => {
-                const counts = { Adult: 0, Child: 0, Infant: 0 };
+                const paxRefs = new Set();
+
                 offerItems.forEach(item => {
-                    const paxRefs = item.fareDetail?.[0]?.PaxRefID || [];
-                    (Array.isArray(paxRefs) ? paxRefs : [paxRefs]).forEach(ref => {
-                        counts[getPassengerType(ref)]++;
+                    let fareDetails = [];
+                    if (Array.isArray(item.fareDetail)) {
+                        fareDetails = item.fareDetail;
+                    } else if (item.fareDetail && typeof item.fareDetail === 'object') {
+                        fareDetails = [item.fareDetail];
+                    }
+
+                    fareDetails.forEach(detail => {
+                        const paxRef = detail?.PaxRefID;
+                        if (Array.isArray(paxRef)) {
+                            paxRef.forEach(ref => paxRefs.add(ref));
+                        } else if (typeof paxRef === 'string') {
+                            paxRefs.add(paxRef);
+                        }
                     });
                 });
+                const counts = { Adult: 0, Child: 0, Infant: 0 };
+                paxRefs.forEach(ref => {
+                    if (ref.includes('ADT')) counts.Adult++;
+                    else if (ref.includes('CHD')) counts.Child++;
+                    else if (ref.includes('INF')) counts.Infant++;
+                });
+
                 return counts;
             };
 
+
+            // const getBaggageByType = (offerItems) => {
+            //     const baggageByType = {};
+            //     offerItems.forEach(item => {
+            //         const paxRefs = item.fareDetail?.[0]?.PaxRefID || [];
+            //         const type = getPassengerType(Array.isArray(paxRefs) ? paxRefs[0] : paxRefs);
+            //         const baggage = (item.baggage || [])
+            //             .map(b => `${b.weight}${b.unit}`)
+            //             .filter((v, i, self) => self.indexOf(v) === i)
+            //             .join(' + ');
+            //         if (baggage && !baggageByType[type]) baggageByType[type] = baggage;
+            //     });
+            //     return baggageByType;
+            // };
             const getBaggageByType = (offerItems) => {
                 const baggageByType = {};
                 offerItems.forEach(item => {
-                    const paxRefs = item.fareDetail?.[0]?.PaxRefID || [];
-                    const type = getPassengerType(Array.isArray(paxRefs) ? paxRefs[0] : paxRefs);
+                    let fareDetails = [];
+                    if (Array.isArray(item.fareDetail)) fareDetails = item.fareDetail;
+                    else if (item.fareDetail && typeof item.fareDetail === 'object') fareDetails = [item.fareDetail];
+
+                    let paxRef = fareDetails?.[0]?.PaxRefID;
+                    const type = getPassengerType(Array.isArray(paxRef) ? paxRef[0] : paxRef);
+
                     const baggage = (item.baggage || [])
-                        .map(b => `${b.weight}${b.unit}`)
+                        .map(b => `${b.weight || 0}${b.unit || 'KG'}`)
                         .filter((v, i, self) => self.indexOf(v) === i)
                         .join(' + ');
-                    if (baggage && !baggageByType[type]) baggageByType[type] = baggage;
+
+                    baggageByType[type] = baggage || '0KG';
                 });
                 return baggageByType;
             };
 
+            // return normalizedData.map((bundle, bundleIdx) => {
+            //     const offerID = bundle.offerID || '';
+            //     const offerItems = bundle.offerItem || [];
+            //     const passengerCounts = getPassengerCounts(offerItems);
+            //     const baggageByType = getBaggageByType(offerItems);
+
+            //     const totalPrice = bundle.totalPrice || {};
+            //     const displayPrice = totalPrice.total_amount || '0';
+            //     const displayCurrency = totalPrice.currency || 'PKR';
+            //     const baggageSummary = Object.values(baggageByType).filter(Boolean).join(' | ');
+
+            //     const passengerSectionsHtml = Object.entries(passengerCounts)
+            //         .filter(([_, count]) => count > 0)
+            //         .map(([type, count]) => {
+            //             const matchingItem = offerItems.find(item => {
+            //                 const paxRefs = item.fareDetail?.[0]?.PaxRefID || [];
+            //                 return (Array.isArray(paxRefs) ? paxRefs : [paxRefs])
+            //                     .some(ref => getPassengerType(ref) === type);
+            //             });
+            //             if (!matchingItem) return '';
+
+            //             const price = matchingItem.price || {};
+            //             const base = parseFloat(price.base_amount || 0) * count;
+            //             const tax = parseFloat(price.taxSummary?.TotalTaxAmount || 0) * count;
+
+            //             const fareDetailHtml = (matchingItem.fareDetail || [])
+            //                 .filter(fd => fd.FareComponent?.PaxSegmentRefID)
+            //                 .slice(0, 2)
+            //                 .map(fd => {
+            //                     const name = fd.FareComponent?.FareBasisCode || 'Standard';
+            //                     const seg = fd.FareComponent?.PaxSegmentRefID
+            //                         ? `<small class="text-muted">(${fd.FareComponent.PaxSegmentRefID})</small>` : '';
+            //                     return `<li class="mb-1"><span class="fw-bold">${name}</span> ${seg}</li>`;
+            //                 })
+            //                 .join('');
+
+            //             const servicesHtml = [...new Set((matchingItem.service || []).map(s => s.name || s.code || 'BAG'))]
+            //                 .slice(0, 3)
+            //                 .map(srv => `<span class="badge bg-secondary me-1">${srv}</span>`)
+            //                 .join('');
+
+            //             return `
+            //                 <div class="card mb-3 passenger-section" style="border-left: 4px solid ${type === 'Adult' ? '#007bff' : type === 'Child' ? '#28a745' : '#ffc107'};">
+            //                     <div class="card-body">
+            //                         <div class="d-flex justify-content-between align-items-start mb-2">
+            //                             <h6 class="card-title mb-0 fw-bold">${type} <span class="badge bg-light text-dark">${count} ${count > 1 ? 'passengers' : 'passenger'}</span></h6>
+            //                         </div>
+            //                         <div class="row">
+            //                             <div class="col-md-6">
+            //                                 ${fareDetailHtml ? `<ul class="list-unstyled small mb-2">${fareDetailHtml}</ul>` : ''}
+            //                                 ${servicesHtml ? `<div class="service-list small mb-2">${servicesHtml}</div>` : ''}
+            //                             </div>
+            //                             <div class="col-md-6">
+            //                                 ${baggageByType[type] ? `<p class="mb-2"><i class="fas fa-suitcase me-1"></i><strong>Baggage:</strong> ${baggageByType[type]}</p>` : ''}
+            //                                 <p class="price-breakdown small text-muted mb-0">
+            //                                     Base: ${displayCurrency} ${base.toLocaleString()} | Tax: ${displayCurrency} ${tax.toLocaleString()}
+            //                                 </p>
+            //                             </div>
+            //                         </div>
+            //                     </div>
+            //                 </div>
+            //             `;
+            //         }).join('');
+
+            //     return `
+            //         <div class="card bundle-card shadow-sm mb-4 ${bundleIdx > 0 ? 'mt-4' : ''}" style="border-radius: 12px; overflow: hidden;">
+            //             <div class="card-header bg-info text-white p-3">
+            //                 <div class="d-flex justify-content-between align-items-center">
+            //                     <h4 class="mb-0 fw-bold">✈️ PIA Bundle ${bundleIdx + 1} - ${bundle.parameters?.cabin_type || 'ECONOMY'}</h4>
+            //                     ${baggageSummary ? `<span class="badge bg-light text-dark fs-6">${baggageSummary}</span>` : ''}
+            //                 </div>
+            //                 ${baggageSummary ? `<p class="mb-0 small opacity-75 mt-1"><i class="fas fa-suitcase me-1"></i> Overall Baggage: ${baggageSummary}</p>` : ''}
+            //             </div>
+            //             <div class="card-body p-0">
+            //                 <div class="p-3">
+            //                     ${passengerSectionsHtml || '<div class="text-center text-muted py-4"><i class="fas fa-users fa-2x mb-2"></i><p>No passenger details available.</p></div>'}
+            //                 </div>
+            //             </div>
+            //             <div class="bundle-footer pb-4 pr-4 mt-0">
+            //                 <a class="btn btn-b bookBtn"
+            //                     data-airline="pia"
+            //                     data-bundle-id="${encodeURIComponent(JSON.stringify(offerID))}"
+            //                     data-offer-ids="${encodeURIComponent(JSON.stringify(offerItems.map(item => item.id)))}"
+            //                     role="button">
+            //                     Book for ${displayCurrency} ${displayPrice}
+            //                 </a>
+            //             </div>
+            //         </div>
+            //     `;
+            // }).join('');
+            
             return normalizedData.map((bundle, bundleIdx) => {
                 const offerID = bundle.offerID || '';
                 const offerItems = bundle.offerItem || [];
@@ -1000,24 +1143,32 @@
                 const totalPrice = bundle.totalPrice || {};
                 const displayPrice = totalPrice.total_amount || '0';
                 const displayCurrency = totalPrice.currency || 'PKR';
-                const baggageSummary = Object.values(baggageByType).filter(Boolean).join(' | ');
+                const baggageSummary = Object.values(baggageByType).filter(Boolean).join(' | ') || '0KG';
 
+                // ✅ Build passenger cards
                 const passengerSectionsHtml = Object.entries(passengerCounts)
                     .filter(([_, count]) => count > 0)
                     .map(([type, count]) => {
                         const matchingItem = offerItems.find(item => {
-                            const paxRefs = item.fareDetail?.[0]?.PaxRefID || [];
-                            return (Array.isArray(paxRefs) ? paxRefs : [paxRefs])
-                                .some(ref => getPassengerType(ref) === type);
+                            let fareDetail = item.fareDetail;
+                            if (!fareDetail) return false;
+                            if (!Array.isArray(fareDetail)) fareDetail = [fareDetail];
+                            return fareDetail.some(fd => {
+                                const paxRefs = fd.PaxRefID;
+                                const refs = Array.isArray(paxRefs) ? paxRefs : [paxRefs];
+                                return refs.some(ref => getPassengerType(ref) === type);
+                            });
                         });
                         if (!matchingItem) return '';
 
                         const price = matchingItem.price || {};
                         const base = parseFloat(price.base_amount || 0) * count;
-                        const tax = parseFloat(price.taxSummary?.TotalTaxAmount || 0) * count;
+                        const tax = parseFloat(matchingItem.taxSummary?.TotalTaxAmount || 0) * count;
 
-                        const fareDetailHtml = (matchingItem.fareDetail || [])
-                            .filter(fd => fd.FareComponent?.PaxSegmentRefID)
+                        const fareDetailHtml = (Array.isArray(matchingItem.fareDetail)
+                            ? matchingItem.fareDetail
+                            : [matchingItem.fareDetail || {}])
+                            .filter(fd => fd?.FareComponent?.PaxSegmentRefID)
                             .slice(0, 2)
                             .map(fd => {
                                 const name = fd.FareComponent?.FareBasisCode || 'Standard';
@@ -1044,7 +1195,7 @@
                                             ${servicesHtml ? `<div class="service-list small mb-2">${servicesHtml}</div>` : ''}
                                         </div>
                                         <div class="col-md-6">
-                                            ${baggageByType[type] ? `<p class="mb-2"><i class="fas fa-suitcase me-1"></i><strong>Baggage:</strong> ${baggageByType[type]}</p>` : ''}
+                                            <p class="mb-2"><i class="fas fa-suitcase me-1"></i><strong>Baggage:</strong> ${baggageByType[type] || '0KG'}</p>
                                             <p class="price-breakdown small text-muted mb-0">
                                                 Base: ${displayCurrency} ${base.toLocaleString()} | Tax: ${displayCurrency} ${tax.toLocaleString()}
                                             </p>
@@ -1055,14 +1206,15 @@
                         `;
                     }).join('');
 
+                // ✅ Final bundle card
                 return `
                     <div class="card bundle-card shadow-sm mb-4 ${bundleIdx > 0 ? 'mt-4' : ''}" style="border-radius: 12px; overflow: hidden;">
                         <div class="card-header bg-info text-white p-3">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h4 class="mb-0 fw-bold">✈️ PIA Bundle ${bundleIdx + 1} - ${bundle.parameters?.cabin_type || 'ECONOMY'}</h4>
-                                ${baggageSummary ? `<span class="badge bg-light text-dark fs-6">${baggageSummary}</span>` : ''}
+                                <span class="badge bg-light text-dark fs-6">${baggageSummary}</span>
                             </div>
-                            ${baggageSummary ? `<p class="mb-0 small opacity-75 mt-1"><i class="fas fa-suitcase me-1"></i> Overall Baggage: ${baggageSummary}</p>` : ''}
+                            <p class="mb-0 small opacity-75 mt-1"><i class="fas fa-suitcase me-1"></i> Overall Baggage: ${baggageSummary}</p>
                         </div>
                         <div class="card-body p-0">
                             <div class="p-3">
