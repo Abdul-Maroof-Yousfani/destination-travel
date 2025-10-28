@@ -15,5 +15,5 @@ class Airport extends Model
 
     public $timestamps = true;
 
-    protected $fillable = [ 'name', 'code', 'time_zone', 'city_code', 'country', 'city', 'state', 'county' ];
+    protected $fillable = [ 'name', 'code', 'time_zone', 'city_code', 'country', 'city', 'state', 'county', 'order_by' ];
 }

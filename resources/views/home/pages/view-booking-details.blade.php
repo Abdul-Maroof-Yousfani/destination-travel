@@ -109,7 +109,7 @@
                             <!-- Flight Section -->
                             <div class="flight-box">
                                 <div class="flight-info">
-                                    <img src="{{ asset('assets/images/' . $flight->logo ) }}" alt="{{ $flight->airline ?? '' }} Logo" style="width:50px;height:auto;">
+                                    <img src="{{ asset('assets/images/logos/' . strtolower($booking->airline ?? '') . '.png') }}" alt="{{ $flight->airline ?? '' }} Logo" style="width:50px;height:auto;">
                                     <br>
                                     <h3>{{ $flight->airline ?? '' }}</h3>
                                 </div>

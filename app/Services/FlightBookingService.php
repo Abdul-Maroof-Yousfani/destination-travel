@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Flight;
 use App\Models\Ticket;
 use App\Models\Booking;
+use App\Models\Penalty;
 use App\Models\Segment;
 use App\Models\Ancillary;
 use App\Models\Passenger;
@@ -649,6 +650,306 @@ class FlightBookingService
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Flight/Segment creation failed for FlyJinnah: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    // --------------------------------------------------------------PIA--------------------------------------------------------------
+    public function handleBookingPia(array $response, int $clientId, $cabinClass): array
+    {
+        $segments = $response['segments'] ?? [];
+        $journeys = $response['journeys'] ?? [];
+        $order = $response['order'] ?? [];
+        $passengers = $response['passengers'] ?? [];
+        $isOneWay = count($journeys) === 1;
+        $tax = config('variables.tax') ?? 400;
+        $taxCode = config('variables.tax_code') ?? 'PKR';
+
+        $paxCount = [
+            'adults' => collect($passengers)->where('ptc', 'ADT')->count(),
+            'children' => collect($passengers)->where('ptc', 'CHD')->count(),
+            'infant' => collect($passengers)->where('ptc', 'INF')->count(),
+        ];
+
+        $flightsCreated = [];
+
+        DB::beginTransaction();
+
+        try {
+            $bookingReferences = [
+                'bookingId' => $order['orderID'] ?? null,
+                'airlineID' => $order['ownerCode'] ?? null,
+                'airline' => $order['ownerCode'] ?? null, // Assuming 'PK' as airline
+            ];
+            $timeLimits = [
+                'paymentTimeLimit' => $response['paymentLimit'] ?? null,
+                // No explicit ticketingTimeLimit in PIA response, using paymentLimit for both
+                'ticketingTimeLimit' => $response['paymentLimit'] ?? null,
+            ];
+
+            $dbPassengers = [];
+            foreach ($passengers as $passenger) {
+                $apiName = strtolower(preg_replace('/\s+/', '', $passenger['given_name']));
+                $dob = $passenger['birthdate'];
+                $existingPassenger = Passenger::get()
+                    ->filter(function ($p) use ($apiName, $dob) {
+                        $dbName = strtolower(preg_replace('/\s+/', '', $p->given_name));
+                        return $dbName === $apiName && $p->dob->format('Y-m-d') === $dob;
+                    })
+                    ->first();
+                if ($existingPassenger) {
+                    $existingPassenger->update([
+                        'passenger_reference' => $passenger['pax_id'],
+                        'type' => $passenger['ptc'] === 'CHD' ? 'CNN' : $passenger['ptc'], // Map CHD to CNN for consistency
+                    ]);
+                    $dbPassengers[] = $existingPassenger;
+                }
+            }
+
+            // Determine total price and currency from first passenger's fare_details (assuming consistent)
+            $totalPrice = (float) ($response['totalPrice'] ?? 0);
+            $priceCode = collect($passengers)->first()['fare_details']['fare_price_type']['price']['currency'] ?? 'PKR';
+            $airline = 'PIA';
+
+
+            // Create Booking first
+            $booking = Booking::create([
+                'client_id'         => $clientId,
+                'passenger_details' => json_encode($dbPassengers),
+                'order_id'          => $order['orderID'] ?? null,
+                'order_owner'       => $order['ownerCode'] ?? null,
+                'is_oneway'         => $isOneWay,
+                'flight_booking_id' => $bookingReferences['bookingId'] ?? null,
+                'ticket_limit'      => Carbon::parse($timeLimits['ticketingTimeLimit'] ?? null),
+                'payment_limit'     => Carbon::parse($timeLimits['paymentTimeLimit'] ?? null),
+                'airline_id'        => $bookingReferences['airlineID'] ?? null,
+                'airline'           => $airline,
+                'transaction_id'    => $response['transaction_id'] ?? '-',
+                'price_code'        => $priceCode,
+                'price'             => $totalPrice,
+                'tax'               => $tax,
+                'tax_code'          => $taxCode,
+                'status'            => Booking::STATUS_INITIAL,
+            ]);
+
+            // Create BookingItems per passenger (similar to offerItems in EMI)
+            foreach ($passengers as $passenger) {
+                $fareDetails = $passenger['fare_details'] ?? [];
+                $farePrice = $fareDetails['fare_price_type']['price'] ?? [];
+                $bookingItem = BookingItem::create([
+                    'passenger_ref' => $passenger['pax_id'] ?? null,
+                    'passenger_code' => $passenger['ptc'] ?? null,
+                    'services' => json_encode($passenger['services'] ?? []),
+                    'taxes' => json_encode($farePrice['taxes'] ?? []),
+                    'price' => $farePrice['total_amount'] ?? 0,
+                    'price_code' => $farePrice['currency'] ?? null,
+                    'booking_id' => $booking->id,
+                ]);
+                $penaltyData = [
+                    'booking_item_id' => $bookingItem->id,
+                    'arrival' => '', // Not available in PIA response
+                    'destination' => '', // Not available in PIA response
+                    'cancel_fee' => [
+                        [
+                            'amount' => $cancelFeeData['cancel_fee'] ?? 0,
+                            'currency' => $farePrice['currency'] ?? 'PKR',
+                            'penalty_id' => $cancelFeeData['penalty_id'] ?? null,
+                            'type_code' => $cancelFeeData['type_code'] ?? 'Cancellation'
+                        ]
+                    ],
+                    'change_fee' => [],
+                    'refund_fee' => [],
+                    'cabin_type' => collect($fareDetails['fare_components'] ?? [])->first()['cabin_type']['name'] ?? 'ECONOMY',
+                ];
+
+                $bookingItem->penalties()->create($penaltyData);
+            }
+
+            // Create Flights and Segments based on journeys
+            foreach ($journeys as $index => $journey) {
+                $journeySegments = collect($segments)->whereIn('segment_id', $journey['segment_refs'])->all();
+                $isConnected = count($journeySegments) > 1;
+
+                // First segment as departure
+                $departureSegment = array_shift($journeySegments);
+                $connectingSegment = $isConnected ? array_shift($journeySegments) : null;
+
+                // Overall route
+                $departureCode = $departureSegment['origin'] ?? null;
+                $arrivalCode = $isConnected ? $connectingSegment['destination'] ?? null : $departureSegment['destination'] ?? null;
+
+                $departureDate = Carbon::parse($departureSegment['departure_time'] ?? null);
+                $arrivalDate = $isConnected ? Carbon::parse($connectingSegment['arrival_time'] ?? null) : Carbon::parse($departureSegment['arrival_time'] ?? null);
+
+                $segmentArrivalCode = $isConnected ? $departureSegment['destination'] ?? null : $departureSegment['destination'] ?? null;
+
+                // Price: No per-segment price in PIA, use total or approximate if needed; here using 0 as placeholder
+                $flightPrice = 0; // Adjust if per-journey price available
+                $priceCode = 'PKR'; // Default
+
+                $flight = Flight::create([
+                    'airline'        => $departureSegment['carrier_name'] ?? $departureSegment['carrier'] ?? null,
+                    'departure_code' => $departureCode,
+                    'arrival_code'   => $arrivalCode,
+                    'departure_date' => $departureDate,
+                    'arrival_date'   => $arrivalDate,
+                    'is_connected'   => $isConnected,
+                    'pax_count'      => $paxCount,
+                    'cabin_class'    => $cabinClass,
+                    'price'          => $flightPrice,
+                    'price_code'     => $priceCode,
+                    'client_id'      => $clientId,
+                    'booking_id'     => $booking->id ?? null,
+                ]);
+
+                // Add first segment
+                Segment::create([
+                    'flight_id'      => $flight->id,
+                    'departure_code' => $departureSegment['origin'],
+                    'arrival_code'   => $segmentArrivalCode,
+                    'departure_date' => $departureDate,
+                    'flight_duration'=> $departureSegment['duration'] ?? null,
+                    'arrival_date'   => Carbon::parse($departureSegment['arrival_time'] ?? null),
+                    'flight_number'  => $departureSegment['flight_number'],
+                    'direction'      => $index === 0 ? 'outbound' : 'return',
+                ]);
+
+                // Add connecting segment if exists
+                if ($isConnected) {
+                    Segment::create([
+                        'flight_id'      => $flight->id,
+                        'departure_code' => $connectingSegment['origin'],
+                        'arrival_code'   => $connectingSegment['destination'],
+                        'departure_date' => Carbon::parse($connectingSegment['departure_time'] ?? null),
+                        'flight_duration'=> $connectingSegment['duration'] ?? null,
+                        'arrival_date'   => $arrivalDate,
+                        'flight_number'  => $connectingSegment['flight_number'],
+                        'direction'      => $index === 0 ? 'outbound' : 'return',
+                    ]);
+                }
+
+                $flightsCreated[] = $flight;
+            }
+
+            BookingRequestBody::create([
+                'booking_id' => $booking->id,
+                'airline' => $booking->airline,
+                'xml_body' => json_encode($response), // Assuming JSON for PIA, adapt if XML
+                'client_id' => $clientId,
+                'ticket_limit' => $booking->ticket_limit,
+                'payment_limit' => $booking->payment_limit,
+            ]);
+
+            DB::commit();
+            $booking->load('bookingItems.penalties', 'client');
+            return [
+                'message' => 'Flight booked successfully. Please complete payment before the deadline, otherwise it will be canceled.',
+                'booking' => $booking
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Flight/Segment creation failed for PIA: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function updateBookingFieldsPia(array $response, int $bookingId): Booking
+    {
+        $order = $response['order'] ?? [];
+        $journeys = $response['journeys'] ?? [];
+        $isOneWay = count($journeys) === 1;
+        $booking = Booking::findOrFail($bookingId);
+
+        $ticketTimeLimit = $response['paymentLimit'] ?? $booking->ticket_limit; // Using paymentLimit for both
+        $paymentTimeLimit = $response['paymentLimit'] ?? $booking->payment_limit;
+
+        try {
+            $booking->update([
+                'is_oneway'         => $isOneWay,
+                'order_id'          => $order['orderID'] ?? null,
+                'order_owner'       => $order['ownerCode'] ?? null,
+                'flight_booking_id' => $order['orderID'] ?? null,
+                'ticket_limit'      => Carbon::parse($ticketTimeLimit),
+                'payment_limit'     => Carbon::parse($paymentTimeLimit),
+                'airline_id'        => $order['ownerCode'] ?? null,
+                'airline'           => $order['ownerCode'] ?? null,
+                'transaction_id'    => $response['transaction_id'] ?? $booking->transaction_id,
+                'price_code'        => data_get($response, 'passengers.0.fare_details.fare_price_type.price.currency', $booking->price_code),
+                'price'             => data_get($response, 'totalPrice', $booking->price),
+                'status'            => $booking->status !== Booking::STATUS_ISSUED ? Booking::STATUS_CHANGED : $booking->status,
+            ]);
+
+            if ($booking->bookingRequest) {
+                $booking->bookingRequest()->update([
+                    'status' => 'change',
+                    'ticket_limit' => Carbon::parse($ticketTimeLimit),
+                    'payment_limit' => Carbon::parse($paymentTimeLimit),
+                    'xml_body' => json_encode($response ?? []),
+                ]);
+            }
+
+            return $booking->fresh();
+        } catch (\Throwable $e) {
+            Log::error('Booking table update failed for PIA: '.$e->getMessage(), ['booking_id' => $bookingId]);
+            throw $e;
+        }
+    }
+
+    public function issueTicketsPia(array $data, int $bookingId): Booking
+    {
+        $booking = Booking::findOrFail($bookingId);
+        DB::beginTransaction();
+        try {
+            $ticketTimeLimit = $data['paymentLimit'] ?? $booking->ticket_limit; // Using paymentLimit
+            $paymentTimeLimit = $data['paymentLimit'] ?? $booking->payment_limit;
+
+            // Update Booking
+            $booking->update([
+                'status' => Booking::STATUS_ISSUED,
+                'only_search' => false,
+                'ticket_limit' => Carbon::parse($ticketTimeLimit),
+                'payment_limit' => Carbon::parse($paymentTimeLimit),
+            ]);
+
+            // Update Booking Request Body
+            if ($booking->bookingRequest) {
+                $booking->bookingRequest()->update([
+                    'status' => 'change',
+                    'ticket_limit' => Carbon::parse($ticketTimeLimit),
+                    'payment_limit' => Carbon::parse($paymentTimeLimit),
+                    'xml_body' => json_encode($data ?? []),
+                ]);
+            }
+
+            // Create Tickets from tickets array or passengers
+            $tickets = [];
+            foreach ($data['tickets'] ?? [] as $ticket) {
+                $passenger = collect($data['passengers'])->firstWhere('pax_id', $ticket['pax_id']) ?? [];
+                $farePrice = $passenger['fare_details']['fare_price_type']['price'] ?? [];
+                $tickets[] = [
+                    'airline' => $data['order']['ownerCode'] ?? null,
+                    'passenger_reference' => $ticket['pax_id'] ?? null,
+                    'place' => null, // Not in PIA response
+                    'ticket_no' => $ticket['ticketNumber'] ?? null,
+                    'type' => $passenger['ptc'] ?? null,
+                    'issue_date' => now(), // No issue date in response
+                    'price_code' => $farePrice['currency'] ?? null,
+                    'price' => $farePrice['total_amount'] ?? null,
+                    'price_reference' => null, // Not in PIA
+                    'ticket_details' => json_encode($ticket),
+                    'client_id' => $booking->client_id,
+                    'booking_id' => $booking->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            if (!empty($tickets)) Ticket::insert($tickets);
+
+            DB::commit();
+            return $booking->load('bookingItems.penalties', 'client', 'tickets');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Ticket issuance failed for PIA: ' . $e->getMessage());
             throw $e;
         }
     }

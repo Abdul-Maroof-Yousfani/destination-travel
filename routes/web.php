@@ -9,8 +9,9 @@ use Filament\Notifications\Notification;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\AirportController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\AgentPermissionController;
 
 // Livewire::routes();
 Route::view('/', 'home.home')->name('home');
@@ -53,8 +54,8 @@ Route::post('admin/login', 'App\Http\Controllers\Admin\AdminAuthController@login
 Route::post('login', 'App\Http\Controllers\AuthController@login')->name('login.submit');
 Route::post('register', 'App\Http\Controllers\AuthController@register')->name('register.submit');
 
-Route::redirect('admin', 'login')->name('admin.home');
-Route::redirect('agent', 'admin/login')->name('agent.home');
+Route::redirect('admin', 'admin/login')->name('admin.home');
+// Route::redirect('agent', 'admin/login')->name('agent.home');
 Route::view('login', 'login')->name('login');
 Route::view('register', 'register')->name('register');
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -66,15 +67,32 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('orders', [OrderController::class, 'list'])->name('orders');
     Route::get('orders-fetch', [OrderController::class, 'fetch'])->name('orders.fetch');
     Route::get('orders/{booking}', [OrderController::class, 'details'])->name('orders.details');
-
+    
     Route::get('agents', [AgentController::class, 'index'])->name('agents');
     Route::get('agents/{agent}/edit-permision', [AgentController::class, 'editPermission'])->name('agents.edit.permission');
     Route::post('agents/{agent}/update-permision', [AgentController::class, 'updatePermissions'])->name('agents.update.permission');
-
+    
     Route::post('agents', [AgentController::class, 'store'])->name('agents.store');
     Route::post('agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
     Route::get('agents/{agent}/delete', [AgentController::class, 'destroy'])->name('agents.destroy');
     Route::get('agents/{agent}/login', [AgentController::class, 'loginAs'])->name('agents.login');
+
+    Route::get('settings', [SettingController::class, 'view'])->name('settings');
+
+    Route::prefix('airports')->name('airports.')->group(function () {
+        Route::get('/', [AirportController::class, 'index'])->name('index');
+        Route::get('list', [AirportController::class, 'list'])->name('list');
+        Route::get('single', [AirportController::class, 'single'])->name('single');
+        Route::post('/', [AirportController::class, 'store'])->name('store');
+        Route::put('{id}', [AirportController::class, 'update'])->name('update');
+        Route::delete('{id}', [AirportController::class, 'destroy'])->name('destroy');
+        Route::get('{id}', [AirportController::class, 'show'])->name('show');
+    });
+
+    Route::prefix('logs')->name('logs.')->group(function () {
+        Route::post('dates', [SettingController::class, 'getAvailableDates'])->name('dates');
+        Route::get('download', [SettingController::class, 'downloadFile'])->name('download');
+    });
 });
 Route::post('admin/logout', 'App\Http\Controllers\Admin\AdminAuthController@logout')->name('admin.logout');
 // -------------------------------------ADMIN----------------------------------------------

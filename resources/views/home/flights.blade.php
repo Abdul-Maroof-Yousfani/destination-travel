@@ -228,7 +228,7 @@
                             </ul>
                         </div>
                     </div> --}}
-                    <div class="plane">
+                    {{-- <div class="plane">
                         <ul>
                             @php
                                 $hasAvailableFlight = false;
@@ -350,7 +350,6 @@
                                 </li>
                             @endif
                             <x-emirate-flights :flight="$emirates" :roundTrip="$isRoundTrip" />
-                            {{-- <x-pia-flights :flight="$pia" :roundTrip="$isRoundTrip" /> --}}
                             <div class="modal fade right" id="bundleModal" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -407,7 +406,7 @@
                                 </div>
                             </div>
                         </ul>
-                    </div>
+                    </div> --}}
                     {{-- <div class="border border-2 row">
                         <div class="col-md-4">
                             <div class="emri"><img src="assets/images/airblue.png" alt=""></div>  
@@ -469,33 +468,7 @@
                             </div>
                         </div>
                     </div> --}}
-
-                    {{-- <div class="flight-card row align-items-center text-center text-md-start">
-                        <!-- Airline Info -->
-                        <div class="col-12 col-md-2 mb-3 mb-md-0 d-flex flex-column align-items-center">
-                            <img src="assets/images/airblue.png" alt="PIA" class="airline-logo mb-1">
-                            <div><strong>PIA</strong></div>
-                            <div class="text-muted small">PK-306 (V)</div>
-                        </div>
-
-                        <div class="col-12 col-md-8">
-                            <!-- Time Info -->
-                            <div class="timesHeading mb-3 mb-md-0 d-flex align-items-center justify-content-center">
-                                <div><strong>08:00 PM</strong></div>
-                                <div class="flight-duration m-3">1h 45m</div>
-                                <div><strong>09:45 PM</strong></div>
-                            </div>
-                            <div class="my-3">Karachi (KHI) - Nonstop - Lahore (LHE)</div>
-                            <div class="text-muted small">🧳 Total: 20kg &nbsp;&nbsp; 🍴 Meal</div>
-                        </div>
-
-                        <!-- Price Info -->
-                        <div class="col-12 col-md-2 text-md-end">
-                            <button class="price-btn mb-2">PKR 35,340</button>
-                            <div class="text-muted small">Round Trip</div>
-                        </div>
-                    </div> --}}
-
+                    <x-flights :flightData="$data" :paxCount="$paxCount" />
                 </div>
             </div>
         </div>
@@ -503,7 +476,10 @@
     <x-session-timeout-container/>
 @endsection
 @section('script')
-    <script>
+<script>
+    localStorage.clear();
+</script>
+    {{-- <script>
         document.getElementById("selectAllBtn").addEventListener("click", function() {
             let checkboxes = document.querySelectorAll('.btn-group .select input[type="checkbox"]');
             checkboxes.forEach(function(checkbox) {
@@ -958,5 +934,5 @@
             let mins = getMin(d1) + (d2 ? getMin(d2) : 0);
             return `${Math.floor(mins / 60)}h ${mins % 60}m`.trim();
         }
-    </script>
+    </script> --}}
 @endsection

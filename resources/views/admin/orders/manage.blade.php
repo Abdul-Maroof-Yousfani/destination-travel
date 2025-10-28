@@ -222,6 +222,68 @@
                                             <p class="text-muted mb-0">No penalty information available.</p>
                                         </div>
                                     @endif
+                                @elseif ($airline === 'pia')
+                                    @forelse ($booking->bookingItems as $item)
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <span class="fw-semibold">Passenger(s): {{ $item->passenger_code }}</span>
+                                        </div>
+                                        @forelse ($item->penalties as $penalty)
+                                            @php
+                                                $cancel = is_array($penalty->cancel_fee) ? $penalty->cancel_fee : json_decode($penalty->cancel_fee, true);
+                                                $change = is_array($penalty->change_fee) ? $penalty->change_fee : json_decode($penalty->change_fee, true);
+                                                $refund = is_array($penalty->refund_fee) ? $penalty->refund_fee : json_decode($penalty->refund_fee, true);
+                                            @endphp
+                                            <div class="p-3 border-bottom">
+                                                @if (!empty($penalty->destination) || !empty($penalty->arrival))
+                                                    <h6 class="mb-3 text-muted">
+                                                        {{ $penalty->destination }} → {{ $penalty->arrival }}
+                                                    </h6>
+                                                @endif
+                                                
+                                                @php
+                                                    $sections = [
+                                                        'Cancel Fees' => $cancel,
+                                                        'Change Fees' => $change,
+                                                        'Refund Policy / Fees' => $refund
+                                                    ];
+                                                @endphp
+                                                
+                                                @foreach ($sections as $title => $data)
+                                                    @if (!empty($data) && is_array($data))
+                                                        <h6 class="mb-2">{{ $title }}</h6>
+                                                        <table class="table table-sm align-middle mb-3">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="width: 40%">Type</th>
+                                                                    <th style="width: 30%">Amount</th>
+                                                                    <th style="width: 30%">Currency</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach ($data as $fee)
+                                                                    <tr>
+                                                                        <td>{{ $fee['type_code'] ?? 'N/A' }}</td>
+                                                                        <td>{{ $fee['amount'] ?? '' }}</td>
+                                                                        <td>{{ $fee['currency'] ?? '' }}</td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
+                                                    @endif
+                                                @endforeach
+                                                
+                                                @if (empty($cancel) && empty($change) && empty($refund))
+                                                    <p class="text-muted mb-0">No penalty info available.</p>
+                                                @endif
+                                            </div>
+                                        @empty
+                                            <div class="p-3">
+                                                <p class="text-muted mb-0">No penalties found for this booking item.</p>
+                                            </div>
+                                        @endforelse
+                                    @empty
+                                        <p class="text-muted mb-0">No booking items found.</p>
+                                    @endforelse
                                 @else
                                     <div class="p-3">
                                         <p class="text-muted mb-0">Unsupported airline for penalty information.</p>
@@ -304,7 +366,6 @@
             <!-- Detailed Overview Modal -->
             <x-modal id="detailedOverviewModal" title="Detailed Overview" size="modal-lg">
                 <x-admin.show-xml-data :booking="$booking" />
-                
                 <x-slot name="footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </x-slot>
@@ -320,6 +381,10 @@
                             if ($airline === 'flyjinnah' && is_array($taxes)) {
                                 $totalTax = array_sum(array_map(function($tax) {
                                     return isset($tax['@attributes']['Amount']) ? (float) $tax['@attributes']['Amount'] : 0;
+                                }, $taxes));
+                            } elseif ($airline === 'pia' && is_array($taxes)) {
+                                $totalTax = array_sum(array_map(function($tax) {
+                                    return isset($tax['amount']) ? (float) $tax['amount'] : 0;
                                 }, $taxes));
                             }
                         @endphp
@@ -356,6 +421,21 @@
                                                 <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }} {{ $item->price_code }}
                                             </div>
                                         @endif
+                                    @elseif ($airline === 'pia')
+                                        <ul class="mb-0">
+                                            @foreach ($taxes as $tax)
+                                                <li>
+                                                    <strong>{{ $tax['tax_code'] }}</strong>:
+                                                    {{ $tax['tax_code'] }} Tax
+                                                    ({{ $tax['amount'] }} {{ $item->price_code }})
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                        @if ($totalTax !== null)
+                                            <div class="mt-2">
+                                                <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }} {{ $item->price_code }}
+                                            </div>
+                                        @endif
                                     @else
                                         <p>Unsupported tax format for airline.</p>
                                     @endif
@@ -372,6 +452,11 @@
                                                 <li>{{ $service['details']['details'] }}</li>
                                             @elseif ($airline === 'flyjinnah')
                                                 <li>{{ $service }}</li>
+                                            @elseif ($airline === 'pia')
+                                                <li>
+                                                    {{ $service['service_definition_id'] ?: 'Flight Service' }}
+                                                    (Segments: {{ implode(', ', $service['segment_refs']) }})
+                                                </li>
                                             @endif
                                         @endforeach
                                     </ul>
@@ -883,7 +968,8 @@
                         }
                     },
                     error: function (xhr) {
-                        _alert('Error in cancel booking', 'error');
+                        let errorDetails = xhr.responseJSON.message || 'Error in cancel booking';
+                        _alert(errorDetails, 'error');
                     }
                 });
             } else {

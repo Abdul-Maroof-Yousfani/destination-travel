@@ -1,0 +1,1114 @@
+<!-- Departure Flights -->
+{{-- @dd($flightData) --}}
+@php
+    use Carbon\Carbon;
+    use App\Helpers\HelperFunctions;
+    // Temp
+    use Illuminate\Support\Facades\Cache;
+
+    // flight_data_rtn
+    // flight_data_ow
+    // $flightData = Cache::remember('flight_data_rtn', 6600, function () use ($flightData) {
+    //     return $flightData; // first response will be cached
+    // });
+    // Temp
+@endphp
+<style>
+    .flight-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px auto;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .airline-logo {
+        width: 60px;
+        height: auto;
+    }
+
+    .price-btn,
+    .price-btn-rtn {
+        background-color: #004080;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    .details-section {
+        display: none;
+        border-top: 1px dashed #ccc;
+        margin-top: 15px;
+        padding-top: 15px;
+        font-size: 0.9rem;
+    }
+
+    .connected {
+        font-size: 1em;
+        color: #127f9f;
+        cursor: pointer;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+
+    .durationBadge {
+        border: 1px solid #127f9f;
+        background: #2fbbe530;
+        padding: 2px 4px;
+        border-radius: 5px;
+        font-size: 0.8em !important;
+    }
+
+    .pia-bundle-item {
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #fafafa;
+    }
+
+    .bundle-header {
+        margin-bottom: 12px;
+    }
+
+    .bundle-header h4 {
+        margin: 0 0 4px;
+    }
+
+    .baggage-summary {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .option-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #fff;
+    }
+
+    .option-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .option-header h5 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .option-price {
+        font-weight: 600;
+        color: #008000;
+    }
+
+    .fare-list {
+        padding-left: 20px;
+        margin: 5px 0;
+    }
+
+    .service-list {
+        margin-top: 5px;
+    }
+
+    .service-badge {
+        background: #e9ecef;
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin-right: 4px;
+        font-size: 0.8rem;
+    }
+
+    .bundle-footer {
+        margin-top: 12px;
+        text-align: right;
+    }
+</style>
+@if (!empty($flightData))
+    @php
+        $isReturn = $flightData['return_count'] > 0;
+        $bundles = $flightData['bundles'];
+    @endphp
+    {{-- @dd($flightData) --}}
+    @forelse ($flightData['flights'] as $key => $segments)
+        @php
+            $departure = $key === 0 ? $flightData['departure'] : $flightData['arrival'];
+            $arrival = $key === 0 ? $flightData['arrival'] : $flightData['departure'];
+        @endphp
+        <div id="{{ $key === 0 ? 'departure-section' : 'return-section' }}"
+            style="display:{{ $key === 0 ? 'block' : 'none' }};">
+            <div class="d-flex justify-content-between font-weight-bold plane h4">
+                <h1>{{ $key === 0 ? 'Departure' : 'Return' }} Flights</h1>
+                <p class="small font-italic">
+                    {{ $departure['airport'] }} ({{ $departure['code'] }}) →
+                    {{ $arrival['airport'] }} ({{ $arrival['code'] }})
+                </p>
+            </div>
+            {{-- Flights :) --}}
+            @forelse ($segments as $flight)
+                {{-- @dd($flightData, $flight) --}}
+                @php
+                    $logo = strtolower($flight['carrier']);
+                    $flightDep = $flight['departure'];
+                    $flightArr = $flight['arrival'];
+                    $firstSegment = $flight['segments'][0] ?? $flight['segments'];
+                    $stopCount = count($flight['segments']) - 1;
+                @endphp
+                <div class="flight-card">
+                    <!-- Airline Info -->
+                    <div class="row align-items-center text-center text-md-start">
+                        <div class="col-12 col-md-2 mb-3 mb-md-0 d-flex flex-column align-items-center">
+                            <img src="{{ asset('assets/images/logos/' . $logo . '.png') }}" alt="{{ strtoupper($logo) }}"
+                                class="airline-logo mb-1">
+                            <div><strong>{{ $flight['carrier'] ?? '' }}</strong></div>
+                            <div class="text-muted small">
+                                {{ $firstSegment['carrier'] }} ({{ $firstSegment['flight_number'] }})
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-8">
+                            <!-- Time Info -->
+                            <div class="timesHeading mb-3 mb-md-0 d-flex align-items-center justify-content-center">
+                                <div><strong>{{ $flightDep['time'] ?? '' }}</strong></div>
+                                <div class="flight-duration m-3">{{ $flight['duration'] ?? '' }}</div>
+                                <div><strong>{{ $flightArr['time'] ?? '' }}</strong></div>
+                            </div>
+                            <div class="my-3">
+                                {{ $flightDep['airport'] }} ({{ $flightDep['code'] }}) -
+                                @if ($flight['isConnected'])
+                                    <span class="connected">{{ $stopCount }} {{ $stopCount > 1 ? 'Stops' : 'Stop' }}</span>
+                                @else
+                                    Nonstop
+                                @endif
+                                - {{ $flightArr['airport'] }} ({{ $flightArr['code'] }})
+                            </div>
+                            {{-- <div class="text-muted small">🧳 Total: 20kg &nbsp;&nbsp; 🍴 Meal</div> --}}
+                        </div>
+
+                        <!-- Price Info -->
+                        <div class="col-12 col-md-2 text-md-end">
+                            <button class="{{ $key === 0 ? 'price-btn' : 'price-btn-rtn' }} mb-2"
+                                data-flight="{{ json_encode($flight) }}">
+                                {{ $flight['code'] ?? 'PKR' }} {{ $flight['price'] ?? 0 }}
+                            </button>
+                            <div class="text-muted small">{{ count($flight) === 1 ? 'One Way' : 'Round Trip' }}</div>
+                        </div>
+                    </div>
+                    <!-- Connected Flight Details -->
+                    <div class="details-section">
+                        <div class=" mb-3">
+                            <span
+                                class="durationBadge text-dark">{{ Carbon::parse($flight['arrival']['datetime'])->format('l d, F') }}</span>
+                        </div>
+                        @forelse ($flight['segments'] as $index => $segment)
+                            <div class="card mb-3 shadow-sm">
+                                <div class="card-body d-flex flex-wrap align-items-center">
+                                    <!-- Airline -->
+                                    <div class="col-6 col-md-2 text-center mb-3 mb-md-0">
+                                        <img src="{{ asset('assets/images/logos/' . $logo . '.png') }}"
+                                            alt="{{ strtoupper($logo) }}" class="airline-logo"
+                                            style="max-height:40px; max-width:40px;">
+                                    </div>
+
+                                    <!-- Departure -->
+                                    <div class="col-6 col-md-2 mb-3 mb-md-0">
+                                        <p class="fw-bold mb-1">
+                                            {{ Carbon::parse($segment['departure']['datetime'])->format('h:i A') }}
+                                        </p>
+                                        <small class="text-muted">
+                                            {{ $segment['departure']['airport'] }}
+                                            ({{ $segment['departure']['code'] }})
+                                        </small>
+                                    </div>
+
+                                    <!-- Duration -->
+                                    <div class="col-6 col-md-2 mb-3 mb-md-0 text-center">
+                                        <div class="flight-duration">
+                                            {{ str_replace(['PT', 'H', 'M'], ['', 'h ', 'm'], $segment['duration']) }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Arrival -->
+                                    <div class="col-6 col-md-2 mb-3 mb-md-0">
+                                        <p class="fw-bold mb-1">
+                                            {{ Carbon::parse($segment['arrival']['datetime'])->format('h:i A') }}
+                                        </p>
+                                        <small class="text-muted">
+                                            {{ $segment['arrival']['airport'] }} ({{ $segment['arrival']['code'] }})
+                                        </small>
+                                    </div>
+
+                                    <!-- Flight No -->
+                                    <div class="col-6 col-md-2 mb-3 mb-md-0 text-center">
+                                        <p class="fw-bold mb-1">Flight No</p>
+                                        <span
+                                            class="badge bg-light text-dark">{{ $segment['carrier'] }}-{{ $segment['flight_number'] }}</span>
+                                    </div>
+
+                                    <!-- Cabin Class -->
+                                    <div class="col-6 col-md-2 text-md-end">
+                                        <p class="fw-bold mb-1">Cabin Class</p>
+                                        <span class="badge bg-secondary text-light">{{ $flight['cabinClass'] }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Show layover only if this is not the last segment --}}
+                            @if (isset($flight['segments'][$index + 1]))
+                                @php
+                                    $arrival = Carbon::parse($segment['arrival']['datetime']);
+                                    $nextDeparture = Carbon::parse(
+                                        $flight['segments'][$index + 1]['departure']['datetime'],
+                                    );
+                                    $layover = $arrival->diff($nextDeparture);
+                                    // dd($segment, $flight, $segment['arrival']['datetime'], $flight['segments'][$index+1]['departure']['datetime'], $layover);
+                                @endphp
+
+                                @if ($layover->h > 0 || $layover->i > 0)
+                                    <div class="text-center mb-3">
+                                        <span class="badge bg-warning text-dark">
+                                            {{ $layover->h ? $layover->h . 'h ' : '' }}{{ $layover->i ? $layover->i . 'm' : '' }}
+                                            layover in {{ $segment['arrival']['airport'] }}
+                                        </span>
+                                    </div>
+                                @endif
+                            @endif
+                        @empty
+                            <p class="text-center text-muted">No flights available.</p>
+                        @endforelse
+                    </div>
+                </div>
+            @empty
+                <p class="text-center text-muted">No flights available.</p>
+            @endforelse
+        </div>
+    @empty
+        <p class="text-center text-muted">No flights available.</p>
+    @endforelse
+    <div class="modal fade right" id="bundleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header w-100">
+                    <h5 class="modal-title">Flight Details</h5>
+                    <button type="button" class="btn btn-b" data-bs-dismiss="modal"><i
+                            class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="tick modalFlights mb-4"></div>
+                    <!-- tabs -->
+                    <div class="directBookingBtn"></div>
+                    @if ($isReturn)
+                        <div class="departure-bo bundleBtns">
+                            <div class="daparture-main">
+                                <div class="pack-main mt-0">
+                                    <div class="tab-links packg">
+                                        <ul class="tab-product">
+                                            <li data-targetit="box-16" class="current">
+                                                <a class="pointer" data-toggle="tab">Departure</a>
+                                            </li>
+                                            <li data-targetit="box-17">
+                                                <a class="pointer" data-toggle="tab">Return</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                    <div class="box-16 showfirst tab-content">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="main-border">
+                                    <div class="flcul">
+                                        <ul class="directModalBundles"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-17 tab-content">
+                        <div class="row">
+                            <div class="col-md-12 col-lg-12">
+                                <div class="main-border">
+                                    <div class="flcul">
+                                        <ul class="returnModalBundles"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
+
+<script>
+    $(document).ready(function() {
+        let paxCount = @json($paxCount);
+        let isReturn = @json($isReturn);
+        let bundles = @json($bundles);
+        // console.log(bundles);
+        let extras = @json($flightData['extras']);
+        let departureFlight, returnFlight, returnFlightRaw, selectedCarrier;
+        let responseId, firstBundleId, offerIdsDep, secondBundleId, offerIdsRtn;
+        let firstFlight, firstConnectedFlight, returnConnectedFlight;
+        let segments, flightTotalFare, rtnSelectedFlight, airline, depSelectedFlight;
+        $(".connected").click(function() {
+            $(this).closest(".flight-card").find(".details-section").slideToggle();
+        });
+
+        $(".price-btn").click(function() {
+            departureFlight = $(this).data('flight');
+            selectedCarrier = departureFlight.carrier;
+            if (!isReturn) return showModal();
+            if (isReturn && selectedCarrier === 'pia') {
+                handlePiaReturnPriceAdjustment(departureFlight, selectedCarrier);
+            }
+
+            let matchingFlights = 0;
+
+            $("#return-section .flight-card").hide();
+
+            $("#return-section .flight-card").each(function() {
+                let rtnFlight = $(this).find("button").data("flight");
+                if (rtnFlight.carrier === selectedCarrier) {
+                    $(this).show();
+                    matchingFlights++;
+                }
+            });
+
+            if (matchingFlights === 0) {
+                _alert(("No return flights available for " + selectedCarrier), 'warning');
+                return;
+            }
+
+            $("#departure-section").slideUp(500, function() {
+                $("#return-section").fadeIn(500);
+            });
+        });
+
+        $(".price-btn-rtn").click(function() {
+            returnFlight = $(this).data('flight');
+            returnFlightRaw = returnFlight;
+            showModal();
+        });
+
+        const showModal = () => {
+            const depInfo = formatFlight(departureFlight);
+            const rtnInfo = returnFlight ? formatFlight(returnFlight) : null;
+            $('.modalFlights').html(flightHtml(depInfo, rtnInfo));
+
+            // $('#bundleModal').modal("show");
+
+            // console.log(selectedCarrier, departureFlight, returnFlight)
+            if (selectedCarrier === 'emirates') {
+                $('#bundleModal').modal("show");
+                $(".directModalBundles").html(renderEmiBundles(departureFlight.bundles, false));
+                if (returnFlight) {
+                    $(".returnModalBundles").html(renderEmiBundles(returnFlight.bundles, true));
+                }
+            } else if (selectedCarrier === 'flyJinnah') {
+                depSelectedFlight = departureFlight.flightRaw;
+                if (returnFlight) {
+                    rtnSelectedFlight = returnFlight.flightRaw;
+                    bookBothBundle(depSelectedFlight.flightSegments, rtnSelectedFlight.flightSegments);
+                } else {
+                    bookBothBundle(depSelectedFlight.flightSegments, null);
+                }
+            } else if (selectedCarrier === 'pia') {
+                const matchedBundle = findMatchingBundles(departureFlight, returnFlight, bundles);
+
+                if (matchedBundle) {
+                    airline = selectedCarrier;
+                    // firstBundleId = extractSelectedBundleData(matchedBundle);
+                    // sendBookingRequest(false);
+                    // console.log(firstBundleId)
+                    $(".directModalBundles").html(renderPiaBundles(matchedBundle));
+                    $('#bundleModal').modal("show");
+                    $(".bundleBtns").addClass('d-none');
+                    // console.log('✅ Bundle found:', matchedBundle);
+                } else {
+                    _alert('No bundle found for this selection', 'warning');
+                }
+            } else {
+                _alert('Missing Carrier', 'warning')
+            }
+
+        };
+
+        const formatFlight = (flight) => {
+            if (!flight) return {};
+
+            const carrier = flight.carrier || '';
+            let stopCount = flight.segments ? flight.segments.length - 1 : 0;
+
+            return {
+                logo: carrier ? carrier.toLowerCase() : 'default',
+                carrier: carrier,
+                depTime: flight.departure?.time || '',
+                arrTime: flight.arrival?.time || '',
+                origCode: flight.departure?.code || '',
+                destCode: flight.arrival?.code || '',
+                timeDiff: flight.duration || '',
+                stops: stopCount > 0 ? `${stopCount} ${stopCount > 1 ? 'Stops' : 'Stop'}` : 'Nonstop',
+                price: flight.price || 0,
+                priceCode: flight.code || ''
+            };
+        };
+
+        const flightHtml = (depInfo, rtnInfo) => {
+            const renderFlight = (info) => `
+            <li>
+                <div class="sugge-tab sugge-tab-time2">
+                    <div class="flex1">
+                        <div class="emri">
+                            <img class="w-75 p-2" src="/assets/images/logos/modal/${info.logo}.png" alt="${info.carrier}">
+                        </div>
+                        <div class="der-time">
+                            <ul>
+                                <li><h2>${info.depTime}</h2></li>
+                                <li><div class="stays"><p>${info.timeDiff}</p></div></li>
+                                <li><h2>${info.arrTime}</h2></li>
+                            </ul>
+                            <div class="citys">
+                                <div class="cit">
+                                    <ul>
+                                        <li><p>${info.origCode}</p></li>
+                                        <li><p>-</p></li>
+                                        <li><p>${info.stops}</p></li>
+                                        <li>-</li>
+                                        <li><p>${info.destCode}</p></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pritik">
+                        <a class="bg-info btn text-light" role="button">
+                            ${info.priceCode} ${info.price}
+                        </a>
+                    </div>
+                </div>
+            </li>`;
+
+            return `<ul>${renderFlight(depInfo)}${rtnInfo ? renderFlight(rtnInfo) : ''}</ul>`;
+        };
+
+        const renderEmiBundles = (data, isReturn) => {
+            responseId = extras.emirates.responseId ?? '';
+            const normalizedData = Array.isArray(data) ? data : (data ? [data] : []);
+            if (normalizedData.length === 0) {
+                return `<div class="alert alert-danger" role="alert">No flights available</div>`;
+            }
+            return normalizedData.map(row => {
+                let shortTexts = row['priceClass']['Descriptions']['Description'].filter(item =>
+                    item.hasOwnProperty('Text') && Object.keys(item).length === 1
+                );
+                // console.log(row)
+                return `
+                <li data-id="${row['offerID']['OfferID'] ?? 'N/A'}">
+                    <div class="flex-plus flex-plusul2">
+                        <h4>${row['priceClass']['Name']['value'] ?? 'N/A'}</h4>
+                        <div class="flex-plus2 ">
+                            <ul>
+                                <li>
+                                    <div class="plus-fle">
+                                        <div class="">
+                                            ${shortTexts.map(item => `<p>${item.Text.value}</p>`).join('')}
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="conti">
+                            <a class="btn btn-b bookBtn"
+                                data-airline="emirate"
+                                data-is-return="${isReturn}"
+                                data-bundle-id="${encodeURIComponent(JSON.stringify(row['offerID']))}"
+                                data-response-id="${responseId}"
+                                data-offer-ids="${encodeURIComponent(JSON.stringify(getOfferIds(row['offerItem'])))}"
+                            role="button">
+                                ${row['totalPrice']['code'] ?? 'PKR'}
+                                ${formatCurrency(Math.round(row['totalPrice']['amount'] || '0'))}
+                            </a>
+                        </div>
+                    </div>
+                </li>`;
+            }).join('');
+        };
+
+        const getOfferIds = data =>
+            (Array.isArray(data) ? data : data ? [data] : []).map(item => ({
+                id: item?.id || null,
+                PassengerRef: item?.services?.[0]?.passengerRefs || null
+            }));
+
+        $(document).on('click', '.bookBtn', function () {
+            airline = $(this).data('airline');
+            if (['flyjinnah', 'emirate'].includes(airline)) {
+                $(this).addClass('active');
+                let bundleId = $(this).data('bundle-id');
+                let isReturnBundle = $(this).data('is-return');
+                let offerIds = $(this).data('offer-ids') ?? null;
+                // airline = $(this).data('airline');
+                responseId = $(this).data('response-id') ?? null;
+                if (!isReturnBundle) {
+                    firstBundleId = bundleId;
+                    offerIdsDep = offerIds;
+                    if (isReturn) {
+                        $('.tab-product li[data-targetit="box-17"] a').trigger('click');
+                        // _alert('First bundle selected. Now select a return bundle.');
+                    }
+                } else {
+                    if (!firstBundleId) {
+                        _alert('You must select the first bundle before selecting the return bundle.',
+                            'warning');
+                        return;
+                    }
+                    secondBundleId = bundleId;
+                    offerIdsRtn = offerIds;
+                }
+                if (firstBundleId && (!isReturn || secondBundleId)) {
+                    sendBookingRequest(false);
+                }
+            } else if(['pia'].includes(airline)){
+                const offerID = JSON.parse(decodeURIComponent($(this).data('bundle-id')));
+                const selectedBundle = bundles.find(b => b.offerID === offerID);
+                const selectedData = extractSelectedBundleData(selectedBundle);
+                firstBundleId = selectedData;
+                sendBookingRequest(false);
+            }
+        });
+        const bookBothBundle = (departureData, returnData) => {
+            firstFlight = getFlightData(departureData[0]);
+            firstConnectedFlight = getFlightData(departureData[1] || null);
+            if (!returnData) {
+                return getFlightBundle();
+            }
+            returnFlight = getFlightData(returnData[0]);
+            returnConnectedFlight = getFlightData(returnData[1] || null);
+
+            if (!firstFlight || !returnFlight) {
+                _alert('Please select both departure and return flights.');
+                return;
+            }
+
+            getFlightBundle();
+        };
+        // AJAX to get bundles
+        const getFlightBundle = () => {
+            $.ajax({
+                type: "POST",
+                url: "{{ route('get_bundles') }}",
+                data: {
+                    firstFlight,
+                    firstConnectedFlight,
+                    returnFlight,
+                    returnConnectedFlight,
+                    paxCount,
+                    _token: "{{ csrf_token() }}"
+                },
+                beforeSend: () => _loader('show'),
+                success: (res) => {
+                    if (res.error) {
+                        console.log(res.error);
+                        _alert(res.details?.ShortText || res.error, "error");
+                        return;
+                    }
+                    $('#bundleModal').modal("show");
+                    if (!res.bundles || res.bundles.length === 0 || (!res.bundles
+                            .bundledService && !res.bundles[0]?.bundledService)) {
+                        $(".directModalBundles").html(
+                            `<div class="alert alert-danger" role="alert">No bundles available</div>`
+                        );
+                        return;
+                    }
+                    segments = getSegment(res.originDestinationOptions.FlightSegment) || res
+                        .originDestinationOptions.map(item => getSegment(item.FlightSegment));
+                    flightTotalFare = res['prices']['ItinTotalFare'] ?? null;
+                    let bundledService = res.bundles[0]?.bundledService || res.bundles
+                        .bundledService;
+                    $(".directModalBundles").html(renderBundles(bundledService, false));
+                    $(".directBookingBtn").html(
+                        '<button class="btn btn-b directBooking mb-4">Direct Booking</button>'
+                    );
+                    if (res.bundles.length > 1) {
+                        $(".returnModalBundles").html(renderBundles(res.bundles[1]
+                            .bundledService, true));
+                    }
+                },
+                error: (xhr, status, error) => console.error('Error:', error),
+                complete: () => _loader('hide')
+            });
+        };
+        $(document).on('click', '.directBooking', function() {
+            airline = 'flyjinnah';
+            sendBookingRequest(true);
+        });
+        const getFlightData = data => {
+            if (!data) return null;
+            return {
+                departure: data['departureDateTimeLocal'],
+                arrival: data['arrivalDateTimeLocal'],
+                origin: data['origin'],
+                destination: data['destination'],
+                flightNumber: data['flightNumber']
+            };
+        };
+        const renderBundles = (data, isReturn) => {
+            const normalizedData = Array.isArray(data) ? data : (data ? [data] : []);
+
+            if (normalizedData.length === 0) {
+                return `<div class="alert alert-danger" role="alert">No bundles available</div>`;
+            }
+            return normalizedData.map(row => {
+                let description = parseDescription(row['description']);
+                return `
+                <li data-id="${row['bunldedServiceId'] ?? 'N/A'}">
+                    <div class="flex-plus flex-plusul2">
+                        <h4>${row['bundledServiceName'] ?? 'N/A'}</h4>
+                        <div class="flex-plus2 ">
+                            <ul>
+                                <li>
+                                    <div class="plus-fle">
+                                        <h4><i class="fa-solid fa-suitcase"></i>
+                                            Check-in Baggage
+                                        </h4>
+                                        <div class="plus-widh">
+                                            <p>${description['Baggage'] ?? 'Not Included'}</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="plus-fle">
+                                        <h4><i class="fa-solid fa-plane-slash"></i>Cancellation</h4>
+                                        <div class="plus-widh">
+                                            <p><span>${description['Cancellation'] ? 'PenaltiesApply' : 'Not Available'}</span></p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="plus-fle">
+                                        <h4><i class="fa-solid fa-pencil"></i>Modification</h4>
+                                        <div class="plus-widh"><p><span>${description['Modification'] ? 'PenaltiesApply' : 'Not Available'}</span></p></div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="plus-fle">
+                                        <h4><i class="fa-solid fa-plate-wheat"></i>Meal</h4>
+                                        <div class="plus-widh"><p>${description['Any Meal'] ? 'Included' : 'Not Included'}</p></div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="conti">
+                            <a class="btn btn-b bookBtn" data-airline="flyjinnah" data-is-return="${isReturn}" data-bundle-id="${row['bunldedServiceId']}" role="button">+ PKR ${formatCurrency(Math.round(row['perPaxBundledFee'] || '0'))}</a>
+                        </div>
+                    </div>
+                </li>`;
+            }).join('');
+        };
+        const getSegment = data => {
+            if (!data) return null;
+            return {
+                departure: data['@attributes']['DepartureDateTime'],
+                arrival: data['@attributes']['ArrivalDateTime'],
+                origin: data['ArrivalAirport']['@attributes']['LocationCode'],
+                destination: data['DepartureAirport']['@attributes']['LocationCode'],
+                flightNumber: data['@attributes']['FlightNumber'],
+                returnFlag: data['@attributes']['returnFlag'],
+                rph: data['@attributes']['RPH'],
+                arrTerminal: data['ArrivalAirport']['@attributes']['Terminal'],
+                depTerminal: data['DepartureAirport']['@attributes']['Terminal']
+            };
+        };
+        const parseDescription = (description) => {
+            let descriptionArray = {};
+            if (typeof description === "string" && description.trim().length > 0) {
+                let lines = description.trim().split("\n");
+                lines.forEach(line => {
+                    let parts = line.split(":", 2);
+                    if (parts.length === 2) {
+                        descriptionArray[$.trim(parts[0])] = $.trim(parts[1]);
+                    }
+                });
+            }
+            return descriptionArray;
+        };
+        // AJAX
+        const sendBookingRequest = isDirectBooking => {
+            let data = {};
+            if (airline === "flyjinnah") {
+                data = {
+                    firstBundleId: firstBundleId ?? null,
+                    secondBundleId: secondBundleId ?? null,
+                    depSelectedFlight: depSelectedFlight ?? null,
+                    rtnSelectedFlight: rtnSelectedFlight ?? null,
+                    departureFlight: departureFlight ?? null,
+                    returnFlight: returnFlightRaw ?? null,
+                    isDirectBooking,
+                    flightTotalFare,
+                    segments,
+                    paxCount,
+                    airline,
+                    _token: "{{ csrf_token() }}"
+                }
+            } else if (airline === "emirate") {
+                data = {
+                    firstBundleId: firstBundleId ? JSON.parse(decodeURIComponent(firstBundleId)) : null,
+                    secondBundleId: secondBundleId ? JSON.parse(decodeURIComponent(secondBundleId)) : null,
+                    depOfferIds: offerIdsDep ? JSON.parse(decodeURIComponent(offerIdsDep)) : null,
+                    rtnOfferIds: offerIdsRtn ? JSON.parse(decodeURIComponent(offerIdsRtn)) : null,
+                    departureFlight: departureFlight ?? null,
+                    returnFlight: returnFlight ?? null,
+                    responseId,
+                    airline,
+                    paxCount,
+                    _token: "{{ csrf_token() }}"
+                }
+            } else if (airline === "pia") {
+                data = {
+                    bundle: firstBundleId,
+                    departureFlight: departureFlight ?? null,
+                    returnFlight: returnFlight ?? null,
+                    airline, paxCount,
+                    _token: "{{ csrf_token() }}"
+                }
+            }
+            // console.log('ajax data =>', data);
+            // return;
+            $.ajax({
+                type: "POST",
+                url: "{{ route('booking_details') }}",
+                data,
+                beforeSend: () => _loader('show'),
+                success: function(response) {
+                    if (response.redirect) {
+                        localStorage.setItem('flights', window.location.search);
+                        window.location.href = '/flights/booking';
+                    } else if (response.error) {
+                        _alert(response.error, 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    _alert(xhr.responseJSON.message, 'error')
+                    console.error('Error Details:', xhr.responseJSON.details);
+                    console.error('Error:', error);
+                },
+                complete: () => _loader('hide')
+            });
+        };
+        // PIA MULTIPLE
+        function findMatchingBundles(depFlight, retFlight, bundles) {
+            let selectedKeys = [];
+
+            if (retFlight) {
+                selectedKeys.push(depFlight.bundles);
+                selectedKeys.push(retFlight.bundles);
+            } else {
+                selectedKeys.push(depFlight.bundles);
+            }
+
+            // Return ALL matching bundles
+            const matched = bundles.filter(bundle => {
+                const bundleKeys = bundle.flightKey;
+
+                if (bundleKeys.length !== selectedKeys.length) return false;
+
+                // Check if all keys match, regardless of order
+                return bundleKeys.every(key => selectedKeys.includes(key));
+            });
+
+            return matched.length ? matched : null;
+        }
+        // PIA SINGLE
+        // function findMatchingBundles(depFlight, retFlight, bundles) {
+        //     let selectedKeys = [];
+        //     if (retFlight) {
+        //         selectedKeys.push(depFlight.bundles);
+        //         selectedKeys.push(retFlight.bundles);
+        //     } else {
+        //         selectedKeys.push(depFlight.bundles);
+        //     }
+        //     const matched = bundles.find(bundle => {
+        //         const bundleKeys = bundle.flightKey;
+        //         if (bundleKeys.length !== selectedKeys.length) return false;
+        //         return bundleKeys.every(key => selectedKeys.includes(key));
+        //     });
+        //     return matched || null;
+        // }
+        function extractSelectedBundleData(bundle) {
+            if (!bundle) return null;
+
+            const paxRefIDs = bundle.offerItem
+                ?.flatMap(item => item.fareDetail?.map(fd => fd.PaxRefID) || [])
+                .flatMap(id => Array.isArray(id) ? id : [id]) // flatten mixed arrays + strings
+                .filter(Boolean) || [];
+
+            const uniquePaxRefs = [...new Set(paxRefIDs)];
+            const offerItemID = bundle.offerItem?.[0]?.id || '';
+
+            return {
+                PaxRefID: uniquePaxRefs,
+                offerID: bundle.offerID || '',
+                offerItemID: offerItemID,
+                ownerCode: bundle.ownerCode || '',
+                totalAmount: bundle.totalPrice?.total_amount || '0',
+                currency: bundle.totalPrice?.currency || 'PKR'
+            };
+        }
+
+        // const renderPiaBundles = (bundles) => {
+        //     const normalizedData = Array.isArray(bundles) ? bundles : (bundles ? [bundles] : []);
+        //     if (normalizedData.length === 0) {
+        //         return `<div class="alert alert-danger" role="alert">No PIA bundles available</div>`;
+        //     }
+
+        //     return normalizedData.map(bundle => {
+        //         const offerID = bundle.offerID || '';
+        //         const totalPrice = bundle.totalPrice || {};
+        //         const offerItems = bundle.offerItem || [];
+
+        //         const displayPrice = totalPrice.total_amount || offerItems[0]?.price?.base_amount ||
+        //             '0';
+        //         const displayCurrency = totalPrice.currency || 'PKR';
+
+        //         // Unique baggage summary
+        //         const baggageSummary = (bundle.baggageAllowance || [])
+        //             .map(b => `${b.weight}${b.unit}`)
+        //             .filter((v, i, self) => self.indexOf(v) === i)
+        //             .join(' + ');
+
+        //         // Format offer item options cleanly
+        //         const offerItemsHtml = offerItems.map((item, idx) => {
+        //             // Fare details (show meaningful labels if exist)
+        //             const fareDetailHtml = (item.fareDetail || []).map(fd => {
+        //                 const name = fd.brandName || fd.fareBasisCode ||
+        //                     'Standard Fare';
+        //                 const seg = fd.PaxSegmentRefID ?
+        //                     `<small>(${fd.PaxSegmentRefID})</small>` : '';
+        //                 return `<li>${name} ${seg}</li>`;
+        //             }).join('');
+
+        //             // Services list
+        //             const servicesHtml = (item.service || []).map(srv => {
+        //                 const label = srv.name || srv.desc || srv.serviceType ||
+        //                     'Service';
+        //                 return `<span class="badge service-badge">${label}</span>`;
+        //             }).join(' ');
+
+        //             // Baggage per option
+        //             const itemBaggage = (item.baggage || []).map(b =>
+        //                 `${b.weight}${b.unit}`).join(' + ');
+
+        //             const price = item.price || {};
+        //             const base = price.base_amount || '0';
+        //             const tax = price.taxSummary?.totalTaxAmount || price.taxes || '0';
+        //             const total = price.total_amount || parseFloat(base) + parseFloat(tax);
+
+        //             return `
+        //                 <div class="option-card">
+        //                     <div class="option-header">
+        //                         <h5>Option ${idx + 1}</h5>
+        //                         <div class="option-price">${displayCurrency} ${total}</div>
+        //                     </div>
+        //                     <div class="option-body">
+        //                         ${fareDetailHtml ? `<ul class="fare-list">${fareDetailHtml}</ul>` : ''}
+        //                         ${servicesHtml ? `<div class="service-list">${servicesHtml}</div>` : ''}
+        //                         ${itemBaggage ? `<p><strong>Baggage:</strong> ${itemBaggage}</p>` : ''}
+        //                         <p class="price-breakdown">
+        //                             <small>Base: ${displayCurrency} ${base} | Tax: ${displayCurrency} ${tax}</small>
+        //                         </p>
+        //                     </div>
+        //                 </div>
+        //             `;
+        //         }).join('');
+
+        //         return `
+        //             <li class="pia-bundle-item" data-id="${offerID}">
+        //                 <div class="bundle-header">
+        //                     <h4>PIA - ${bundle.parameters?.cabin_type || 'ECONOMY'}</h4>
+        //                     ${baggageSummary ? `<p class="baggage-summary"><strong>Baggage:</strong> ${baggageSummary}</p>` : ''}
+        //                 </div>
+        //                 <div class="bundle-options">
+        //                     ${offerItemsHtml}
+        //                 </div>
+        //                 <div class="bundle-footer">
+        //                     <a class="btn btn-b bookBtn"
+        //                         data-airline="pia"
+        //                         data-bundle-id="${encodeURIComponent(JSON.stringify(offerID))}"
+        //                         data-offer-ids="${encodeURIComponent(JSON.stringify(offerItems.map(item => item.id)))}"
+        //                         role="button">
+        //                         Book for ${displayCurrency} ${parseFloat(displayPrice.replace(/,/g, ''))}
+        //                     </a>
+        //                 </div>
+        //             </li>
+        //         `;
+        //     }).join('');
+        // };
+        const renderPiaBundles = bundles => {
+            const normalizedData = Array.isArray(bundles) ? bundles : (bundles ? [bundles] : []);
+            if (normalizedData.length === 0) {
+                return `<div class="alert alert-danger" role="alert">No PIA bundles available</div>`;
+            }
+
+            const getPassengerType = (paxRef) => {
+                if (paxRef.includes('ADT')) return 'Adult';
+                if (paxRef.includes('CHD')) return 'Child';
+                if (paxRef.includes('INF')) return 'Infant';
+                return 'Passenger';
+            };
+
+            const getPassengerCounts = (offerItems) => {
+                const counts = { Adult: 0, Child: 0, Infant: 0 };
+                offerItems.forEach(item => {
+                    const paxRefs = item.fareDetail?.[0]?.PaxRefID || [];
+                    (Array.isArray(paxRefs) ? paxRefs : [paxRefs]).forEach(ref => {
+                        counts[getPassengerType(ref)]++;
+                    });
+                });
+                return counts;
+            };
+
+            const getBaggageByType = (offerItems) => {
+                const baggageByType = {};
+                offerItems.forEach(item => {
+                    const paxRefs = item.fareDetail?.[0]?.PaxRefID || [];
+                    const type = getPassengerType(Array.isArray(paxRefs) ? paxRefs[0] : paxRefs);
+                    const baggage = (item.baggage || [])
+                        .map(b => `${b.weight}${b.unit}`)
+                        .filter((v, i, self) => self.indexOf(v) === i)
+                        .join(' + ');
+                    if (baggage && !baggageByType[type]) baggageByType[type] = baggage;
+                });
+                return baggageByType;
+            };
+
+            return normalizedData.map((bundle, bundleIdx) => {
+                const offerID = bundle.offerID || '';
+                const offerItems = bundle.offerItem || [];
+                const passengerCounts = getPassengerCounts(offerItems);
+                const baggageByType = getBaggageByType(offerItems);
+
+                const totalPrice = bundle.totalPrice || {};
+                const displayPrice = totalPrice.total_amount || '0';
+                const displayCurrency = totalPrice.currency || 'PKR';
+                const baggageSummary = Object.values(baggageByType).filter(Boolean).join(' | ');
+
+                const passengerSectionsHtml = Object.entries(passengerCounts)
+                    .filter(([_, count]) => count > 0)
+                    .map(([type, count]) => {
+                        const matchingItem = offerItems.find(item => {
+                            const paxRefs = item.fareDetail?.[0]?.PaxRefID || [];
+                            return (Array.isArray(paxRefs) ? paxRefs : [paxRefs])
+                                .some(ref => getPassengerType(ref) === type);
+                        });
+                        if (!matchingItem) return '';
+
+                        const price = matchingItem.price || {};
+                        const base = parseFloat(price.base_amount || 0) * count;
+                        const tax = parseFloat(price.taxSummary?.TotalTaxAmount || 0) * count;
+
+                        const fareDetailHtml = (matchingItem.fareDetail || [])
+                            .filter(fd => fd.FareComponent?.PaxSegmentRefID)
+                            .slice(0, 2)
+                            .map(fd => {
+                                const name = fd.FareComponent?.FareBasisCode || 'Standard';
+                                const seg = fd.FareComponent?.PaxSegmentRefID
+                                    ? `<small class="text-muted">(${fd.FareComponent.PaxSegmentRefID})</small>` : '';
+                                return `<li class="mb-1"><span class="fw-bold">${name}</span> ${seg}</li>`;
+                            })
+                            .join('');
+
+                        const servicesHtml = [...new Set((matchingItem.service || []).map(s => s.name || s.code || 'BAG'))]
+                            .slice(0, 3)
+                            .map(srv => `<span class="badge bg-secondary me-1">${srv}</span>`)
+                            .join('');
+
+                        return `
+                            <div class="card mb-3 passenger-section" style="border-left: 4px solid ${type === 'Adult' ? '#007bff' : type === 'Child' ? '#28a745' : '#ffc107'};">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0 fw-bold">${type} <span class="badge bg-light text-dark">${count} ${count > 1 ? 'passengers' : 'passenger'}</span></h6>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            ${fareDetailHtml ? `<ul class="list-unstyled small mb-2">${fareDetailHtml}</ul>` : ''}
+                                            ${servicesHtml ? `<div class="service-list small mb-2">${servicesHtml}</div>` : ''}
+                                        </div>
+                                        <div class="col-md-6">
+                                            ${baggageByType[type] ? `<p class="mb-2"><i class="fas fa-suitcase me-1"></i><strong>Baggage:</strong> ${baggageByType[type]}</p>` : ''}
+                                            <p class="price-breakdown small text-muted mb-0">
+                                                Base: ${displayCurrency} ${base.toLocaleString()} | Tax: ${displayCurrency} ${tax.toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                return `
+                    <div class="card bundle-card shadow-sm mb-4 ${bundleIdx > 0 ? 'mt-4' : ''}" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-header bg-info text-white p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0 fw-bold">✈️ PIA Bundle ${bundleIdx + 1} - ${bundle.parameters?.cabin_type || 'ECONOMY'}</h4>
+                                ${baggageSummary ? `<span class="badge bg-light text-dark fs-6">${baggageSummary}</span>` : ''}
+                            </div>
+                            ${baggageSummary ? `<p class="mb-0 small opacity-75 mt-1"><i class="fas fa-suitcase me-1"></i> Overall Baggage: ${baggageSummary}</p>` : ''}
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="p-3">
+                                ${passengerSectionsHtml || '<div class="text-center text-muted py-4"><i class="fas fa-users fa-2x mb-2"></i><p>No passenger details available.</p></div>'}
+                            </div>
+                        </div>
+                        <div class="bundle-footer pb-4 pr-4 mt-0">
+                            <a class="btn btn-b bookBtn"
+                                data-airline="pia"
+                                data-bundle-id="${encodeURIComponent(JSON.stringify(offerID))}"
+                                data-offer-ids="${encodeURIComponent(JSON.stringify(offerItems.map(item => item.id)))}"
+                                role="button">
+                                Book for ${displayCurrency} ${displayPrice}
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        function handlePiaReturnPriceAdjustment(departureFlight, selectedCarrier) {
+            if (!departureFlight || !selectedCarrier) return;
+
+            const depPrice = parseFloat(departureFlight.price.replace(/,/g, '')) || 0;
+
+            $("#return-section .flight-card").each(function () {
+                const btn = $(this).find(".price-btn-rtn");
+                const rtnFlight = btn.data("flight");
+
+                if (rtnFlight && rtnFlight.carrier === selectedCarrier) {
+                    const originalRtnPrice = parseFloat(rtnFlight.price.replace(/,/g, '')) || 0;
+                    let adjustedPrice = originalRtnPrice - depPrice;
+                    if (adjustedPrice < 0) adjustedPrice = 0;
+
+                    // Update UI price text (you can customize formatting if needed)
+                    const currency = rtnFlight.currency || 'PKR';
+                    btn.text(`${currency} ${adjustedPrice.toLocaleString()}`);
+
+                    rtnFlight.adjustedPrice = adjustedPrice;
+                    btn.data("flight", rtnFlight);
+                }
+            });
+        }
+
+
+
+
+    });
+</script>

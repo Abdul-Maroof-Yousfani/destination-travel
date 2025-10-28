@@ -49,6 +49,7 @@
    // dd($data);
    $isEmirate = isset($data['airline']) && $data['airline'] === 'emirate';
    $isFlyJinnah = isset($data['airline']) && $data['airline'] === 'flyjinnah';
+   $isPia = isset($data['airline']) && $data['airline'] === 'pia';
 @endphp
 <section class="bookings wow fadeInLeft">
    <div class="container">
@@ -72,6 +73,7 @@
                         <div class="row row2">
                            <div class="col-md-12 col-lg-8">
                                  <x-Passengers :flightData="$data" />
+                                 {{-- <x-passengers-test :flightData="$data" /> --}}
                            </div>
                            <div class="col-md-12 col-lg-4">
                               {{-- @dd($totalFare) --}}
@@ -319,7 +321,8 @@
                                     </div>
                                  </div>
                               </div>
-                              <div class="steps">
+                              <x-flight-and-price-ticket :flightData="$data" :totalFare="$totalFare" :tax="$tax" />
+                              {{-- <div class="steps">
                                  <h4>Your Booking</h4>
                                  <div class="sugge-tab sugge-tab-tickes">
                                     <div class="flex1">
@@ -423,7 +426,7 @@
                                        @endif
                                     @endif
                                  @endif
-                              </div>
+                              </div> --}}
                               <div class="steps">
                                  <h4>Traveler(s)</h4>
                                  <div class="contactDetails"></div>
@@ -507,7 +510,7 @@
       </div>      
    </div>
 </section>
-<x-session-timeout-container/>
+{{-- <x-session-timeout-container/> --}}
 @endsection
 @section('script')
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
@@ -534,24 +537,28 @@
       });
       return isValid;
    }
+   $(document).on('input change', '.paxDetails input, .paxDetails select, .contact2 input, .contact2 select, #userFullName, #userEmail, #userPhone,   #userPhoneCode', function () {
+      lastSubmittedData = null;
+      isSubmitting = false;
+   });
    $('#contactSubmit').click(function () {
       if (isSubmitting) return;
-
+      isSubmitting = true;
       passengers = [];
       let hasError = false;
       let firstErrorField = null;
 
       $('.paxDetails .contact2').each(function () {
          let passenger = {
-            id: $(this).find('input[name$="_id[]"]').val() ?? null,
-            type: $(this).find('input[name$="_type[]"]').val(),
-            name: $(this).find('input[name$="_name[]"]').val(),
-            surname: $(this).find('input[name$="_surname[]"]').val(),
-            title: $(this).find('input[name^="title_"]:checked').val(),
-            dob: $(this).find('input[name$="_dob[]"]').val(),
-            nationality: $(this).find('select[name$="_nationality[]"]').val(),
-            passportNumber: $(this).find('input[name$="_passportnumber[]"]').val(),
-            passportExpiry: $(this).find('input[name$="_passportexp[]"]').val()
+            id: ($(this).find('input[name$="_id[]"]').val() || "").trim(),
+            type: ($(this).find('input[name$="_type[]"]').val() || "").trim(),
+            name: ($(this).find('input[name$="_name[]"]').val() || "").trim(),
+            surname: ($(this).find('input[name$="_surname[]"]').val() || "").trim(),
+            title: ($(this).find('input[name^="title_"]:checked').val() || "").trim(),
+            dob: ($(this).find('input[name$="_dob[]"]').val() || "").trim(),
+            nationality: ($(this).find('select[name$="_nationality[]"]').val() || "").trim(),
+            passportNumber: ($(this).find('input[name$="_passportnumber[]"]').val() || "").trim(),
+            passportExpiry: ($(this).find('input[name$="_passportexp[]"]').val() || "").trim()
          };
 
          $(this).find("input[required], select[required]").each(function () {
@@ -565,15 +572,13 @@
          });
 
          passengers.push(passenger);
-         // console.log(passengers)
-         // return;
       });
 
       let userData = {
-         fullName: $('#userFullName').val(),
-         email: $('#userEmail').val(),
-         phoneCode: $('#userPhoneCode').val(),
-         phone: $('#userPhone').val()
+         fullName: ($('#userFullName').val() || "").trim(),
+         email: ($('#userEmail').val() || "").trim(),
+         phoneCode: ($('#userPhoneCode').val() || "").trim(),
+         phone: ($('#userPhone').val() || "").trim()
       };
 
       if (!userData.fullName || !userData.email || !userData.phoneCode || !userData.phone) {
@@ -585,36 +590,41 @@
             else if (!userData.phone) firstErrorField = $('#userPhone');
          }
       }
-
       if (hasError) {
          if (firstErrorField) $(firstErrorField).focus();
          _alert('Please fill all required fields', 'warning');
          isSubmitting = false;
          return false;
       }
+      let normalizedData = normalizeData({ passengers, userData });
+      let currentData = JSON.stringify(normalizedData);
 
-      isSubmitting = true;
-      let currentData = JSON.stringify({ passengers, userData });
-
-      if (currentData === lastSubmittedData) {
+      if (lastSubmittedData && currentData === lastSubmittedData) {
          // _alert('No changes detected. Data already submitted.', 'info');
-         // isSubmitting = false;
-
-         // if (!isDirectBooking) {
-         //    getFinalPrice();
-         // } else {
-         //    isSubmitting = false;
-         // }
+         isSubmitting = false;
          return;
       }
 
       lastSubmittedData = currentData;
-      // if (!isDirectBooking) {
-      //    getFinalPrice();
-      // } else {
-      //    isSubmitting = false;
-      // }
+
    });
+
+   function normalizeData(psngr) {
+      if (Array.isArray(psngr)) {
+         return psngr.map(item => normalizeData(item));
+      } else if (typeof psngr === 'object' && psngr !== null) {
+         const sortedKeys = Object.keys(psngr).sort();
+         const normalized = {};
+         sortedKeys.forEach(key => {
+            normalized[key] = normalizeData(psngr[key]);
+         });
+         return normalized;
+      } else if (typeof psngr === 'string') {
+         return psngr.trim();
+      } else {
+         return psngr ?? '';
+      }
+   }
    // function getSegmentAttributes(flightNo) {
    //    let segmenArry = data['segments'][0] ? data['segments'] : [data['segments']];
    //    return segmenArry.find(s => s.flightNumber === flightNo);
@@ -745,6 +755,24 @@
          : type?.toUpperCase() === 'INF' ? 'Infant'
          : type || '';
    };
+   function showOnHoldBooking(){
+      let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
+      let approvePayCash = JSON.parse((localStorage.getItem('approvePayCash') || false));
+      let ticketIssued = JSON.parse((localStorage.getItem('ticketIssued') || false));
+      
+      if (createdBooking) {
+         orderId = createdBooking.booking.order_id;
+         showPaymentPage();
+      }
+      if(createdBooking && (approvePayCash || ticketIssued)) {
+         // sessionTimer(false);
+         setTicketPage(createdBooking);
+         showTicketPage();
+      }
+   }
+   $(document).ready(function () {
+      showOnHoldBooking();
+   });
 
    // Skip directly to ticket page (final screen) ////////////////////////ALLLLLLLLLLLLIIIIIIIIIIIIIIIIIIIIII::::::::::::::)))))))))))))
    // showTicketPage();
@@ -754,347 +782,331 @@
 @if (isset($data) && !empty($data))
    @if ($isEmirate)
       <script>
-         // $(document).ready(function () {
-            let data = @json($data);
-            let firstBtn = true;
-            $(".next").click(async function () {
-               let current_fs = $(this).parent();
-               let next_fs = current_fs.next();
+         let data = @json($data);
+         let firstBtn = true;
+         $(".next").click(async function () {
+            let current_fs = $(this).parent();
+            let next_fs = current_fs.next();
 
-               if (!validateFields(current_fs)) return;
-               try {
-                  await verifyClient();
-                  if (firstBtn) {
-                     confirmationModal('Please confirm that all the provided details are correct.').then((result) => {
-                        if (result.isConfirmed) {
-                           $('#paymentSendTest').addClass('d-none');
-                           // firstBtn = false;
-                           bookingAjax(current_fs, next_fs, firstBtn); // Pass current_fs and next_fs to bookingAjax
-                        } else {
-                           _alert('Confirmation cancelled.', 'warning');
-                        }
-                     });
-                  } else {
-                     let index = $("fieldset").index(next_fs);
-                     $("#progressbar li").eq(index).addClass("active");
-                     next_fs.show();
-                     current_fs.animate({ opacity: 0 }, {
-                        step: (now) => {
-                           current_fs.css({ 'display': 'none', 'position': 'relative' });
-                           next_fs.css({ 'opacity': 1 - now });
-                        },
-                        duration: 500
-                     });
-                     setProgressBar(++current);
-                  }
-                  // console.log('await');
-               } catch (e) {
-                  // console.log('catch')
-                  return;
+            if (!validateFields(current_fs)) return;
+            try {
+               await verifyClient();
+               if (firstBtn) {
+                  confirmationModal('Please confirm that all the provided details are correct.').then((result) => {
+                     if (result.isConfirmed) {
+                        $('#paymentSendTest').addClass('d-none');
+                        // firstBtn = false;
+                        bookingAjax(current_fs, next_fs, firstBtn); // Pass current_fs and next_fs to bookingAjax
+                     } else {
+                        _alert('Confirmation cancelled.', 'warning');
+                     }
+                  });
+               } else {
+                  let index = $("fieldset").index(next_fs);
+                  $("#progressbar li").eq(index).addClass("active");
+                  next_fs.show();
+                  current_fs.animate({ opacity: 0 }, {
+                     step: (now) => {
+                        current_fs.css({ 'display': 'none', 'position': 'relative' });
+                        next_fs.css({ 'opacity': 1 - now });
+                     },
+                     duration: 500
+                  });
+                  setProgressBar(++current);
                }
-               // console.log('newxt');
+               // console.log('await');
+            } catch (e) {
+               // console.log('catch')
+               return;
+            }
+            // console.log('newxt');
 
-            });
-            $(".submit").click(() => false);
-            setProgressBar(current);
-            $(document).on("input change", "input[required], select[required]", function () {
-               if ($(this).val()) {
-                  $(this).removeClass("border-danger");
-               }
-            });
-            // ------------------------------------ Booking Start ------------------------------------ //
-            // const paxCapitalize = (type) => {
-            //    return type?.toUpperCase() === 'ADT' ? 'Adult'
-            //       : type?.toUpperCase() === 'CNN' ? 'Child'
-            //       : type?.toUpperCase() === 'INF' ? 'Infant'
-            //       : type || '';
-            // };
-            const renderTravelerDetails = (data, tickets) => {
-               if (!Array.isArray(data) || data.length === 0) {
-                  return `<div class="alert alert-danger" role="alert">Data is missing :)</div>`;
-               }
-               return data.map((passenger, index) => {
-                  const matchingTicket = (tickets || []).find(t => t.passenger_reference === passenger.passenger_reference);
+         });
+         $(".submit").click(() => false);
+         setProgressBar(current);
+         $(document).on("input change", "input[required], select[required]", function () {
+            if ($(this).val()) {
+               $(this).removeClass("border-danger");
+            }
+         });
+         // ------------------------------------ Booking Start ------------------------------------ //
+         const renderTravelerDetails = (data, tickets) => {
+            if (!Array.isArray(data) || data.length === 0) {
+               return `<div class="alert alert-danger" role="alert">Data is missing :)</div>`;
+            }
+            return data.map((passenger, index) => {
+               const matchingTicket = (tickets || []).find(t => t.passenger_reference === passenger.passenger_reference);
 
-                  const ticketHtml = matchingTicket ? `
-                     <div class="col-6">
-                        <div class="border rounded p-3 mt-2">
-                           <p>Issue date: <br><span>${formatDateTime(matchingTicket.issue_date)}</span></p>
-                           <p>ETicket No: <br><span class="copyText">${matchingTicket.ticket_no}</span></p>
-                           <p>Type: <span>E-Ticket</span></p>
-                           <p>Price Reference: <span>${matchingTicket.price_reference}</span></p>
-                        </div>
+               const ticketHtml = matchingTicket ? `
+                  <div class="col-6">
+                     <div class="border rounded p-3 mt-2">
+                        <p>Issue date: <br><span>${formatDateTime(matchingTicket.issue_date)}</span></p>
+                        <p>ETicket No: <br><span class="copyText">${matchingTicket.ticket_no}</span></p>
+                        <p>Type: <span>E-Ticket</span></p>
+                        <p>Price Reference: <span>${matchingTicket.price_reference}</span></p>
                      </div>
-                  ` : '<div class="col-12">No Ticket Issued</div>';
-                  return `
-                     <div class="custom-method setp-bult traveler-bult row">
-                        <div class="col-md-6 col-12">
-                           <h1 class="font-weight-bold mb-3">Passenger Details</h1>
-                           <p><span>Traveler ${index + 1}</span></p>
-                           <p><span>Title</span>: ${passenger.title || ''}</p>
-                           <p><span>Name</span>: ${passenger.given_name || passenger.name}</p>
-                           <p><span>Surname</span>: ${passenger.surname || passenger.surName}</p>
-                        </div>
-                        <div class="col-md-6 col-12">
-                           <h1 class="font-weight-bold mb-3">Ticket Details</h1>
-                           <div class="row">
-                              ${ticketHtml}
-                           </div>
-                        </div>
-                     </div>
-                  `;
-               }).join('');
-            };
-            const renderPaxWithPrice = data => {
-               if (data.length === 0) return ``;
-               return data.map((row) => `
-                  <div class="pri-eid">
-                     <p>Emirates Airline - (${row.passenger_code})</p>
-                     <p>Price: ${row.price_code} ${formatCurrency(row.price)}</p>
                   </div>
-               `).join('');
-            };
-            const renderTimeLimitsEmi = data => {
-               if (data.length === 0) return ``;
-               const payTimeLimit = formatDateTime(data.payment_limit);
-               const ticketTimeLimit = formatDateTime(data.ticket_limit);
+               ` : '<div class="col-12">No Ticket Issued</div>';
                return `
-                  <div class="pri-eid font-weight-bold">
-                     <p>Payment Time Limit</p>
-                     <p class="font-bold">${payTimeLimit}</p>
-                  </div>
-                  <div class="pri-eid font-weight-bold">
-                     <p>Ticket Time Limit</p>
-                     <p class="font-bold">${ticketTimeLimit}</p>
+                  <div class="custom-method setp-bult traveler-bult row">
+                     <div class="col-md-6 col-12">
+                        <h1 class="font-weight-bold mb-3">Passenger Details</h1>
+                        <p><span>Traveler ${index + 1}</span></p>
+                        <p><span>Title</span>: ${passenger.title || ''}</p>
+                        <p><span>Name</span>: ${passenger.given_name || passenger.name}</p>
+                        <p><span>Surname</span>: ${passenger.surname || passenger.surName}</p>
+                     </div>
+                     <div class="col-md-6 col-12">
+                        <h1 class="font-weight-bold mb-3">Ticket Details</h1>
+                        <div class="row">
+                           ${ticketHtml}
+                        </div>
+                     </div>
                   </div>
                `;
-            };
-            const renderTaxDetailsEmi = data => {
-               if (data.length === 0) return ``;
-               return data.map((row) => {
-                  const taxes = JSON.parse(row.taxes);
-                  const baseAmount = formatCurrency(taxes.baseAmount.amount);
-                  const baseAmountCode = taxes.baseAmount.code;
-                  const taxArray = taxes.tax;
-                  const totalPrice = formatCurrency(row.price);
-                  const totalPriceCode = row.price_code;
-                  const passengers = row.passenger_code;
-                  const taxDetails = taxArray.map(tax => {
-                     if (tax.description && tax.description.length > 0) {
+            }).join('');
+         };
+         const renderPaxWithPrice = data => {
+            if (data.length === 0) return ``;
+            return data.map((row) => `
+               <div class="pri-eid">
+                  <p>Emirates Airline - (${row.passenger_code})</p>
+                  <p>Price: ${row.price_code} ${formatCurrency(row.price)}</p>
+               </div>
+            `).join('');
+         };
+         const renderTimeLimitsEmi = data => {
+            if (data.length === 0) return ``;
+            const payTimeLimit = formatDateTime(data.payment_limit);
+            const ticketTimeLimit = formatDateTime(data.ticket_limit);
+            return `
+               <div class="pri-eid font-weight-bold">
+                  <p>Payment Time Limit</p>
+                  <p class="font-bold">${payTimeLimit}</p>
+               </div>
+               <div class="pri-eid font-weight-bold">
+                  <p>Ticket Time Limit</p>
+                  <p class="font-bold">${ticketTimeLimit}</p>
+               </div>
+            `;
+         };
+         const renderTaxDetailsEmi = data => {
+            if (data.length === 0) return ``;
+            return data.map((row) => {
+               const taxes = JSON.parse(row.taxes);
+               const baseAmount = formatCurrency(taxes.baseAmount.amount);
+               const baseAmountCode = taxes.baseAmount.code;
+               const taxArray = taxes.tax;
+               const totalPrice = formatCurrency(row.price);
+               const totalPriceCode = row.price_code;
+               const passengers = row.passenger_code;
+               const taxDetails = taxArray.map(tax => {
+                  if (tax.description && tax.description.length > 0) {
+                     return `
+                        <div class="pri-eid">
+                           <p>${tax.description}</p>
+                           <p>Price: ${tax.price.code} ${formatCurrency(tax.price.amount)}</p>
+                        </div>
+                     `;
+                  }
+                  return '';
+               }).join('');
+               return `
+                  <div class="pri-eid font-weight-bold">
+                     <h1 class="text-info">Passenger Info: ${passengers}</h1>
+                  </div>
+                  <div class="pri-eid font-weight-bold">
+                     <p>Base Amount</p>
+                     <p class="font-bold">Price: ${baseAmountCode} ${baseAmount}</p>
+                  </div>
+                  ${taxDetails}
+                  <div class="pri-eid font-weight-bold">
+                     <p>Final Amount ${passengers}</p>
+                     <p class="font-bold">Price: ${totalPriceCode} ${totalPrice}</p>
+                  </div>
+               `;
+            }).join('');
+         };
+         const renderServiceDetailsEmi = data => {
+            if (!data || data.length === 0) return ``;
+            return data.map(row => {
+               const passengers = row.passenger_code;
+               const serviceArray = JSON.parse(row.services || null);
+               const serviceDetails = serviceArray.map(service => {
+                     if (service.details && service.details.Type && service.details.details?.length > 0) {
                         return `
                            <div class="pri-eid">
-                              <p>${tax.description}</p>
-                              <p>Price: ${tax.price.code} ${formatCurrency(tax.price.amount)}</p>
-                           </div>
-                        `;
+                              <p class="font-weight-bold">${service.details.details}</p>
+                              <p>${service.details.Type}</p>
+                           </div>`;
                      }
                      return '';
-                  }).join('');
-                  return `
-                     <div class="pri-eid font-weight-bold">
-                        <h1 class="text-info">Passenger Info: ${passengers}</h1>
-                     </div>
-                     <div class="pri-eid font-weight-bold">
-                        <p>Base Amount</p>
-                        <p class="font-bold">Price: ${baseAmountCode} ${baseAmount}</p>
-                     </div>
-                     ${taxDetails}
-                     <div class="pri-eid font-weight-bold">
-                        <p>Final Amount ${passengers}</p>
-                        <p class="font-bold">Price: ${totalPriceCode} ${totalPrice}</p>
-                     </div>
-                  `;
                }).join('');
-            };
-            const renderServiceDetailsEmi = data => {
-               if (!data || data.length === 0) return ``;
-               return data.map(row => {
-                  const passengers = row.passenger_code;
-                  const serviceArray = JSON.parse(row.services || null);
-                  const serviceDetails = serviceArray.map(service => {
-                        if (service.details && service.details.Type && service.details.details?.length > 0) {
-                           return `
-                              <div class="pri-eid">
-                                 <p class="font-weight-bold">${service.details.details}</p>
-                                 <p>${service.details.Type}</p>
-                              </div>`;
-                        }
-                        return '';
-                  }).join('');
-                  if (!serviceDetails.trim()) return '';
-                  return `
-                     <div class="pri-eid font-weight-bold">
-                        <h5 class="text-info">Passenger Info: ${passengers}</h5>
-                     </div>
-                     ${serviceDetails}
-                  `;
-               }).join('');
-            };
-            function setTicketPage (response) {
-               let totalPrice = parseInt(response.booking?.price) + parseInt(tax);
-               $(".totalPricePaid").text(`Price: ${response.booking?.price_code ?? 'PKR'} ${formatCurrency(totalPrice) ?? 0}`);
-               $(".taxPaid").text(`Price: PKR ${formatCurrency(tax)}`);
-               $(".guestName").text(response.booking.client.name);
-               $(".ticketMsg").text(response.message);
-               $(".contactDetails").html(renderTravelerDetails(JSON.parse(response.booking?.passenger_details), (response.booking?.tickets || []) ));
-               $(".paxWithPrice").html(renderPaxWithPrice(response.booking?.booking_items));
-               $(".emiTimeLimitContainer").removeClass('d-none');
-               $(".timeLimitsEmi").html(renderTimeLimitsEmi(response.booking));
-               $(".emiTaxContainer").removeClass('d-none');
-               $(".emiServiceContainer").removeClass('d-none');
-               $(".taxDetailsEmi").html(renderTaxDetailsEmi(response.booking?.booking_items));
-               $(".serviceDetailsEmi").html(renderServiceDetailsEmi(response.booking?.booking_items));
-               $(".orderId").html(response.booking.order_id);
+               if (!serviceDetails.trim()) return '';
+               return `
+                  <div class="pri-eid font-weight-bold">
+                     <h5 class="text-info">Passenger Info: ${passengers}</h5>
+                  </div>
+                  ${serviceDetails}
+               `;
+            }).join('');
+         };
+         function setTicketPage (response) {
+            let totalPrice = parseInt(response.booking?.price) + parseInt(tax);
+            $(".totalPricePaid").text(`Price: ${response.booking?.price_code ?? 'PKR'} ${formatCurrency(totalPrice) ?? 0}`);
+            $(".taxPaid").text(`Price: PKR ${formatCurrency(tax)}`);
+            $(".guestName").text(response.booking.client.name);
+            $(".ticketMsg").text(response.message);
+            $(".contactDetails").html(renderTravelerDetails(JSON.parse(response.booking?.passenger_details), (response.booking?.tickets || []) ));
+            $(".paxWithPrice").html(renderPaxWithPrice(response.booking?.booking_items));
+            $(".emiTimeLimitContainer").removeClass('d-none');
+            $(".timeLimitsEmi").html(renderTimeLimitsEmi(response.booking));
+            $(".emiTaxContainer").removeClass('d-none');
+            $(".emiServiceContainer").removeClass('d-none');
+            $(".taxDetailsEmi").html(renderTaxDetailsEmi(response.booking?.booking_items));
+            $(".serviceDetailsEmi").html(renderServiceDetailsEmi(response.booking?.booking_items));
+            $(".orderId").html(response.booking.order_id);
+         }
+         // function showOnHoldBooking(){
+         //    let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
+         //    let approvePayCash = JSON.parse((localStorage.getItem('approvePayCash') || false));
+         //    let ticketIssued = JSON.parse((localStorage.getItem('ticketIssued') || false));
+            
+         //    if (createdBooking) {
+         //       orderId = createdBooking.booking.order_id;
+         //       showPaymentPage();
+         //    }
+         //    if(createdBooking && (approvePayCash || ticketIssued)) {
+         //       sessionTimer(false);
+         //       setTicketPage(createdBooking);
+         //       showTicketPage();
+         //    }
+         // }
+         // showOnHoldBooking();
+         function bookingAjax(current_fs, next_fs, firstBtn) {
+            let user = {
+               userFullName: $('#userFullName').val(),
+               userEmail: $('#userEmail').val(),
+               userPhoneCode: $('#userPhoneCode').val(),
+               userPhone: $('#userPhone').val(),
+               acceptOffers: $('#acceptOffers').is(':checked'),
             }
-            function showOnHoldBooking(){
-               let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
-               let approvePayCash = JSON.parse((localStorage.getItem('approvePayCash') || false));
-               let ticketIssued = JSON.parse((localStorage.getItem('ticketIssued') || false));
-               
-               if (createdBooking) {
-                  orderId = createdBooking.booking.order_id;
+            $.ajax({
+               type: "POST",
+               url: "{{route('bookFlight')}}",
+               data: {
+                  user, passengers,
+                  airline: data['airline'],
+                  offerIds: getOfferIds(data['flightDetails']['bundle']['offerItem']) ?? null,
+                  bundleId: data['flightDetails']['bundle']['offerID'] ?? null,
+                  responseId: data['flightDetails']['segments'][0]['responseId'] ?? null,
+                  paxCount: data['paxCount'] ?? null,
+                  passengerTypes: data['passengerTypes'] ?? null,
+                  _token: "{{ csrf_token() }}"
+               },
+               beforeSend: () => _loader('show'),
+               success: function (response) {
+                  $('#paymentSendTest').removeClass('d-none');
+                  localStorage.setItem('booking', JSON.stringify(response));
                   showPaymentPage();
-               }
-               if(createdBooking && (approvePayCash || ticketIssued)) {
-                  sessionTimer(false);
-                  setTicketPage(createdBooking);
-                  showTicketPage();
-               }
-            }
-            showOnHoldBooking();
-            function bookingAjax(current_fs, next_fs, firstBtn) {
-               let user = {
-                  userFullName: $('#userFullName').val(),
-                  userEmail: $('#userEmail').val(),
-                  userPhoneCode: $('#userPhoneCode').val(),
-                  userPhone: $('#userPhone').val(),
-                  acceptOffers: $('#acceptOffers').is(':checked'),
-               }
-               $.ajax({
-                  type: "POST",
-                  url: "{{route('bookFlight')}}",
-                  data: {
-                     user, passengers,
-                     airline: data['airline'],
-                     offerIds: getOfferIds(data['flightDetails']['bundle']['offerItem']) ?? null,
-                     bundleId: data['flightDetails']['bundle']['offerID'] ?? null,
-                     responseId: data['flightDetails']['segments'][0]['responseId'] ?? null,
-                     paxCount: data['paxCount'] ?? null,
-                     passengerTypes: data['passengerTypes'] ?? null,
-                     _token: "{{ csrf_token() }}"
-                  },
-                  beforeSend: () => _loader('show'),
-                  success: function (response) {
-                     $('#paymentSendTest').removeClass('d-none');
-                     localStorage.setItem('booking', JSON.stringify(response));
-                     showPaymentPage();
 
-                     // Move UI updates here to ensure they run only on success
-                     firstBtn = false;
-                     let index = $("fieldset").index(next_fs);
-                     $("#progressbar li").eq(index).addClass("active");
-                     next_fs.show();
-                     current_fs.animate({ opacity: 0 }, {
-                        step: (now) => {
-                           current_fs.css({ 'display': 'none', 'position': 'relative' });
-                           next_fs.css({ 'opacity': 1 - now });
-                        },
-                        duration: 500
-                     });
-                     setProgressBar(++current);
-                  },
-                  error: function (xhr) {
-                     firstBtn = true;
-                     console.log(xhr);
-                     (async () => {
-                        let alMsg = xhr.responseJSON?.details?.value || 'Please check your details, something seems incorrect.';
-                        if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
-                           // let goBack = localStorage.getItem('flights') || null;
-                           // goBack ? window.location.href = `/flights${goBack}` : window.history.back();
-                        }
-                     })();
-                     // _alert(xhr.responseJSON.message || 'Booking Error', "error");
-                  },
-                  complete: function () {
-                     _loader('hide');
-                  }
-               });
-            }
-            function approveBookingAjax() {
-               showOnHoldBooking();
-               let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
-               if (!createdBooking.booking.id || !createdBooking.booking.client_id) return showMissingDataMsg();
-               $.ajax({
-                  type: "POST",
-                  url: "{{route('confirm.booking')}}",
-                  data: {
-                     bookingId: createdBooking.booking.id,
-                     clientId: createdBooking.booking.client_id,
-                     _token: "{{ csrf_token() }}"
-                  },
-                  beforeSend: () => _loader('show'),
-                  success: function (response) {
-                     localStorage.setItem('ticketIssued', JSON.stringify(true));
-                     localStorage.setItem('booking', JSON.stringify(response));
-                     (async () => {
-                        let alMsg = 'Your payment was successful. Ticket details are shown below and will also be sent to your email.';
-                        if (await _confirm(alMsg, false, 'success', 'Continue')) {
-                           _alert(response.message)
-                           setTicketPage(response);
-                           showTicketPage();
-                           sessionTimer(false);
-                        }
-                     })();
-                  },
-                  error: function (xhr) {
-                     (async () => {
-                        let phone = "{{ config('variables.contact.phone') }}";
-                        let alMsg = `Ticket issue error. please contact us at ${phone} your Order Id is ${orderId ?? 'N/A'}.`;
-                        if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
-                           let goBack = localStorage.getItem('flights') || null;
-                           goBack ? window.location.href = `/flights${goBack}` : window.history.back();
-                        }
-                     })();
-                  },
-                  complete: function () {
-                     _loader('hide');
-                  }
-               });
-            }
-            // ------------------------------------ Booking End ------------------------------------ //
-            // -------------------------------- Combine Functions :) -------------------------------- //
-            // $(".toggle-tax-details").on("click", function () {
-            //    const $toggleBtn = $(this);
-            //    const $details = $toggleBtn.closest(".emiTaxContainer").find(".taxDetailsEmi");
-
-            //    $details.slideToggle(200, function () {
-            //       const isVisible = $details.is(":visible");
-            //       $toggleBtn.text(isVisible ? "Show less" : "Show more");
-            //    });
-            // });
-            $(document).on("click", ".toggle-panelties-details", function () {
-               const $toggleBtn = $(this);
-               const $details = $toggleBtn.closest(".penaltiesContainer").find(".panelties-details");
-
-               $details.slideToggle(200, function () {
-                     const isVisible = $details.is(":visible");
-                     $toggleBtn.text(isVisible ? "Show less" : "Show more");
-               });
+                  // Move UI updates here to ensure they run only on success
+                  firstBtn = false;
+                  let index = $("fieldset").index(next_fs);
+                  $("#progressbar li").eq(index).addClass("active");
+                  next_fs.show();
+                  current_fs.animate({ opacity: 0 }, {
+                     step: (now) => {
+                        current_fs.css({ 'display': 'none', 'position': 'relative' });
+                        next_fs.css({ 'opacity': 1 - now });
+                     },
+                     duration: 500
+                  });
+                  setProgressBar(++current);
+               },
+               error: function (xhr) {
+                  firstBtn = true;
+                  console.log(xhr);
+                  (async () => {
+                     let alMsg = xhr.responseJSON?.details?.value || 'Please check your details, something seems incorrect.';
+                     if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
+                        // let goBack = localStorage.getItem('flights') || null;
+                        // goBack ? window.location.href = `/flights${goBack}` : window.history.back();
+                     }
+                  })();
+                  // _alert(xhr.responseJSON.message || 'Booking Error', "error");
+               },
+               complete: function () {
+                  _loader('hide');
+               }
             });
-            $(".toggle-service-details").on("click", function () {
-               const $toggleBtn = $(this);
-               const $details = $toggleBtn.closest(".emiServiceContainer").find(".serviceDetailsEmi");
+         }
+         function approveBookingAjax() {
+            showOnHoldBooking();
+            let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
+            if (!createdBooking.booking.id || !createdBooking.booking.client_id) return showMissingDataMsg();
+            $.ajax({
+               type: "POST",
+               url: "{{route('confirm.booking')}}",
+               data: {
+                  bookingId: createdBooking.booking.id,
+                  clientId: createdBooking.booking.client_id,
+                  _token: "{{ csrf_token() }}"
+               },
+               beforeSend: () => _loader('show'),
+               success: function (response) {
+                  localStorage.setItem('ticketIssued', JSON.stringify(true));
+                  localStorage.setItem('booking', JSON.stringify(response));
+                  (async () => {
+                     let alMsg = 'Your payment was successful. Ticket details are shown below and will also be sent to your email.';
+                     if (await _confirm(alMsg, false, 'success', 'Continue')) {
+                        _alert(response.message)
+                        setTicketPage(response);
+                        showTicketPage();
+                        sessionTimer(false);
+                     }
+                  })();
+               },
+               error: function (xhr) {
+                  (async () => {
+                     let phone = "{{ config('variables.contact.phone') }}";
+                     let alMsg = `Ticket issue error. please contact us at ${phone} your Order Id is ${orderId ?? 'N/A'}.`;
+                     if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
+                        let goBack = localStorage.getItem('flights') || null;
+                        goBack ? window.location.href = `/flights${goBack}` : window.history.back();
+                     }
+                  })();
+               },
+               complete: function () {
+                  _loader('hide');
+               }
+            });
+         }
+         // ------------------------------------ Booking End ------------------------------------ //
+         // -------------------------------- Combine Functions :) -------------------------------- //
+         $(document).on("click", ".toggle-panelties-details", function () {
+            const $toggleBtn = $(this);
+            const $details = $toggleBtn.closest(".penaltiesContainer").find(".panelties-details");
 
-               $details.slideToggle(200, function () {
+            $details.slideToggle(200, function () {
                   const isVisible = $details.is(":visible");
                   $toggleBtn.text(isVisible ? "Show less" : "Show more");
-               });
             });
-            const getOfferIds = data =>
-               (Array.isArray(data) ? data : data ? [data] : []).map(item => ({
-                     id: item?.id || null,
-                     PassengerRef: item?.services?.[0]?.passengerRefs || null
-               }));
+         });
+         $(".toggle-service-details").on("click", function () {
+            const $toggleBtn = $(this);
+            const $details = $toggleBtn.closest(".emiServiceContainer").find(".serviceDetailsEmi");
+
+            $details.slideToggle(200, function () {
+               const isVisible = $details.is(":visible");
+               $toggleBtn.text(isVisible ? "Show less" : "Show more");
+            });
+         });
+         const getOfferIds = data =>
+            (Array.isArray(data) ? data : data ? [data] : []).map(item => ({
+                  id: item?.id || null,
+                  PassengerRef: item?.services?.[0]?.passengerRefs || null
+            }));
       </script>
    @elseif ($isFlyJinnah)
       <script>
@@ -1852,7 +1864,7 @@
             }
             // ------------------------------------ Booking End ------------------------------------ //
             let orderId = null;
-            showOnHoldBooking();
+            // showOnHoldBooking();
             function bookingAjax(current_fs, next_fs, firstBtn) {
                let user = {
                   userFullName: $('#userFullName').val(),
@@ -2057,21 +2069,21 @@
             // $(".emiServiceContainer").removeClass('d-none');
             // $(".serviceDetailsEmi").html(renderServiceDetailsEmi(response.booking?.booking_items));
          }
-         function showOnHoldBooking(){
-            let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
-            let approvePayCash = JSON.parse((localStorage.getItem('approvePayCash') || false));
-            let ticketIssued = JSON.parse((localStorage.getItem('ticketIssued') || false));
+         // function showOnHoldBooking(){
+         //    let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
+         //    let approvePayCash = JSON.parse((localStorage.getItem('approvePayCash') || false));
+         //    let ticketIssued = JSON.parse((localStorage.getItem('ticketIssued') || false));
             
-            if (createdBooking) {
-               orderId = createdBooking.booking.order_id;
-               showPaymentPage();
-            }
-            if(createdBooking && (approvePayCash || ticketIssued)) {
-               sessionTimer(false);
-               setTicketPage(createdBooking);
-               showTicketPage();
-            }
-         }
+         //    if (createdBooking) {
+         //       orderId = createdBooking.booking.order_id;
+         //       showPaymentPage();
+         //    }
+         //    if(createdBooking && (approvePayCash || ticketIssued)) {
+         //       sessionTimer(false);
+         //       setTicketPage(createdBooking);
+         //       showTicketPage();
+         //    }
+         // }
          function approveBookingAjax() {
             showOnHoldBooking();
             let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
@@ -2083,6 +2095,247 @@
                   bookingId: createdBooking.booking.id,
                   clientId: createdBooking.booking.client_id,
                   transactionId: createdBooking.booking.transaction_id,
+                  _token: "{{ csrf_token() }}"
+               },
+               beforeSend: () => _loader('show'),
+               success: function (response) {
+                  localStorage.setItem('ticketIssued', JSON.stringify(true));
+                  localStorage.setItem('booking', JSON.stringify(response));
+                  (async () => {
+                     let alMsg = 'Your payment was successful. Ticket details are shown below and will also be sent to your email.';
+                     if (await _confirm(alMsg, false, 'success', 'Continue')) {
+                        _alert(response.message)
+                        setTicketPage(response);
+                        showTicketPage();
+                        sessionTimer(false);
+                     }
+                  })();
+               },
+               error: function (xhr) {
+                  (async () => {
+                     let phone = "{{ config('variables.contact.phone') }}";
+                     let alMsg = `Ticket issue error. please contact us at ${phone} your Order Id is ${orderId ?? 'N/A'}.`;
+                     if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
+                        let goBack = localStorage.getItem('flights') || null;
+                        goBack ? window.location.href = `/flights${goBack}` : window.history.back();
+                     }
+                  })();
+               },
+               complete: function () {
+                  _loader('hide');
+               }
+            });
+         }
+      </script>
+   @elseif ($isPia)
+      <script>
+         let data = @json($data);
+         let firstBtn = true;
+         $(".next").click(async function () {
+            let current_fs = $(this).parent();
+            let next_fs = current_fs.next();
+
+            if (!validateFields(current_fs)) return;
+            try {
+               await verifyClient();
+               if (firstBtn) {
+                  confirmationModal('Please confirm that all the provided details are correct.').then((result) => {
+                     if (result.isConfirmed) {
+                        $('#paymentSendTest').addClass('d-none');
+                        // firstBtn = false;
+                        bookingAjax(current_fs, next_fs, firstBtn);
+                     } else {
+                        _alert('Confirmation cancelled.', 'warning');
+                     }
+                  });
+               } else {
+                  let index = $("fieldset").index(next_fs);
+                  $("#progressbar li").eq(index).addClass("active");
+                  next_fs.show();
+                  current_fs.animate({ opacity: 0 }, {
+                     step: (now) => {
+                        current_fs.css({ 'display': 'none', 'position': 'relative' });
+                        next_fs.css({ 'opacity': 1 - now });
+                     },
+                     duration: 500
+                  });
+                  setProgressBar(++current);
+               }
+               // console.log('await');
+            } catch (e) {
+               // console.log('catch')
+               return;
+            }
+            // console.log('newxt');
+
+         });
+         function setTicketPage (response) {
+            let totalPrice = parseInt(response.booking?.price) + parseInt(tax);
+            $(".totalPricePaid").text(`Price: ${response.booking?.price_code ?? 'PKR'} ${formatCurrency(totalPrice) ?? 0}`);
+            $(".taxPaid").text(`Price: PKR ${formatCurrency(tax)}`);
+            $(".guestName").text(response.booking.client.name);
+            $(".ticketMsg").text(response.message);
+            $(".contactDetails").html(renderTravelerDetails(JSON.parse(response.booking?.passenger_details), (response.booking?.tickets || []) ));
+            $(".paxWithPrice").html(renderPaxWithPrice(response.booking?.booking_items));
+            $(".emiTimeLimitContainer").removeClass('d-none');
+            $(".timeLimitsEmi").html(renderTimeLimitsEmi(response.booking));
+            // $(".emiTaxContainer").removeClass('d-none');
+            // $(".emiServiceContainer").removeClass('d-none');
+            $(".serviceDetailsEmi").html(renderServiceDetailsEmi(response.booking?.booking_items));
+            $(".orderId").html(response.booking.order_id);
+         }
+         const renderTravelerDetails = (data, tickets) => {
+            if (!Array.isArray(data) || data.length === 0) {
+               return `<div class="alert alert-danger" role="alert">Data is missing :)</div>`;
+            }
+            return data.map((passenger, index) => {
+               const matchingTicket = (tickets || []).find(t => t.passenger_reference === passenger.passenger_reference);
+
+               const ticketHtml = matchingTicket ? `
+                  <div class="col-6">
+                     <div class="border rounded p-3 mt-2">
+                        <p>Issue date: <br><span>${formatDateTime(matchingTicket.issue_date)}</span></p>
+                        <p>ETicket No: <br><span class="copyText">${matchingTicket.ticket_no}</span></p>
+                        <p>Type: <span>E-Ticket</span></p>
+                        <p>Price Reference: <span>${matchingTicket.price_reference}</span></p>
+                     </div>
+                  </div>
+               ` : '<div class="col-12">No Ticket Issued</div>';
+               return `
+                  <div class="custom-method setp-bult traveler-bult row">
+                     <div class="col-md-6 col-12">
+                        <h1 class="font-weight-bold mb-3">Passenger Details</h1>
+                        <p><span>Traveler ${index + 1}</span></p>
+                        <p><span>Title</span>: ${passenger.title || ''}</p>
+                        <p><span>Name</span>: ${passenger.given_name || passenger.name}</p>
+                        <p><span>Surname</span>: ${passenger.surname || passenger.surName}</p>
+                     </div>
+                     <div class="col-md-6 col-12">
+                        <h1 class="font-weight-bold mb-3">Ticket Details</h1>
+                        <div class="row">
+                           ${ticketHtml}
+                        </div>
+                     </div>
+                  </div>
+               `;
+            }).join('');
+         };
+         const renderPaxWithPrice = data => {
+            if (data.length === 0) return ``;
+            return data.map((row) => `
+               <div class="pri-eid">
+                  <p>PIA Airline - (${row.passenger_code})</p>
+                  <p>Price: ${row.price_code} ${formatCurrency(row.price)}</p>
+               </div>
+            `).join('');
+         };
+         const renderTimeLimitsEmi = data => {
+            if (data.length === 0) return ``;
+            const payTimeLimit = formatDateTime(data.payment_limit);
+            const ticketTimeLimit = formatDateTime(data.ticket_limit);
+            return `
+               <div class="pri-eid font-weight-bold">
+                  <p>Payment Time Limit</p>
+                  <p class="font-bold">${payTimeLimit}</p>
+               </div>
+               <div class="pri-eid font-weight-bold">
+                  <p>Ticket Time Limit</p>
+                  <p class="font-bold">${ticketTimeLimit}</p>
+               </div>
+            `;
+         };
+         const renderServiceDetailsEmi = data => {
+            if (!data || data.length === 0) return ``;
+            return data.map(row => {
+               const passengers = row.passenger_code;
+               const serviceArray = JSON.parse(row.services || null);
+               const serviceDetails = serviceArray.map(service => {
+                     if (service.details && service.details.Type && service.details.details?.length > 0) {
+                        return `
+                           <div class="pri-eid">
+                              <p class="font-weight-bold">${service.details.details}</p>
+                              <p>${service.details.Type}</p>
+                           </div>`;
+                     }
+                     return '';
+               }).join('');
+               if (!serviceDetails.trim()) return '';
+               return `
+                  <div class="pri-eid font-weight-bold">
+                     <h5 class="text-info">Passenger Info: ${passengers}</h5>
+                  </div>
+                  ${serviceDetails}
+               `;
+            }).join('');
+         };
+         
+         function bookingAjax(current_fs, next_fs, firstBtn) {
+            let user = {
+               userFullName: $('#userFullName').val(),
+               userEmail: $('#userEmail').val(),
+               userPhoneCode: $('#userPhoneCode').val(),
+               userPhone: $('#userPhone').val(),
+               acceptOffers: $('#acceptOffers').is(':checked'),
+            }
+            // console.log(passengers, user, data)
+            // return
+            $.ajax({
+               type: "POST",
+               url: "{{route('bookFlight')}}",
+               data: {
+                  user, passengers,
+                  airline: data['airline'],
+                  data: data['bundle'],
+                  paxCount: data['paxCount'],
+                  _token: "{{ csrf_token() }}"
+               },
+               beforeSend: () => _loader('show'),
+               success: function (response) {
+                  $('#paymentSendTest').removeClass('d-none');
+                  localStorage.setItem('booking', JSON.stringify(response));
+                  showPaymentPage();
+
+                  // Move UI updates here to ensure they run only on success
+                  firstBtn = false;
+                  let index = $("fieldset").index(next_fs);
+                  $("#progressbar li").eq(index).addClass("active");
+                  next_fs.show();
+                  current_fs.animate({ opacity: 0 }, {
+                     step: (now) => {
+                        current_fs.css({ 'display': 'none', 'position': 'relative' });
+                        next_fs.css({ 'opacity': 1 - now });
+                     },
+                     duration: 500
+                  });
+                  setProgressBar(++current);
+               },
+               error: function (xhr) {
+                  firstBtn = true;
+                  console.log(xhr);
+                  (async () => {
+                     let alMsg = xhr.responseJSON?.message || 'Please check your details, something seems incorrect.';
+                     if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
+                        // let goBack = localStorage.getItem('flights') || null;
+                        // goBack ? window.location.href = `/flights${goBack}` : window.history.back();
+                     }
+                  })();
+                  // _alert(xhr.responseJSON.message || 'Booking Error', "error");
+               },
+               complete: function () {
+                  _loader('hide');
+               }
+            });
+         }
+         function approveBookingAjax() {
+            showOnHoldBooking();
+            let createdBooking = JSON.parse((localStorage.getItem('booking') || null));
+            if (!createdBooking.booking.id || !createdBooking.booking.client_id) return showMissingDataMsg();
+            $.ajax({
+               type: "POST",
+               url: "{{route('confirm.booking')}}",
+               data: {
+                  bookingId: createdBooking.booking.id,
+                  clientId: createdBooking.booking.client_id,
                   _token: "{{ csrf_token() }}"
                },
                beforeSend: () => _loader('show'),

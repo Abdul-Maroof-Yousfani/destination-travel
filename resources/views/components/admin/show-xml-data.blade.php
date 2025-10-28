@@ -196,9 +196,9 @@
                 @endif
             </div>
         @elseif ($airline === 'flyjinnah')
-        @php
-            $airReservation = !empty($xmlBody['response']['Body']['OTA_AirBookRS']['AirReservation']) ? $xmlBody['response']['Body']['OTA_AirBookRS']['AirReservation'] : (!empty($xmlBody['Body']['OTA_AirBookRS']['AirReservation']) ? $xmlBody['Body']['OTA_AirBookRS']['AirReservation'] : null);
-        @endphp
+            @php
+                $airReservation = !empty($xmlBody['response']['Body']['OTA_AirBookRS']['AirReservation']) ? $xmlBody['response']['Body']['OTA_AirBookRS']['AirReservation'] : (!empty($xmlBody['Body']['OTA_AirBookRS']['AirReservation']) ? $xmlBody['Body']['OTA_AirBookRS']['AirReservation'] : null);
+            @endphp
             @if ($bookingRequest && (is_array($xmlBody) || is_array($airReservation)))
                 <div class="accordion" id="bookingAccordion">
                     <!-- General Booking Information -->
@@ -585,6 +585,300 @@
                         <div class="alert alert-warning">No penalties information available.</div>
                     @endif
                 </div>
+            @endif
+        @elseif ($airline === 'pia')
+            @if ($bookingRequest && is_array($xmlBody))
+                <div class="accordion" id="bookingAccordion">
+                    <!-- General Booking Information -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="generalInfoHeading">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#generalInfo" aria-expanded="true" aria-controls="generalInfo">
+                                General Booking Information PIA
+                            </button>
+                        </h2>
+                        <div id="generalInfo" class="accordion-collapse collapse show" aria-labelledby="generalInfoHeading" data-bs-parent="#bookingAccordion">
+                            <div class="accordion-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item"><strong>ID:</strong> {{ $bookingRequest->id ?? 'N/A' }}</li>
+                                    <li class="list-group-item"><strong>Airline:</strong> {{ $bookingRequest->airline ?? 'N/A' }}</li>
+                                    <li class="list-group-item"><strong>Ticket Limit:</strong> {{ !empty($bookingRequest->ticket_limit) ? \Carbon\Carbon::parse($bookingRequest->ticket_limit)->format('d M Y, H:i') : (!empty($xmlBody['paymentLimit']) ? \Carbon\Carbon::parse($xmlBody['paymentLimit'])->format('d M Y, H:i') : 'N/A') }}</li>
+                                    <li class="list-group-item"><strong>Payment Limit:</strong> {{ !empty($bookingRequest->payment_limit) ? \Carbon\Carbon::parse($bookingRequest->payment_limit)->format('d M Y, H:i') : (!empty($xmlBody['paymentLimit']) ? \Carbon\Carbon::parse($xmlBody['paymentLimit'])->format('d M Y, H:i') : 'N/A') }}</li>
+                                    <li class="list-group-item"><strong>Status:</strong> {{ !empty($bookingRequest->status) ? ucfirst($bookingRequest->status) : (!empty($xmlBody['order']['statusCode']) ? $xmlBody['order']['statusCode'] : 'N/A') }}</li>
+                                    <li class="list-group-item"><strong>Client ID:</strong> {{ $bookingRequest->client_id ?? 'N/A' }}</li>
+                                    <li class="list-group-item"><strong>Booking ID:</strong> {{ $bookingRequest->booking_id ?? 'N/A' }}</li>
+                                    <li class="list-group-item"><strong>Transaction ID:</strong> {{ !empty($xmlBody['transaction_id']) ? $xmlBody['transaction_id'] : 'N/A' }}</li>
+                                    <li class="list-group-item"><strong>Total Amount:</strong> {{ !empty($xmlBody['totalPrice']) ? 'PKR ' . number_format($xmlBody['totalPrice'], 2) : 'N/A' }}</li>
+                                    <li class="list-group-item"><strong>Booking Reference:</strong> {{ !empty($xmlBody['order']['orderID']) ? $xmlBody['order']['orderID'] : 'N/A' }}</li>
+                                    <li class="list-group-item"><strong>Created At:</strong> {{ !empty($bookingRequest->created_at) ? \Carbon\Carbon::parse($bookingRequest->created_at)->format('d M Y, H:i') : 'N/A' }}</li>
+                                    <li class="list-group-item"><strong>Updated At:</strong> {{ !empty($bookingRequest->updated_at) ? \Carbon\Carbon::parse($bookingRequest->updated_at)->format('d M Y, H:i') : 'N/A' }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Passenger Information -->
+                    @if (!empty($xmlBody['passengers']) && is_array($xmlBody['passengers']))
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="passengerInfoHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#passengerInfo" aria-expanded="false" aria-controls="passengerInfo">
+                                    Passenger Information
+                                </button>
+                            </h2>
+                            <div id="passengerInfo" class="accordion-collapse collapse" aria-labelledby="passengerInfoHeading" data-bs-parent="#bookingAccordion">
+                                <div class="accordion-body">
+                                    @foreach ($xmlBody['passengers'] as $passenger)
+                                        <div class="card mb-3">
+                                            <div class="card-header">
+                                                Passenger {{ !empty($passenger['pax_id']) ? $passenger['pax_id'] : 'Unknown' }} ({{ !empty($passenger['ptc']) ? $passenger['ptc'] : 'N/A' }})
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="list-group list-group-flush">
+                                                    <li class="list-group-item"><strong>Name:</strong> {{ !empty($passenger['title']) ? $passenger['title'] . ' ' : '' }}{{ !empty($passenger['given_name']) ? $passenger['given_name'] : '' }} {{ !empty($passenger['surname']) ? $passenger['surname'] : '' }}</li>
+                                                    <li class="list-group-item"><strong>Birthdate:</strong> {{ !empty($passenger['birthdate']) ? \Carbon\Carbon::parse($passenger['birthdate'])->format('d M Y') : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Gender:</strong> {{ !empty($passenger['gender']) ? $passenger['gender'] : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Citizenship:</strong> {{ !empty($passenger['citizenship']) ? $passenger['citizenship'] : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Ticket Number:</strong> {{ !empty($passenger['ticket']['ticketNumber']) ? $passenger['ticket']['ticketNumber'] : 'N/A' }}</li>
+                                                </ul>
+                                                <!-- Services -->
+                                                @if (!empty($passenger['services']) && is_array($passenger['services']))
+                                                    <h6 class="mt-3">Services</h6>
+                                                    <ul class="list-group list-group-flush">
+                                                        @foreach ($passenger['services'] as $service)
+                                                            <li class="list-group-item">
+                                                                <strong>Service:</strong> {{ !empty($service['service_definition_id']) ? $service['service_definition_id'] : 'N/A' }} 
+                                                                (Status: {{ !empty($service['status_code']) ? $service['status_code'] : 'N/A' }})
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                @else
+                                                    <p>No services information available.</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="alert alert-warning">No passenger information available.</div>
+                    @endif
+
+                    <!-- Flight Segments -->
+                    @if (!empty($xmlBody['segments']) && is_array($xmlBody['segments']))
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="segmentsHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#segments" aria-expanded="false" aria-controls="segments">
+                                    Flight Segments
+                                </button>
+                            </h2>
+                            <div id="segments" class="accordion-collapse collapse" aria-labelledby="segmentsHeading" data-bs-parent="#bookingAccordion">
+                                <div class="accordion-body">
+                                    @foreach ($xmlBody['segments'] as $segment)
+                                        <div class="card mb-3">
+                                            <div class="card-header">
+                                                Segment: {{ !empty($segment['origin']) ? $segment['origin'] : 'N/A' }} to {{ !empty($segment['destination']) ? $segment['destination'] : 'N/A' }}
+                                            </div>
+                                            <div class="card-body">
+                                                <h6>Flight Details</h6>
+                                                <ul class="list-group list-group-flush">
+                                                    <li class="list-group-item"><strong>Departure:</strong> {{ !empty($segment['origin_name']) ? $segment['origin_name'] : 'N/A' }} ({{ !empty($segment['origin']) ? $segment['origin'] : 'N/A' }}) on {{ !empty($segment['departure_time']) ? \Carbon\Carbon::parse($segment['departure_time'])->format('d M Y, H:i') : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Arrival:</strong> {{ !empty($segment['destination_name']) ? $segment['destination_name'] : 'N/A' }} ({{ !empty($segment['destination']) ? $segment['destination'] : 'N/A' }}) on {{ !empty($segment['arrival_time']) ? \Carbon\Carbon::parse($segment['arrival_time'])->format('d M Y, H:i') : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Duration:</strong> {{ !empty($segment['duration']) ? $segment['duration'] : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Flight Number:</strong> {{ !empty($segment['flight_number']) ? $segment['flight_number'] : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Carrier:</strong> {{ !empty($segment['carrier']) ? $segment['carrier'] : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Aircraft Type:</strong> {{ !empty($segment['aircraft_type']) ? $segment['aircraft_type'] : 'N/A' }}</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="alert alert-warning">No flight segments available.</div>
+                    @endif
+
+                    <!-- Pricing Information -->
+                    @if (!empty($xmlBody['passengers']) && is_array($xmlBody['passengers']))
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="pricingInfoHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pricingInfo" aria-expanded="false" aria-controls="pricingInfo">
+                                    Pricing Information
+                                </button>
+                            </h2>
+                            <div id="pricingInfo" class="accordion-collapse collapse" aria-labelledby="pricingInfoHeading" data-bs-parent="#bookingAccordion">
+                                <div class="accordion-body">
+                                    @foreach ($xmlBody['passengers'] as $passenger)
+                                        @if (!empty($passenger['fare_details']['fare_price_type']['price']))
+                                            <div class="card mb-3">
+                                                <div class="card-header">
+                                                    Pricing for Passenger {{ !empty($passenger['pax_id']) ? $passenger['pax_id'] : 'Unknown' }} ({{ !empty($passenger['ptc']) ? $passenger['ptc'] : 'N/A' }})
+                                                </div>
+                                                <div class="card-body">
+                                                    <ul class="list-group list-group-flush">
+                                                        <li class="list-group-item"><strong>Base Fare:</strong> {{ !empty($passenger['fare_details']['fare_price_type']['price']['base_amount']) ? $passenger['fare_details']['fare_price_type']['price']['currency'] . ' ' . number_format($passenger['fare_details']['fare_price_type']['price']['base_amount'], 2) : 'N/A' }}</li>
+                                                        <li class="list-group-item"><strong>Total Fare:</strong> {{ !empty($passenger['fare_details']['fare_price_type']['price']['total_amount']) ? $passenger['fare_details']['fare_price_type']['price']['currency'] . ' ' . number_format($passenger['fare_details']['fare_price_type']['price']['total_amount'], 2) : 'N/A' }}</li>
+                                                        <li class="list-group-item"><strong>Surcharge:</strong> {{ !empty($passenger['fare_details']['fare_price_type']['price']['surcharge']) ? $passenger['fare_details']['fare_price_type']['price']['currency'] . ' ' . number_format($passenger['fare_details']['fare_price_type']['price']['surcharge'], 2) : 'N/A' }}</li>
+                                                    </ul>
+                                                    @if (!empty($passenger['fare_details']['fare_price_type']['price']['taxes']) && is_array($passenger['fare_details']['fare_price_type']['price']['taxes']))
+                                                        <h6 class="mt-3">Tax Breakdown</h6>
+                                                        <ul class="list-group list-group-flush">
+                                                            @foreach ($passenger['fare_details']['fare_price_type']['price']['taxes'] as $tax)
+                                                                <li class="list-group-item">
+                                                                    <strong>{{ !empty($tax['tax_code']) ? $tax['tax_code'] : 'Unknown Tax' }}:</strong> 
+                                                                    {{ !empty($tax['amount']) ? $passenger['fare_details']['fare_price_type']['price']['currency'] . ' ' . number_format($tax['amount'], 2) : 'N/A' }} 
+                                                                    (Refundable: {{ !empty($tax['refund_ind']) ? ($tax['refund_ind'] === 'true' ? 'Yes' : 'No') : 'N/A' }})
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @else
+                                                        <p>No tax breakdown available.</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            Total Pricing
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-group list-group-flush">
+                                                <li class="list-group-item"><strong>Total Amount:</strong> {{ !empty($xmlBody['totalPrice']) ? 'PKR ' . number_format($xmlBody['totalPrice'], 2) : 'N/A' }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="alert alert-warning">No pricing information available.</div>
+                    @endif
+
+                    <!-- Baggage Allowances -->
+                    @if (!empty($xmlBody['baggage_allowances']) && is_array($xmlBody['baggage_allowances']))
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="baggageInfoHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#baggageInfo" aria-expanded="false" aria-controls="baggageInfo">
+                                    Baggage Allowances
+                                </button>
+                            </h2>
+                            <div id="baggageInfo" class="accordion-collapse collapse" aria-labelledby="baggageInfoHeading" data-bs-parent="#bookingAccordion">
+                                <div class="accordion-body">
+                                    @foreach ($xmlBody['baggage_allowances'] as $baggage)
+                                        <div class="card mb-3">
+                                            <div class="card-header">
+                                                Baggage Allowance {{ !empty($baggage['baggage_allowance_id']) ? $baggage['baggage_allowance_id'] : 'Unknown' }}
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="list-group list-group-flush">
+                                                    <li class="list-group-item"><strong>Type:</strong> {{ !empty($baggage['type']) ? $baggage['type'] : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Max Weight:</strong> {{ !empty($baggage['piece_allowance']['max_weight']['value']) ? $baggage['piece_allowance']['max_weight']['value'] . ' ' . $baggage['piece_allowance']['max_weight']['unit'] : 'N/A' }}</li>
+                                                    <li class="list-group-item"><strong>Applicable Party:</strong> {{ !empty($baggage['piece_allowance']['applicable_party']) ? $baggage['piece_allowance']['applicable_party'] : 'N/A' }}</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="alert alert-warning">No baggage allowance information available.</div>
+                    @endif
+
+                    <!-- Penalties -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="penaltiesHeading">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#penalties" aria-expanded="false" aria-controls="penalties">
+                                Penalties & Cancellation Fees
+                            </button>
+                        </h2>
+                        <div id="penalties" class="accordion-collapse collapse" aria-labelledby="penaltiesHeading" data-bs-parent="#bookingAccordion">
+                            <div class="accordion-body">
+                                @if (!empty($xmlBody['passengers']) && is_array($xmlBody['passengers']))
+                                    <h6>Per Passenger Cancellation Fees</h6>
+                                    @foreach ($xmlBody['passengers'] as $passenger)
+                                        @if (!empty($passenger['cancel_fee']))
+                                            <div class="card mb-2">
+                                                <div class="card-header">
+                                                    <strong>{{ !empty($passenger['ptc']) ? strtoupper($passenger['ptc']) : 'Unknown' }} - 
+                                                    {{ !empty($passenger['given_name']) ? $passenger['given_name'] : '' }} {{ !empty($passenger['surname']) ? $passenger['surname'] : '' }}</strong>
+                                                </div>
+                                                <div class="card-body p-2">
+                                                    <ul class="list-group list-group-flush">
+                                                        <li class="list-group-item d-flex justify-content-between">
+                                                            <span><strong>Penalty ID:</strong> {{ !empty($passenger['cancel_fee']['penalty_id']) ? $passenger['cancel_fee']['penalty_id'] : 'N/A' }}</span>
+                                                        </li>
+                                                        <li class="list-group-item d-flex justify-content-between">
+                                                            <span><strong>Type:</strong> {{ !empty($passenger['cancel_fee']['type_code']) ? $passenger['cancel_fee']['type_code'] : 'N/A' }}</span>
+                                                        </li>
+                                                        <li class="list-group-item d-flex justify-content-between">
+                                                            <span><strong>Cancellation Fee:</strong></span>
+                                                            <span class="fw-bold text-danger">
+                                                                {{ !empty($passenger['cancel_fee']['cancel_fee']) ? 'PKR ' . number_format($passenger['cancel_fee']['cancel_fee'], 2) : 'PKR 0.00' }}
+                                                            </span>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                    
+                                    <!-- Summary Table -->
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <strong>Penalty Summary</strong>
+                                        </div>
+                                        <div class="card-body p-3">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-dark">
+                                                        <tr>
+                                                            <th>Passenger Type</th>
+                                                            <th>Passenger Name</th>
+                                                            <th>Penalty Type</th>
+                                                            <th>Amount (PKR)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($xmlBody['passengers'] as $passenger)
+                                                            @if (!empty($passenger['cancel_fee']))
+                                                                <tr>
+                                                                    <td>
+                                                                        <span class="badge bg-{{ $passenger['ptc'] === 'ADT' ? 'primary' : ($passenger['ptc'] === 'CHD' ? 'warning' : 'info') }}">
+                                                                            {{ !empty($passenger['ptc']) ? $passenger['ptc'] : 'N/A' }}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td>{{ !empty($passenger['given_name']) ? $passenger['given_name'] : '' }} {{ !empty($passenger['surname']) ? $passenger['surname'] : '' }}</td>
+                                                                    <td>{{ !empty($passenger['cancel_fee']['type_code']) ? $passenger['cancel_fee']['type_code'] : 'N/A' }}</td>
+                                                                    <td class="fw-bold text-end">
+                                                                        <span class="text-danger">{{ !empty($passenger['cancel_fee']['cancel_fee']) ? number_format($passenger['cancel_fee']['cancel_fee'], 2) : '0.00' }}</span>
+                                                                    </td>
+                                                                </tr>
+                                                            @endif
+                                                        @endforeach
+                                                        <tr class="table-light fw-bold">
+                                                            <td colspan="3" class="text-end">Total Penalties:</td>
+                                                            <td class="text-end text-danger">
+                                                                PKR {{ array_sum(array_column(array_filter($xmlBody['passengers'], function($p) { return !empty($p['cancel_fee']['cancel_fee']); }), 'cancel_fee', 'cancel_fee')) | number_format(0) }}
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i> No passenger data available to display penalties.
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="alert alert-warning">No booking request data available for PIA.</div>
             @endif
         @endif
     @else

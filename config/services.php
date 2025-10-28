@@ -56,6 +56,7 @@ return [
         'username' => env('PIA_API_USERNAME'),
         'password' => env('PIA_API_PASSWORD'),
         'email' => env('PIA_API_EMAIL'),
+        'name' => env('PIA_API_NAME'),
     ],
 
     'emirates_api' => [

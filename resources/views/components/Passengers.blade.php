@@ -44,6 +44,7 @@
       </label>
    </div>
 </div>
+{{-- @dd($flightData) --}}
 @if (!empty($flightData['passengerTypes']))
    @foreach ($flightData['passengerTypes'] as $key => $type)
       @if (!empty($flightData['paxCount'][$key]))

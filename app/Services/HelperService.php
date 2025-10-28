@@ -15,6 +15,7 @@ class HelperService
     {
         $cookieJar = new CookieJar();
         return Http::withHeaders($headers)
+        ->timeout(120)
         ->withOptions(['verify' => false, 'cookies' => $cookieJar])
         ->withBody($body, 'text/xml')->post($url);
     }
@@ -95,5 +96,19 @@ class HelperService
         });
 
         return $airports[$code] ?? $code ?? 'Unknown';
+    }
+
+    function formatXml(string $xml): string
+    {
+        try {
+            $dom = new \DOMDocument('1.0');
+            $dom->preserveWhiteSpace = false;
+            $dom->formatOutput = true;
+            $dom->loadXML($xml);
+            return $dom->saveXML();
+        } catch (\Exception $e) {
+            // If invalid XML, return original string
+            return $xml;
+        }
     }
 }

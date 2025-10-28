@@ -719,15 +719,20 @@
 </div>
 
 <script>
+    // const staticAirports = [
+    //     { id: 'KHI', text: 'Karachi (KHI)' },
+    //     { id: 'ISB', text: 'Islamabad (ISB)' },
+    //     { id: 'DXB', text: 'Dubai (DXB)' },
+    //     { id: 'JFK', text: 'New York (JFK)' },
+    //     // { id: 'LHE', text: 'Lahore (LHE)' },
+    //     { id: 'LAX', text: 'Los Angeles (LAX)' },
+    //     { id: 'ORD', text: 'Chicago (ORD)' },
+    //     { id: 'BAH', text: 'Bahrain (BAH)' },
+    // ];
     const staticAirports = [
-        { id: 'KHI', text: 'Karachi (KHI)' },
-        { id: 'ISB', text: 'Islamabad (ISB)' },
-        { id: 'DXB', text: 'Dubai (DXB)' },
-        { id: 'JFK', text: 'New York (JFK)' },
-        // { id: 'LHE', text: 'Lahore (LHE)' },
-        { id: 'LAX', text: 'Los Angeles (LAX)' },
-        { id: 'ORD', text: 'Chicago (ORD)' },
-        { id: 'BAH', text: 'Bahrain (BAH)' },
+        @foreach($airports as $airport)
+            { id: '{{ $airport->code }}', text: '{{ addslashes($airport->name) }} ({{ $airport->code }})' },
+        @endforeach
     ];
 
     function setupAirportSelect(selector) {

@@ -26,7 +26,14 @@ class PiaService
     public function __construct(HelperService $helperService)
     {
         $this->regenerateLogs = true;
-        $this->logPath = storage_path('logs/pia_logs.txt');
+        $logDir = storage_path('logs/pia');
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+
+        $this->logPath = $logDir . '/' . now()->format('Y_m_d') . '.log';
+        $this->logPathBooking = $logDir . '/bookings_' . now()->format('Y_m_d') . '.log';
+
         $this->helperService = $helperService;
         $this->config = config('services.pia_api');
 
@@ -37,26 +44,54 @@ class PiaService
         $this->password = $this->config['password'];
         $this->url = $this->config['url'];
     }
-    /**
-     * Send API request and parse XML response
-     *
-     * @param string $method HTTP method (POST)
-     * @param string $endpoint API endpoint
-     * @param string $xmlBody XML request body
-     * @return SimpleXMLElement Parsed response
-     * @throws \Exception
-     */
-    public function sendRequest($endpoint, $xmlBody)
+    public function sendRequest($endpoint, $xmlBody, $isBooking = false)
     {
         // dd($endpoint, $xmlBody);
         // dd($this->getSoapHeaders($endpoint));
         try {
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "{$endpoint} Request:\n" . (string) $xmlBody . "\n\n\n");}
+            if ($this->regenerateLogs) {
+                $formattedRequest = $this->helperService->formatXml((string) $xmlBody);
+                file_put_contents($this->logPath, "{$endpoint} Request:\n{$formattedRequest}\n\n\n", FILE_APPEND);
+                if ($isBooking) {
+                    file_put_contents($this->logPathBooking, "{$endpoint} Request:\n{$formattedRequest}\n\n\n", FILE_APPEND);
+                }
+            }
+            // if ($this->regenerateLogs) file_put_contents($this->logPath, "{$endpoint} Request:\n" . (string) $xmlBody . "\n\n\n", FILE_APPEND);
 
-        $response = $this->helperService->postXml($this->url, $this->getSoapHeaders($endpoint), $xmlBody);
+            $response = $this->helperService->postXml($this->url, $this->getSoapHeaders($endpoint), $xmlBody);
 
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "{$endpoint} Response:\n" . (string) $response . "\n\n\n\n\n\n", FILE_APPEND);}
-        return $this->helperService->XMLtoJSON($response->body());
+            if ($this->regenerateLogs) {
+                $formattedResponse = $this->helperService->formatXml((string) $response);
+                file_put_contents($this->logPath, "{$endpoint} Response:\n{$formattedResponse}\n\n\n\n\n\n", FILE_APPEND);
+                if ($isBooking) {
+                    file_put_contents($this->logPathBooking, "{$endpoint} Response:\n{$formattedResponse}\n\n\n\n\n\n", FILE_APPEND);
+                }
+            }
+
+            if (!$response || !$response->successful()) {
+                \Log::error('Flight booking request failed PIA', [
+                    'status' => $response?->status(),
+                    'response' => $response?->body()
+                ]);
+                return ['error' => "Flight booking request failed PIA ({$endpoint}).", 'details' => $response?->body()];
+            }
+            // dd($response->body());
+            $parsed = $this->helperService->XMLtoJSON($response->body());
+
+            $body = $parsed['Body'] ?? null;
+            if ($body && is_array($body)) {
+                $firstKey = array_key_first($body);
+                $payload = $body[$firstKey] ?? null;
+
+                if (isset($payload['Error'])) {
+                    return [
+                        'error' => $payload['Error']['Code'] ?? 'UNKNOWN_ERROR',
+                        'message' => $payload['Error']['DescText'] ?? 'No description provided',
+                        'raw' => $payload
+                    ];
+                }
+                return $payload ?? $parsed;
+            }
         } catch (RequestException $e) {
             $response = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
             Log::error('PIA API Request Error', [
@@ -67,12 +102,6 @@ class PiaService
             throw new \Exception('API request failed: ' . $e->getMessage());
         }
     }
-
-    /**
-     * Generate Party block for XML requests
-     *
-     * @return string
-     */
     public function getPartyBlock()
     {
         return <<<XML
@@ -85,23 +114,12 @@ class PiaService
                             <EmailAddressText>{$this->config['email']}</EmailAddressText>
                         </EmailAddress>
                     </ContactInfo>
-                    <Name>HITIT COMPUTER SERVICES</Name>
+                    <Name>{$this->config['name']}</Name>
                 </TravelAgency>
             </Sender>
         </Party>
         XML;
     }
-
-    /**
-     * DoAirShopping for one-way, round-trip, or multi-city flights
-     *
-     * @param array $segments Array of [origin, destination, departure_date]
-     * @param array $passengers Array of [type => ADT/CHD/INF]
-     * @param string $cabinType Cabin type (e.g., Y for Economy)
-     * @param string $currency Currency code (e.g., PKR)
-     * @param bool $useCitySearch Whether to use city codes
-     * @return SimpleXMLElement
-     */
     public function searchFlights($data) // AirShopping
     {
         // Prepare segments
@@ -112,7 +130,6 @@ class PiaService
                 'departure_date' => $data['dep'],
             ],
         ];
-
         // Add return segment if provided
         if (!empty($data['return'])) {
             $segments[] = [
@@ -121,7 +138,6 @@ class PiaService
                 'departure_date' => $data['return'],
             ];
         }
-
         // Prepare passengers
         $passengers = [];
         for ($i = 0; $i < $data['adt']; $i++) {
@@ -133,22 +149,20 @@ class PiaService
         for ($i = 0; $i < $data['inf']; $i++) {
             $passengers[] = ['type' => 'INF'];
         }
-
         // Default parameters
         $cabinType = $data['cabinClass'] ?? 'Y';
         $currency = 'PKR'; // Default currency
         $useCitySearch = true; // Enable city search as per document recommendation
-
         $originDestCriteria = '';
         foreach ($segments as $index => $segment) {
             $originDestCriteria .= <<<XML
             <OriginDestCriteria>
                 <DestArrivalCriteria>
-                    <IATA_LocationCode>{$segment['origin']}</IATA_LocationCode>
+                    <IATA_LocationCode>{$segment['destination']}</IATA_LocationCode>
                 </DestArrivalCriteria>
                 <OriginDepCriteria>
                     <Date>{$segment['departure_date']}</Date>
-                    <IATA_LocationCode>{$segment['destination']}</IATA_LocationCode>
+                    <IATA_LocationCode>{$segment['origin']}</IATA_LocationCode>
                 </OriginDepCriteria>
                 <PreferredCabinType>
                     <CabinTypeCode>{$cabinType}</CabinTypeCode>
@@ -156,7 +170,6 @@ class PiaService
             </OriginDestCriteria>
             XML;
         }
-
         $paxList = '';
         $counter = 1;
         foreach ($passengers as $pax) {
@@ -168,9 +181,7 @@ class PiaService
             XML;
             $counter++;
         }
-
         $specialNeeds = $useCitySearch ? '<SpecialNeedsCriteria>USE_CITY_SEARCH</SpecialNeedsCriteria>' : '';
-
         $xmlRequest = <<<XML
         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.iata.org/IATA/2015/00/2020.1/IATA_AirShoppingRQ">
             <soapenv:Header/>
@@ -201,581 +212,435 @@ class PiaService
             </soapenv:Body>
         </soapenv:Envelope>
         XML;
-
+        // dd($xmlRequest);
         $response = $this->sendRequest('doAirShopping', $xmlRequest);
         // \Log::info(['response' => $response]);
         
-        if (!$response || !$response->successful()) {
-            \Log::error('Flight booking request failed Emirates', [
-                'status' => $response?->status(),
-                'response' => $response?->body()
-            ]);
-            return ['error' => 'Flight booking request failed Emirates (orderChange).', 'details' => $response?->body()];
+        if (!$response || isset($response['error'])) {
+            \Log::error('AirShopping request failed', ['response' => $response]);
+            return ['error' => 'Flight booking request failed PIA (AirShopping).', 'details' => $response];
         }
 
         // if (isset($orderViewRS['Errors'])) return ['error' => 'Flight booking failed.', 'details' => $orderViewRS['Errors']['Error']];
-        dd($response);
+        // dd($response);
 
-        dd($this->parseAirShoppingResponse($response));
+        // dd($this->parseAirShoppingResponse($response));
         return $this->parseAirShoppingResponse($response);
     }
-
-    /**
-     * DoOrderCreate for creating a PNR
-     *
-     * @param string $offerId Offer ID from DoAirShopping response
-     * @param array $passengers Array of passenger details [birthdate, citizenship, email, phone, etc.]
-     * @param array|null $payment Payment details [currency, amount, method, etc.]
-     * @param string $currency Currency code
-     * @return SimpleXMLElement
-     */
-    public function createOrder($offerId, $passengers, $payment = null, $currency = 'PKR')
+    public function bookFlight($data) // OrderCreate
     {
-        $contactList = '';
-        $paxList = '';
-        foreach ($passengers as $index => $pax) {
-            $contactId = "Contact-{$index}";
-            $contactList .= <<<XML
-            <ContactInfo>
-                <ContactInfoID>{$contactId}</ContactInfoID>
-                <EmailAddress>
-                    <EmailAddressText>{$pax['email']}</EmailAddressText>
-                </EmailAddress>
-                <Phone>
-                    <AreaCodeNumber>{$pax['area_code']}</AreaCodeNumber>
-                    <CountryDialingCode>{$pax['country_code']}</CountryDialingCode>
-                    <PhoneNumber>{$pax['phone']}</PhoneNumber>
-                </Phone>
-            </ContactInfo>
-            XML;
+        $user = $data['user'] ?? [];
+        $passengers = $data['passengers'] ?? [];
+        $offerID = $data['data']['offerID'] ?? [];
+        $paxRefIDs = $data['data']['PaxRefID'] ?? [];
+        $ownerCode = $data['data']['ownerCode'] ?? [];
+        $offerItemID = $data['data']['offerItemID'] ?? [];
+        $totalAmount = str_replace(',', '', $data['data']['totalAmount']);
+        $currency = $data['data']['currency'] ?? 'PKR';
 
-            $paxList .= <<<XML
-            <Pax>
-                <Birthdate>{$pax['birthdate']}</Birthdate>
-                <CitizenshipCountryCode>{$pax['citizenship']}</CitizenshipCountryCode>
-                <ContactInfoRefID>{$contactId}</ContactInfoRefID>
-                <IdentityDoc>
-                    <IdentityDocID>{$pax['identity_doc_id']}</IdentityDocID>
-                    <IdentityDocTypeCode>NATIONAL_ID</IdentityDocTypeCode>
-                </IdentityDoc>
-                <Individual>
-                    <GenderCode>{$pax['gender']}</GenderCode>
-                    <GivenName>{$pax['given_name']}</GivenName>
-                    <IndividualID>IND-{$index}</IndividualID>
-                    <Surname>{$pax['surname']}</Surname>
-                    <TitleName>{$pax['title']}</TitleName>
-                </Individual>
-                <PaxID>PAX-{$index}</PaxID>
-                <PTC>{$pax['type']}</PTC>
-            </Pax>
+        if(empty($user) || empty($passengers) || empty($offerID) || empty($paxRefIDs) || empty($ownerCode) || !$totalAmount) {
+            return ['error' => 'DATA_MISSING', 'message' => 'data is missing for create order please refetch details'];
+        }
+
+        // ✅ Contact info (simplified)
+        $contactInfoXML = <<<XML
+        <ContactInfo>
+            <ContactInfoID>Contact-1</ContactInfoID>
+            <EmailAddress>
+                <EmailAddressText>{$user['userEmail']}</EmailAddressText>
+            </EmailAddress>
+            <Phone>
+                <CountryDialingCode>{$user['userPhoneCode']}</CountryDialingCode>
+                <PhoneNumber>{$user['userPhone']}</PhoneNumber>
+            </Phone>
+        </ContactInfo>
+        XML;
+
+        $selectedOfferItemXML = '';
+        if (empty($paxRefIDs)) {
+            $selectedOfferItemXML = <<<XML
+                    <PaxRefID>PAX-ADT1</PaxRefID>
+                XML;
+        } else {
+            foreach ($paxRefIDs as $paxRef) {
+                $selectedOfferItemXML .= <<<XML
+                    <PaxRefID>{$paxRef}</PaxRefID>
+                XML;
+            }
+        }
+        // ✅ Offer
+        $selectedOfferXML = <<<XML
+        <SelectedOffer>
+            <OfferRefID>{$offerID}</OfferRefID>
+            <OwnerCode>{$ownerCode}</OwnerCode>
+            <SelectedOfferItem>
+                <OfferItemRefID>{$offerItemID}</OfferItemRefID>
+                {$selectedOfferItemXML}
+            </SelectedOfferItem>
+            <TotalOfferPriceAmount CurCode="{$currency}">{$totalAmount}</TotalOfferPriceAmount>
+        </SelectedOffer>
+        XML;
+
+        // ✅ Passenger List (no IdentityDoc, no unnecessary tags)
+        $adtPaxIDs = [];
+        foreach ($passengers as $idx => $pax) {
+            $type = strtoupper(substr($pax['type'], 0, 3));
+            if ($type === 'ADU') $type = 'ADT';
+            if ($type === 'ADT') {
+                $adtPaxIDs[] = "PAX-{$type}" . ($idx + 1);
+            }
+        }
+        $infCounter = 0;
+        $paxListXML = '';
+        foreach ($passengers as $index => $pax) {
+            $rawType = $pax['type'] ?? '';
+            $paxType = strtoupper(substr($rawType, 0, 3));
+            if ($paxType === 'ADU') $paxType = 'ADT';
+            if ($paxType === 'CHI') $paxType = 'CHD';
+            $paxID = "PAX-{$paxType}" . ($index + 1);
+            $individualID = "IND-{$paxType}" . ($index + 1);
+            $gender = (isset($pax['title']) && (strtolower($pax['title']) === 'mr' || strtolower($pax['title']) === 'm')) ? 'M' : 'F';
+            $contactRef = "Contact-" . ($index + 1);
+
+            $paxRefForThis = $paxID;
+            if ($paxType === 'INF') {
+                if (!empty($adtPaxIDs)) {
+                    $mappedAdult = $adtPaxIDs[$infCounter] ?? end($adtPaxIDs);
+                    $paxRefForThis = $mappedAdult;
+                } else {
+                    $paxRefForThis = $paxID;
+                }
+                $infCounter++;
+            }
+            $paxListXML .= <<<XML
+                <Pax>
+                    <Birthdate>{$pax['dob']}</Birthdate>
+                    <CitizenshipCountryCode>{$pax['nationality']}</CitizenshipCountryCode>
+                    <ContactInfoRefID>{$contactRef}</ContactInfoRefID>
+                    <Individual>
+                        <GenderCode>{$gender}</GenderCode>
+                        <GivenName>{$pax['name']}</GivenName>
+                        <IndividualID>{$individualID}</IndividualID>
+                        <Surname>{$pax['surname']}</Surname>
+                        <TitleName>{$pax['title']}</TitleName>
+                    </Individual>
+                    <PaxID>{$paxID}</PaxID>
+                    <PaxRefID>{$paxRefForThis}</PaxRefID>
+                    <PTC>{$paxType}</PTC>
+                </Pax>
             XML;
         }
 
-        $paymentBlock = $payment ? <<<XML
-        <PaymentFunctions>
-            <PaymentProcessingDetails>
-                <Amount CurCode="{$payment['currency']}">{$payment['amount']}</Amount>
-                <PaymentMethod>
-                    <AccountableDoc>
-                        <DocType>{$payment['method']}</DocType>
-                        <TicketID>{$payment['ticket_id']}</TicketID>
-                    </AccountableDoc>
-                </PaymentMethod>
-                <PaymentRefID>PaymentInfo1</PaymentRefID>
-                <TypeCode>{$payment['method']}</TypeCode>
-            </PaymentProcessingDetails>
-        </PaymentFunctions>
-        XML : '';
-
+        // ✅ Final XML body
         $xmlRequest = <<<XML
-        <DoOrderCreateRQ>
-            {$this->getPartyBlock()}
-            <Query>
-                <SelectedOffer>
-                    <OfferRefID>{$offerId}</OfferRefID>
-                    <SelectedOfferItem>
-                        <OfferItemID>OfferItem-1</OfferItemID>
-                        <PaxRefID>PAX-0</PaxRefID>
-                    </SelectedOfferItem>
-                </SelectedOffer>
-                <DataLists>
-                    <ContactInfoList>
-                        {$contactList}
-                    </ContactInfoList>
-                    <PaxList>
-                        {$paxList}
-                    </PaxList>
-                </DataLists>
-                {$paymentBlock}
-            </Query>
-            <Preference>
-                <CurrencyPref CurCode="{$currency}"/>
-            </Preference>
-        </DoOrderCreateRQ>
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.iata.org/IATA/2015/00/2020.1/IATA_OrderCreateRQ">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <IATA_OrderCreateRQ>
+                    {$this->getPartyBlock()}
+                    <PayloadAttributes>
+                        <PrimaryLangID>EN</PrimaryLangID>
+                    </PayloadAttributes>
+                    <Request>
+                        <CreateOrder>
+                            {$selectedOfferXML}
+                        </CreateOrder>
+                        <DataLists>
+                            <ContactInfoList>
+                                {$contactInfoXML}
+                            </ContactInfoList>
+                            <PaxList>
+                                {$paxListXML}
+                            </PaxList>
+                        </DataLists>
+                        <OrderCreateParameters>
+                            <CurParameter>
+                                <CurCode>{$currency}</CurCode>
+                            </CurParameter>
+                        </OrderCreateParameters>
+                    </Request>
+                </IATA_OrderCreateRQ>
+            </soapenv:Body>
+        </soapenv:Envelope>
         XML;
 
-        return $this->sendRequest('/DoOrderCreate', $xmlRequest);
-    }
+        // dd($xmlRequest);
 
-    /**
-     * DoOrderChange to complete ticketing
-     *
-     * @param string $orderId PNR number
-     * @param array $payment Payment details [currency, amount, method, ticket_id]
-     * @param string $currency Currency code
-     * @return SimpleXMLElement
-     */
-    public function orderChange($orderId, $payment, $currency = 'PKR')
+        // ✅ Send request to API
+        $response = $this->sendRequest('doOrderCreate', $xmlRequest, true);
+
+        if (!$response || isset($response['error'])) {
+            \Log::error('OrderCreate request failed', ['response' => $response]);
+            return $response;
+        }
+
+        // dd($response);
+        return $this->parseOrderViewResponse($response);
+    }
+    public function orderChange($data) // OrderChange
     {
+        $orderId = $data['orderId'] ?? '';
+        $ownerCode = $data['ownerCode'] ?? 'PK';
+        $amount = $data['amount'] ?? '';
+        $code = $data['code'] ?? '';
+        $ticketNmbr = $data['ticketNmbr'] ?? 4000012043;
+
+        if(!$amount || !$orderId) {
+            return ['error' => 'DATA_MISSING', 'message' => 'data is missing for change order please refetch details'];
+        }
+        // ✅ Final XML body
         $xmlRequest = <<<XML
-        <DoOrderChangeRQ>
-            {$this->getPartyBlock()}
-            <Query>
-                <Order>
-                    <OrderID>{$orderId}</OrderID>
-                    <ValidatingCarrierCode>VF</ValidatingCarrierCode>
-                </Order>
-                <PaymentFunctions>
-                    <PaymentProcessingDetails>
-                        <Amount CurCode="{$currency}">{$payment['amount']}</Amount>
-                        <PaymentMethod>
-                            <AccountableDoc>
-                                <DocType>{$payment['method']}</DocType>
-                                <TicketID>{$payment['ticket_id']}</TicketID>
-                            </AccountableDoc>
-                        </PaymentMethod>
-                        <PaymentRefID>PaymentInfo1</PaymentRefID>
-                        <TypeCode>{$payment['method']}</TypeCode>
-                    </PaymentProcessingDetails>
-                </PaymentFunctions>
-            </Query>
-            <Preference>
-                <CurrencyPref CurCode="{$currency}"/>
-            </Preference>
-        </DoOrderChangeRQ>
+        <S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+            <S:Body>
+                <IATA_OrderChangeRQ xmlns="http://www.iata.org/IATA/2015/00/2020.1/IATA_OrderChangeRQ" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="xmldsig-core-schema.xsd">
+                    {$this->getPartyBlock()}
+                    <PayloadAttributes>
+                        <PrimaryLangID>EN</PrimaryLangID>
+                    </PayloadAttributes>
+                    <Request>
+                        <Order>
+                            <OrderID>{$orderId}</OrderID>
+                            <OwnerCode>{$ownerCode}</OwnerCode>
+                        </Order>
+                        <OrderChangeParameters>
+                            <CurParameter>
+                                <CurCode>{$code}</CurCode>
+                            </CurParameter>
+                        </OrderChangeParameters>
+                        <PaymentFunctions>
+                            <PaymentProcessingDetails>
+                                <Amount CurCode="{$code}">{$amount}</Amount>
+                                <PaymentMethod>
+                                    <AccountableDoc>
+                                        <DocType>MCO</DocType>
+                                        <TicketID>{$ticketNmbr}</TicketID>
+                                    </AccountableDoc>
+                                </PaymentMethod>
+                                <PaymentRefID>PaymentInfo1</PaymentRefID>
+                                <TypeCode>MCO</TypeCode>
+                            </PaymentProcessingDetails>
+                        </PaymentFunctions>
+                    </Request>
+                </IATA_OrderChangeRQ>
+            </S:Body>
+        </S:Envelope>
         XML;
 
-        return $this->sendRequest('/DoOrderChange', $xmlRequest);
-    }
+        // dd($xmlRequest);
 
-    /**
-     * DoServiceList to retrieve ancillary services
-     *
-     * @param string $orderId PNR number
-     * @param array $passenger Passenger details [citizenship, gender, given_name, surname, title]
-     * @param string $currency Currency code
-     * @return SimpleXMLElement
-     */
-    public function serviceList($orderId, $passenger, $currency = 'PKR')
+        $response = $this->sendRequest('doOrderChange', $xmlRequest, true);
+
+        if (!$response || isset($response['error'])) {
+            \Log::error('OrderChange request failed', ['response' => $response]);
+            return $response;
+        }
+        return $this->parseOrderViewResponse($response);
+    }
+    public function orderCancel($data) // OrderCancelCommit
     {
+        $orderId = $data['orderId'] ?? '';
+        $ownerCode = $data['ownerCode'] ?? 'PK';
+        $code = $data['code'] ?? 'PKR';
+
+        if(!$orderId) {
+            return ['error' => 'DATA_MISSING', 'message' => 'data is missing for change order please refetch details'];
+        }
+        // ✅ Final XML body
         $xmlRequest = <<<XML
-        <DoServiceListRQ>
-            {$this->getPartyBlock()}
-            <Query>
-                <Order>
-                    <OrderID>{$orderId}</OrderID>
-                </Order>
-                <Pax>
-                    <CitizenshipCountryCode>{$passenger['citizenship']}</CitizenshipCountryCode>
-                    <Individual>
-                        <GenderCode>{$passenger['gender']}</GenderCode>
-                        <GivenName>{$passenger['given_name']}</GivenName>
-                        <IndividualID>IND-1</IndividualID>
-                        <Surname>{$passenger['surname']}</Surname>
-                        <TitleName>{$passenger['title']}</TitleName>
-                    </Individual>
-                    <PaxID>ADT-PAX1</PaxID>
-                    <PTC>ADT</PTC>
-                </Pax>
-            </Query>
-            <Preference>
-                <CurrencyPref CurCode="{$currency}"/>
-                <TripPurposePref>
-                    <TripPurposeCode>SL</TripPurposeCode>
-                </TripPurposePref>
-                <LanguagePref LangCode="EN"/>
-            </Preference>
-        </DoServiceListRQ>
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.iata.org/IATA/2015/00/2020.1/IATA_OrderChangeRQ">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <IATA_OrderChangeRQ>
+                    {$this->getPartyBlock()}
+                    <PayloadAttributes>
+                        <PrimaryLangID>EN</PrimaryLangID>
+                    </PayloadAttributes>
+                    <Request>
+                        <ChangeOrder>
+                            <CancelOrder>
+                                <OrderRefID>{$orderId}</OrderRefID>
+                            </CancelOrder>
+                        </ChangeOrder>
+                        <Order>
+                            <OrderID>{$orderId}</OrderID>
+                            <OwnerCode>{$ownerCode}</OwnerCode>
+                        </Order>
+                        <OrderChangeParameters>
+                            <CurParameter>
+                                <CurCode>{$code}</CurCode>
+                            </CurParameter>
+                        </OrderChangeParameters>
+                    </Request>
+                </IATA_OrderChangeRQ>
+            </soapenv:Body>
+        </soapenv:Envelope>
         XML;
 
-        return $this->sendRequest('/DoServiceList', $xmlRequest);
+        // dd($xmlRequest);
+
+        $response = $this->sendRequest('doOrderCancelCommit', $xmlRequest, true);
+        // dd($response);
+
+        if (!$response || isset($response['error'])) {
+            $errorMsg = $response['error'] ?? ($response['raw']['Error']['Code'] ?? '') ?? '';
+
+            if (str_contains(strtolower($errorMsg), 'already closed')) {
+                return ['warnings' => [
+                    'details' => $response['error'] ?? 'Order is already closed.',
+                    'raw' => $response['raw'] ?? []
+                ]];
+            }
+            \Log::error('OrderCancelCommit request failed', ['response' => $response]);
+            return $response;
+        }
+        return $response;
     }
 
-    /**
-     * DoBaggageServiceList to retrieve baggage options
-     *
-     * @param string $orderId PNR number
-     * @param array $passenger Passenger details
-     * @param string $currency Currency code
-     * @return SimpleXMLElement
-     */
-    public function baggageServiceList($orderId, $passenger, $currency = 'PKR')
-    {
-        $xmlRequest = <<<XML
-        <DoBaggageServiceListRQ>
-            {$this->getPartyBlock()}
-            <Query>
-                <Order>
-                    <OrderID>{$orderId}</OrderID>
-                </Order>
-                <Pax>
-                    <CitizenshipCountryCode>{$passenger['citizenship']}</CitizenshipCountryCode>
-                    <Individual>
-                        <GenderCode>{$passenger['gender']}</GenderCode>
-                        <GivenName>{$passenger['given_name']}</GivenName>
-                        <IndividualID>IND-1</IndividualID>
-                        <Surname>{$passenger['surname']}</Surname>
-                        <TitleName>{$passenger['title']}</TitleName>
-                    </Individual>
-                    <PaxID>ADT-PAX1</PaxID>
-                    <PTC>ADT</PTC>
-                </Pax>
-            </Query>
-            <Preference>
-                <CurrencyPref CurCode="{$currency}"/>
-                <TripPurposePref>
-                    <TripPurposeCode>SL</TripPurposeCode>
-                </TripPurposePref>
-                <LanguagePref LangCode="EN"/>
-            </Preference>
-        </DoBaggageServiceListRQ>
-        XML;
 
-        return $this->sendRequest('/DoBaggageServiceList', $xmlRequest);
-    }
 
-    /**
-     * DoAddAncillary to add extra baggage
-     *
-     * @param string $orderId PNR number
-     * @param string $paxId Passenger ID
-     * @param string $serviceCode Service code (e.g., XBAG-15KG)
-     * @param string $segmentId Flight segment ID
-     * @param array $passenger Passenger details
-     * @param array $segment Segment details [origin, destination, departure_time, arrival_time, etc.]
-     * @param string $currency Currency code
-     * @return SimpleXMLElement
-     */
-    public function addAncillaryWeightbag($orderId, $paxId, $serviceCode, $segmentId, $passenger, $segment, $currency = 'PKR')
-    {
-        $xmlRequest = <<<XML
-        <DoAddAncillaryRQ>
-            {$this->getPartyBlock()}
-            <Query>
-                <ChangeOrder>
-                    <SelectedALaCarteOfferItem>
-                        <OfferItemID>OfferItem-{$serviceCode}</OfferItemID>
-                        <Quantity>1</Quantity>
-                        <Service>
-                            <ServiceDefinitionRefID>ServiceDef-{$serviceCode}</ServiceDefinitionRefID>
-                            <ServiceID>SELECTEDSERVICES2</ServiceID>
-                        </Service>
-                    </SelectedALaCarteOfferItem>
-                    <FlightAssociations>
-                        <PaxSegmentRef>
-                            <PaxSegmentRefID>{$segmentId}</PaxSegmentRefID>
-                        </PaxSegmentRef>
-                    </FlightAssociations>
-                </ChangeOrder>
-                <DataLists>
-                    <OriginDestList>
-                        <OriginDest>
-                            <DestCode>{$segment['destination']}</DestCode>
-                            <OriginCode>{$segment['origin']}</OriginCode>
-                            <OriginDestID>OD-{$segment['origin']}{$segment['destination']}</OriginDestID>
-                            <PaxJourneyRefID>{$segment['origin']}-{$segment['destination']}-J1</PaxJourneyRefID>
-                        </OriginDest>
-                    </OriginDestList>
-                    <PaxJourneyList>
-                        <PaxJourney>
-                            <PaxJourneyID>{$segment['origin']}-{$segment['destination']}-J1</PaxJourneyID>
-                            <PaxSegmentRefID>{$segmentId}</PaxSegmentRefID>
-                        </PaxJourney>
-                    </PaxJourneyList>
-                    <PaxList>
-                        <Pax>
-                            <Birthdate>{$passenger['birthdate']}</Birthdate>
-                            <Individual>
-                                <GivenName>{$passenger['given_name']}</GivenName>
-                                <Surname>{$passenger['surname']}</Surname>
-                                <GenderCode>{$passenger['gender']}</GenderCode>
-                            </Individual>
-                            <PaxID>{$paxId}</PaxID>
-                            <PTC>ADT</PTC>
-                        </Pax>
-                    </PaxList>
-                    <PaxSegmentList>
-                        <PaxSegment>
-                            <Arrival>
-                                <AircraftScheduledDateTime>{$segment['arrival_time']}</AircraftScheduledDateTime>
-                                <IATA_LocationCode>{$segment['destination']}</IATA_LocationCode>
-                                <StationName>{$segment['destination_name']}</StationName>
-                            </Arrival>
-                            <CabinType>
-                                <CabinTypeCode>Y</CabinTypeCode>
-                                <CabinTypeName>ECONOMY</CabinTypeName>
-                            </CabinType>
-                            <Dep>
-                                <AircraftScheduledDateTime>{$segment['departure_time']}</AircraftScheduledDateTime>
-                                <IATA_LocationCode>{$segment['origin']}</IATA_LocationCode>
-                                <StationName>{$segment['origin_name']}</StationName>
-                            </Dep>
-                            <Duration>PT1H55M</Duration>
-                            <MarketingCarrierInfo>
-                                <CarrierDesigCode>PK</CarrierDesigCode>
-                                <MarketingCarrierFlightNumberText>{$segment['flight_number']}</MarketingCarrierFlightNumberText>
-                            </MarketingCarrierInfo>
-                            <OperatingCarrierInfo>
-                                <CarrierDesigCode>PK</CarrierDesigCode>
-                                <OperatingCarrierFlightNumberText>{$segment['flight_number']}</OperatingCarrierFlightNumberText>
-                            </OperatingCarrierInfo>
-                            <PaxSegmentID>{$segmentId}</PaxSegmentID>
-                        </PaxSegment>
-                    </PaxSegmentList>
-                    <ServiceDefinitionList>
-                        <ServiceDefinition>
-                            <Name>BAG</Name>
-                            <ServiceCode>XBAG</ServiceCode>
-                            <ServiceDefinitionID>ServiceDef-{$serviceCode}</ServiceDefinitionID>
-                        </ServiceDefinition>
-                    </ServiceDefinitionList>
-                </DataLists>
-                <Order>
-                    <OrderID>{$orderId}</OrderID>
-                    <ValidatingCarrierCode>PK</ValidatingCarrierCode>
-                </Order>
-            </Query>
-            <Preference>
-                <CurrencyPref CurCode="{$currency}"/>
-            </Preference>
-        </DoAddAncillaryRQ>
-        XML;
 
-        return $this->sendRequest('/DoAddAncillary', $xmlRequest);
-    }
 
-    /**
-     * DoReissuePreview to preview ticket reissue
-     *
-     * @param string $orderId PNR number
-     * @param string $offerId Offer ID from DoAirShopping
-     * @param string $paxId Passenger ID
-     * @param string $segmentId Segment ID to reissue
-     * @param array $newSegment New segment details [origin, destination, etc.]
-     * @param string $currency Currency code
-     * @return SimpleXMLElement
-     */
-    public function reissuePreview($orderId, $offerId, $paxId, $segmentId, $newSegment, $currency = 'PKR')
-    {
-        $xmlRequest = <<<XML
-        <DoReissuePreviewRQ>
-            {$this->getPartyBlock()}
-            <Query>
-                <ExistingOrderCriteria>
-                    <Order>
-                        <OrderID>{$orderId}</OrderID>
-                        <ValidatingCarrierCode>VF</ValidatingCarrierCode>
-                    </Order>
-                    <OrderItem>
-                        <OrderItemID>MGFiNjJiOWI4ZmQ3NWNjY2U2NDJkZTc3NjdhYzJiMzZiY2YzODgxYThmNDk4NTA3OTk4YWVkMDJmMjA0YTc1NDBiMmY3OTExMDZkMGE3ZGVjNDU3ZWE1YWM1NGYxMGI3MjkyZjcyZjA0Yjc5YTlhMTg2MDM2NmU5OTBkNzRjNGUxNzYwMzcyNzRhNTVlNjNlOGI2NTY4NmI2N2QyNTgwNTMxMTVmZDkwYWZkMWQxM2I1MWM4ODY3MjYwMWVlMzlkNjkwMzE0MGJmZjYwODA2ZTI1NWZmOGFhYjVlODFjPlVPVzFTTT5TTUFSVD5LSEk+SVNCPjIwMjQtMDgtMTkgMDc6MDA6MDA+MjAyNC0wOC0xOSAwODo1NTowMD5QSz4zMDA+VT45PkVDT05PTVk+MzIwPlMwaEpTVk5DTXpBdz4tMT4zYWUzOTgyYy0zOTY5LTRjMTMtYWRlZi1jMWNiMWFjMDhhZWMjMA==</OrderItemID>
-                        <PaxRefID>{$paxId}</PaxRefID>
-                    </OrderItem>
-                    <DeleteOrderItem>
-                        <OrderItemRefID>{$segmentId}</OrderItemRefID>
-                    </DeleteOrderItem>
-                </ExistingOrderCriteria>
-                <SpecificOriginDestCriteria>
-                    <OriginDestCriteria>
-                        <DestCode>{$newSegment['destination']}</DestCode>
-                        <OriginCode>{$newSegment['origin']}</OriginCode>
-                    </OriginDestCriteria>
-                </SpecificOriginDestCriteria>
-                <SelectedOffer>
-                    <OfferRefID>{$offerId}</OfferRefID>
-                </SelectedOffer>
-            </Query>
-            <Preference>
-                <CurrencyPref CurCode="{$currency}"/>
-                <LanguagePref LangCode="EN"/>
-                <TripPurposePref>
-                    <TripPurposeCode>SL</TripPurposeCode>
-                </TripPurposePref>
-            </Preference>
-        </DoReissuePreviewRQ>
-        XML;
 
-        return $this->sendRequest('/DoReissuePreview', $xmlRequest);
-    }
+    // ----------------------------------------------------------- Helpers -------------------------------------------------------- \\
 
-    /**
-     * DoReissueCommit to finalize ticket reissue
-     *
-     * @param string $orderId PNR number
-     * @param string $offerId Offer ID
-     * @param array $segment Segment details
-     * @param array $payment Payment details
-     * @param string $currency Currency code
-     * @return SimpleXMLElement
-     */
-    public function reissueCommit($orderId, $offerId, $segment, $payment, $currency = 'PKR')
-    {
-        $xmlRequest = <<<XML
-        <DoReissueCommitRQ>
-            {$this->getPartyBlock()}
-            <Query>
-                <SelectedOffer>
-                    <OfferRefID>{$offerId}</OfferRefID>
-                </SelectedOffer>
-                <DataLists>
-                    <PaxSegmentList>
-                        <PaxSegment>
-                            <Arrival>
-                                <AircraftScheduledDateTime>{$segment['arrival_time']}</AircraftScheduledDateTime>
-                                <IATA_LocationCode>{$segment['destination']}</IATA_LocationCode>
-                                <StationName>{$segment['destination_name']}</StationName>
-                            </Arrival>
-                            <CabinType>
-                                <CabinTypeCode>Y</CabinTypeCode>
-                                <CabinTypeName>ECONOMY</CabinTypeName>
-                            </CabinType>
-                            <Dep>
-                                <AircraftScheduledDateTime>{$segment['departure_time']}</AircraftScheduledDateTime>
-                                <IATA_LocationCode>{$segment['origin']}</IATA_LocationCode>
-                                <StationName>{$segment['origin_name']}</StationName>
-                            </Dep>
-                            <Duration>PT1H55M</Duration>
-                            <MarketingCarrierInfo>
-                                <CarrierDesigCode>VF</CarrierDesigCode>
-                                <MarketingCarrierFlightNumberText>{$segment['flight_number']}</MarketingCarrierFlightNumberText>
-                            </MarketingCarrierInfo>
-                            <OperatingCarrierInfo>
-                                <CarrierDesigCode>VF</CarrierDesigCode>
-                                <OperatingCarrierFlightNumberText>{$segment['flight_number']}</OperatingCarrierFlightNumberText>
-                            </OperatingCarrierInfo>
-                            <PaxSegmentID>{$segment['segment_id']}</PaxSegmentID>
-                        </PaxSegment>
-                    </PaxSegmentList>
-                </DataLists>
-                <Order>
-                    <OrderID>{$orderId}</OrderID>
-                    <ValidatingCarrierCode>PK</ValidatingCarrierCode>
-                </Order>
-                <PaymentFunctions>
-                    <PaymentProcessingDetails>
-                        <Amount CurCode="{$currency}">{$payment['amount']}</Amount>
-                        <PaymentMethod>
-                            <AccountableDoc>
-                                <DocType>{$payment['method']}</DocType>
-                                <TicketID>{$payment['ticket_id']}</TicketID>
-                            </AccountableDoc>
-                        </PaymentMethod>
-                        <PaymentRefID>PaymentInfo1</PaymentRefID>
-                        <TypeCode>{$payment['method']}</TypeCode>
-                    </PaymentProcessingDetails>
-                </PaymentFunctions>
-            </Query>
-            <Preference>
-                <CurrencyPref CurCode="{$currency}"/>
-            </Preference>
-        </DoReissueCommitRQ>
-        XML;
-
-        return $this->sendRequest('/DoReissueCommit', $xmlRequest);
-    }
-
-    /**
-     * DoOrderRetrieve to fetch PNR details
-     *
-     * @param string $orderId PNR number
-     * @param string $carrierCode Carrier code (e.g., PK)
-     * @return SimpleXMLElement
-     */
-    public function orderRetrieve($orderId, $carrierCode = 'PK')
-    {
-        $xmlRequest = <<<XML
-        <DoOrderRetrieveRQ>
-            {$this->getPartyBlock()}
-            <Query>
-                <OrderFilterCriteria>
-                    <Order>
-                        <OrderID>{$orderId}</OrderID>
-                        <ValidatingCarrierCode>{$carrierCode}</ValidatingCarrierCode>
-                    </Order>
-                </OrderFilterCriteria>
-            </Query>
-            <Preference>
-                <LanguagePref LangCode="EN"/>
-            </Preference>
-        </DoOrderRetrieveRQ>
-        XML;
-
-        return $this->sendRequest('/DoOrderRetrieve', $xmlRequest);
-    }
-
-    /**
-     * DoAirShopping for reissue
-     *
-     * @param array $segment Segment details [origin, destination, departure_date]
-     * @param array $passenger Passenger details [type]
-     * @param string $currency Currency code
-     * @return SimpleXMLElement
-     */
-    public function airShoppingReissue($segment, $passenger, $currency = 'PKR')
-    {
-        $xmlRequest = <<<XML
-        <DoAirShoppingRQ>
-            <Version>20.1</Version>
-            {$this->getPartyBlock()}
-            <Query>
-                <OriginDestCriteria>
-                    <DestCode>{$segment['destination']}</DestCode>
-                    <OriginCode>{$segment['origin']}</OriginCode>
-                    <Departure>
-                        <Date>{$segment['departure_date']}</Date>
-                    </Departure>
-                    <CabinType>
-                        <CabinTypeCode>Y</CabinTypeCode>
-                    </CabinType>
-                </OriginDestCriteria>
-                <Paxs>
-                    <Pax>
-                        <PaxID>SH1</PaxID>
-                        <PTC>{$passenger['type']}</PTC>
-                    </Pax>
-                </Paxs>
-            </Query>
-            <Preference>
-                <CurrencyPref CurCode="{$currency}"/>
-                <LanguagePref LangCode="EN"/>
-            </Preference>
-        </DoAirShoppingRQ>
-        XML;
-
-        return $this->sendRequest('/DoAirShopping', $xmlRequest);
-    }
-    /**
-     * Parse and format flight data from the API response
-     */
     public function parseAirShoppingResponse($response)
     {
+        // dd($response);
         $flights = [];
+        $bundles = [];
 
         // Check if essential data is present
-        if (!isset($response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['PaxJourneyList']['PaxJourney']) ||
-            !isset($response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['PaxSegmentList']['PaxSegment']) ||
-            !isset($response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['OriginDestList']['OriginDest'])) {
+        if (!isset($response['Response']['DataLists']['PaxJourneyList']['PaxJourney']) ||
+            !isset($response['Response']['DataLists']['PaxSegmentList']['PaxSegment']) ||
+            !isset($response['Response']['DataLists']['OriginDestList']['OriginDest'])) {
             Log::warning('Missing required data in AirShopping response', ['response' => $response]);
             return $flights;
         }
 
+        $offers = isset($response['Response']['OffersGroup']['CarrierOffers']['Offer'])
+            ? (is_array($response['Response']['OffersGroup']['CarrierOffers']['Offer'])
+                ? $response['Response']['OffersGroup']['CarrierOffers']['Offer']
+                : [$response['Response']['OffersGroup']['CarrierOffers']['Offer']])
+            : [];
+        if (!empty($offers)) {
+            foreach ($offers as $offer) {
+                $offerItems = isset($offer['OfferItem'][0]) ? $offer['OfferItem'] : [$offer['OfferItem']];
+
+                $baggageAllowances = [];
+                foreach ($offerItems as $item) {
+                    // dd($offerItems, $item, $offers);
+                    // Handle FareDetail, which may have multiple FareComponents
+                    // dd($offerItems, $item);
+                    $fareDetails = isset($item['FareDetail'][0]) ? $item['FareDetail'] : [$item['FareDetail']];
+                    $paxRefs = [];
+                    foreach ($fareDetails as $fareDetail) {
+                        $paxRefIDs = isset($fareDetail['PaxRefID']) ? (is_array($fareDetail['PaxRefID']) ? $fareDetail['PaxRefID'] : [$fareDetail['PaxRefID']]) : [];
+                        $paxRefs = array_merge($paxRefs, $paxRefIDs);
+                    }
+                    $paxRefs = array_unique($paxRefs);
+
+                    // Process services for baggage allowances
+                    $services = is_array($item['Service']) ? $item['Service'] : [$item['Service']];
+                    foreach ($services as $service) {
+                        $serviceDefId = $service['ServiceAssociations']['ServiceDefinitionRef']['ServiceDefinitionRefID'] 
+                        ?? null;
+                        
+                        if ($serviceDefId) {
+                            $baggageDetails = $this->getBaggageDetailsByServiceDef($serviceDefId, $response);
+                            if ($baggageDetails) {
+                                $baggageAllowances[] = $baggageDetails;
+                            }
+                        }
+                        // if (isset($service['ServiceAssociations']['ServiceDefinitionRefID'])) {
+                        //     $serviceDefId = (string)$service['ServiceAssociations']['ServiceDefinitionRefID'];
+                        //     $baggageDetails = $this->getBaggageDetailsByServiceDef($serviceDefId, $response);
+                        //     if ($baggageDetails) {
+                        //         $baggageAllowances[] = $baggageDetails;
+                        //     }
+                        // }
+                    }
+
+                    $offerItemDetails = [];
+                    // Build offer item details
+                    foreach ($paxRefs as $paxRef) {
+                        $offerItemDetails[] = [
+                            'pax_id' => (string)$paxRef,
+                            'type' => $this->getPassengerType($paxRef, $response),
+                            'price' => [
+                                'base_amount' => number_format((float)($item['Price']['BaseAmount'] ?? 0), 2),
+                                'equiv_amount' => number_format((float)($item['Price']['EquivAmount'] ?? 0), 2),
+                                'total_amount' => number_format((float)($item['Price']['TotalAmount'] ?? 0), 2),
+                                'currency' => (string)($item['Price']['TotalAmount']['CurCode'] ?? 'PKR'),
+                                'taxes' => number_format((float)($item['Price']['TaxSummary']['TotalTaxAmount'] ?? 0), 2),
+                                'surcharges' => number_format((float)($item['Price']['Surcharge']['TotalAmount'] ?? 0), 2),
+                            ],
+                            'fare_components' => array_map(function ($fareDetail) {
+                                return [
+                                    'pax_ref_id' => is_array($fareDetail['PaxRefID']) ? $fareDetail['PaxRefID'] : [(string)$fareDetail['PaxRefID']],
+                                    'fare_component' => $fareDetail['FareComponent'] ?? [],
+                                    'fare_price_type' => $fareDetail['FarePriceType'] ?? [],
+                                ];
+                            }, $fareDetails),
+                            'services' => array_map(function ($service) {
+                                return [
+                                    'pax_ref_id' => is_array($service['PaxRefID']) ? $service['PaxRefID'] : [(string)$service['PaxRefID']],
+                                    'service_id' => (string)$service['ServiceID'],
+                                    'associations' => $service['ServiceAssociations'] ?? [],
+                                ];
+                            }, $services),
+                        ];
+                    }
+                }
+                $journeyPriceClass = $offer['JourneyOverview']['JourneyPriceClass'];
+                $paxJourneyRefIDs = [];
+                if (isset($journeyPriceClass[0]) && is_array($journeyPriceClass[0])) {
+                    foreach ($journeyPriceClass as $item) {
+                        $paxJourneyRefIDs[] = $item['PaxJourneyRefID'];
+                    }
+                } elseif (isset($journeyPriceClass['PaxJourneyRefID'])) {
+                    $paxJourneyRefIDs[] = $journeyPriceClass['PaxJourneyRefID'];
+                }
+                $flightKey = $paxJourneyRefIDs;
+
+                // dd($offer, $offerItemDetails, $offer['JourneyOverview'], $offer['JourneyOverview']);
+                $bundles[] = [
+                    'offerID' => (string)$offer['OfferID'],
+                    'flightKey' => $flightKey,
+                    'ownerCode' => (string)$offer['OwnerCode'],
+                    'parameters' => [
+                        'priceClassRef' => $offer['JourneyOverview']['JourneyPriceClass']['PriceClassRefID']
+                            ?? $offer['JourneyOverview']['JourneyPriceClass']['PaxJourneyRefID']
+                            ?? $offer['JourneyOverview']['JourneyPriceClass']
+                            ?? '',
+                        'cabin_type' => $this->getCabinType($offer['OfferItem']),
+                    ],
+                    'timeLimits' => $offerItems[0]['OfferItemPaymentTimeLimit']['PaymentTimeLimitDate']['PaymentTimeLimitDateTime'] ?? '',
+                    'totalPrice' => [
+                        'base_amount' => number_format((float)($offer['TotalPrice']['BaseAmount'] ?? 0), 2),
+                        'discount' => number_format((float)($offer['TotalPrice']['Discount']['DiscountAmount'] ?? 0), 2),
+                        'fee' => number_format((float)($offer['TotalPrice']['Fee']['Amount'] ?? 0), 2),
+                        'total_amount' => number_format((float)($offer['TotalPrice']['TotalAmount'] ?? 0), 2),
+                        'currency' => (string)($offer['TotalPrice']['TotalAmount']['CurCode'] ?? 'PKR'),
+                        'taxes' => number_format((float)($offer['TotalPrice']['TaxSummary']['TotalTaxAmount'] ?? 0), 2),
+                        'surcharges' => number_format((float)($offer['TotalPrice']['Surcharge']['TotalAmount'] ?? 0), 2),
+                    ],
+                    'offerItem' => $this->getOfferItem($offer['OfferItem'], $response),
+                    'baggageAllowance' => $baggageAllowances,
+                    'journeyOverview' => [
+                        'id' => $offer['JourneyOverview']['PriceClassRefID'] ?? '--',
+                        'priceClass' => (array)($offer['JourneyOverview']['JourneyPriceClass'] ?? []),
+                    ],
+                ];
+            }
+        }
         // Normalize PaxSegment to an array of segments
-        $rawPaxSegments = $response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['PaxSegmentList']['PaxSegment'];
+        $rawPaxSegments = $response['Response']['DataLists']['PaxSegmentList']['PaxSegment'];
         $paxSegments = (is_array($rawPaxSegments) && isset($rawPaxSegments['PaxSegmentID']))
             ? [$rawPaxSegments]
             : (is_array($rawPaxSegments) ? $rawPaxSegments : [$rawPaxSegments]);
 
         // Normalize PaxJourney to an array of journeys
-        $rawPaxJourneys = $response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['PaxJourneyList']['PaxJourney'];
+        $rawPaxJourneys = $response['Response']['DataLists']['PaxJourneyList']['PaxJourney'];
         if (is_string($rawPaxJourneys)) {
             $paxJourneys = [['PaxJourneyID' => $rawPaxJourneys, 'PaxSegmentRefID' => []]];
         } elseif (is_array($rawPaxJourneys) && isset($rawPaxJourneys['PaxJourneyID'])) {
@@ -783,9 +648,8 @@ class PiaService
         } else {
             $paxJourneys = is_array($rawPaxJourneys) ? $rawPaxJourneys : [$rawPaxJourneys];
         }
-
         // Normalize OriginDest to an array of origin-destination entries
-        $rawOriginDests = $response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['OriginDestList']['OriginDest'];
+        $rawOriginDests = $response['Response']['DataLists']['OriginDestList']['OriginDest'];
         if (is_array($rawOriginDests) && isset($rawOriginDests['OriginCode']) && isset($rawOriginDests['DestCode'])) {
             $originDests = [$rawOriginDests];
         } else {
@@ -837,9 +701,11 @@ class PiaService
                     ? $journey['PaxSegmentRefID']
                     : [$journey['PaxSegmentRefID']];
                 $segments = [];
+                $keys = [];
 
                 foreach ($segmentRefs as $segmentRef) {
                     $segment = $paxSegmentMap[(string)$segmentRef] ?? null;
+                    $keys[] = (string)$segment['PaxSegmentID'];
                     if ($segment) {
                         $segments[] = [
                             'segment_key' => (string)$segment['PaxSegmentID'],
@@ -847,32 +713,36 @@ class PiaService
                             'origin_name' => (string)$segment['Dep']['StationName'],
                             'destination' => (string)$segment['Arrival']['IATA_LocationCode'],
                             'destination_name' => (string)$segment['Arrival']['StationName'],
-                            'departure_time' => $this->formatDateTime((string)$segment['Dep']['AircraftScheduledDateTime']),
-                            'arrival_time' => $this->formatDateTime((string)$segment['Arrival']['AircraftScheduledDateTime']),
+                            'departure_time' => (string)$segment['Dep']['AircraftScheduledDateTime'],
+                            'arrival_time' => (string)$segment['Arrival']['AircraftScheduledDateTime'],
                             'flight_number' => (string)$segment['MarketingCarrierInfo']['MarketingCarrierFlightNumberText'],
                             'carrier' => (string)$segment['MarketingCarrierInfo']['CarrierDesigCode'],
                             'carrier_name' => (string)($segment['MarketingCarrierInfo']['CarrierName'] ?? 'Unknown'),
-                            'duration' => $this->formatDuration((string)$segment['Duration']),
+                            'duration' => (string)$segment['Duration'],
                             'aircraft_type' => (string)($this->getAircraftType($segment['DatedOperatingLeg']) ?? 'Unknown'),
                             'baggage_allowance' => $this->getBaggageAllowance($segmentRef, $response),
                         ];
                     }
                 }
-
+                $paxJourneys = $response['Response']['DataLists']['PaxJourneyList']['PaxJourney'];
+                
+                $matchedJourneyId = null;
+                foreach ($paxJourneys as $journey) {
+                    $segmentsRefId = (array) $journey['PaxSegmentRefID']; // normalize to array
+                    if (count($segmentsRefId) === count($keys) && !array_diff($segmentsRefId, $keys)) {
+                        $matchedJourneyId = $journey['PaxJourneyID'];
+                        break;
+                    }
+                }
+                
                 $flight = [
                     'segments' => $segments,
                     'price' => [],
-                    'bundles' => [],
+                    'bundleKey' => $matchedJourneyId,
+                    // 'bundles' => [],
                 ];
-
-                $offers = isset($response['Body']['IATA_AirShoppingRS']['Response']['OffersGroup']['CarrierOffers']['Offer'])
-                    ? (is_array($response['Body']['IATA_AirShoppingRS']['Response']['OffersGroup']['CarrierOffers']['Offer'])
-                        ? $response['Body']['IATA_AirShoppingRS']['Response']['OffersGroup']['CarrierOffers']['Offer']
-                        : [$response['Body']['IATA_AirShoppingRS']['Response']['OffersGroup']['CarrierOffers']['Offer']])
-                    : [];
-
                 foreach ($offers as $offer) {
-                    $journeyPriceClasses = is_array($offer['JourneyOverview']['JourneyPriceClass'])
+                    $journeyPriceClasses = isset($offer['JourneyOverview']['JourneyPriceClass'][0])
                         ? $offer['JourneyOverview']['JourneyPriceClass']
                         : [$offer['JourneyOverview']['JourneyPriceClass']];
                     $journeyRefs = array_map(function ($priceClass) {
@@ -880,91 +750,9 @@ class PiaService
                     }, $journeyPriceClasses);
 
                     if (in_array((string)$journey['PaxJourneyID'], $journeyRefs)) {
-                        $offerItems = is_array($offer['OfferItem']) ? $offer['OfferItem'] : [$offer['OfferItem']];
-
-                        $baggageAllowances = [];
-                        foreach ($offerItems as $item) {
-                            dd($offerItems, $item, $offers);
-                            // Handle FareDetail, which may have multiple FareComponents
-                            $fareDetails = isset($item['FareDetail']) ? (is_array($item['FareDetail']) && isset($item['FareDetail'][0]) && is_array($item['FareDetail'][0]) ? $item['FareDetail'] : [$item['FareDetail']]) : [];
-                            $paxRefs = [];
-                            foreach ($fareDetails as $fareDetail) {
-                                $paxRefIDs = isset($fareDetail['PaxRefID']) ? (is_array($fareDetail['PaxRefID']) ? $fareDetail['PaxRefID'] : [$fareDetail['PaxRefID']]) : [];
-                                $paxRefs = array_merge($paxRefs, $paxRefIDs);
-                            }
-                            $paxRefs = array_unique($paxRefs);
-
-                            // Process services for baggage allowances
-                            $services = is_array($item['Service']) ? $item['Service'] : [$item['Service']];
-                            foreach ($services as $service) {
-                                if (isset($service['ServiceAssociations']['ServiceDefinitionRefID'])) {
-                                    $serviceDefId = (string)$service['ServiceAssociations']['ServiceDefinitionRefID'];
-                                    $baggageDetails = $this->getBaggageDetailsByServiceDef($serviceDefId, $response);
-                                    if ($baggageDetails) {
-                                        $baggageAllowances[] = $baggageDetails;
-                                    }
-                                }
-                            }
-
-                            // Build offer item details
-                            foreach ($paxRefs as $paxRef) {
-                                $offerItemDetails[] = [
-                                    'pax_id' => (string)$paxRef,
-                                    'type' => $this->getPassengerType($paxRef, $response),
-                                    'price' => [
-                                        'base_amount' => number_format((float)($item['Price']['BaseAmount'] ?? 0), 2),
-                                        'equiv_amount' => number_format((float)($item['Price']['EquivAmount'] ?? 0), 2),
-                                        'total_amount' => number_format((float)($item['Price']['TotalAmount'] ?? 0), 2),
-                                        'currency' => (string)($item['Price']['TotalAmount']['CurCode'] ?? 'PKR'),
-                                        'taxes' => number_format((float)($item['Price']['TaxSummary']['TotalTaxAmount'] ?? 0), 2),
-                                        'surcharges' => number_format((float)($item['Price']['Surcharge']['TotalAmount'] ?? 0), 2),
-                                    ],
-                                    'fare_components' => array_map(function ($fareDetail) {
-                                        return [
-                                            'pax_ref_id' => is_array($fareDetail['PaxRefID']) ? $fareDetail['PaxRefID'] : [(string)$fareDetail['PaxRefID']],
-                                            'fare_component' => $fareDetail['FareComponent'] ?? [],
-                                            'fare_price_type' => $fareDetail['FarePriceType'] ?? [],
-                                        ];
-                                    }, $fareDetails),
-                                    'services' => array_map(function ($service) {
-                                        return [
-                                            'pax_ref_id' => is_array($service['PaxRefID']) ? $service['PaxRefID'] : [(string)$service['PaxRefID']],
-                                            'service_id' => (string)$service['ServiceID'],
-                                            'associations' => $service['ServiceAssociations'] ?? [],
-                                        ];
-                                    }, $services),
-                                ];
-                            }
-                        }
-
-                        $flight['bundles'][] = [
-                            'offerID' => (string)$offer['OfferID'],
-                            'ownerCode' => (string)$offer['OwnerCode'],
-                            'parameters' => [
-                                'price_class_ref' => (string)($offer['JourneyOverview']['PriceClassRefID'] ?? ''),
-                                'cabin_type' => $this->getCabinType($segmentRefs[0], $offer),
-                            ],
-                            'timeLimits' => $this->formatDateTime($offerItems[0]['OfferItemPaymentTimeLimit']['PaymentTimeLimitDate']['PaymentTimeLimitDateTime'] ?? ''),
-                            'totalPrice' => [
-                                'base_amount' => number_format((float)($offer['TotalPrice']['BaseAmount'] ?? 0), 2),
-                                'discount' => number_format((float)($offer['TotalPrice']['Discount']['DiscountAmount'] ?? 0), 2),
-                                'fee' => number_format((float)($offer['TotalPrice']['Fee']['Amount'] ?? 0), 2),
-                                'total_amount' => number_format((float)($offer['TotalPrice']['TotalAmount'] ?? 0), 2),
-                                'currency' => (string)($offer['TotalPrice']['TotalAmount']['CurCode'] ?? 'PKR'),
-                                'taxes' => number_format((float)($offer['TotalPrice']['TaxSummary']['TotalTaxAmount'] ?? 0), 2),
-                                'surcharges' => number_format((float)($offer['TotalPrice']['Surcharge']['TotalAmount'] ?? 0), 2),
-                            ],
-                            'offerItem' => $this->getOfferItem($offer['OfferItem']),
-                            'baggageAllowance' => $baggageAllowances,
-                            'journeyOverview' => [
-                                'id' => (string)($offer['JourneyOverview']['PriceClassRefID'] ?? '--'),
-                                'priceClass' => (array)($offer['JourneyOverview']['JourneyPriceClass'] ?? []),
-                            ],
-                        ];
-
                         if (empty($flight['price']) || (float)$offer['TotalPrice']['TotalAmount'] < (float)$flight['price']['total_amount']) {
                             $flight['price'] = [
-                                'total_amount' => number_format((float)($offer['TotalPrice']['TotalAmount'] ?? 0), 2),
+                                'total_amount' => (float)($offer['TotalPrice']['TotalAmount'] ?? 0),
                                 'currency' => (string)($offer['TotalPrice']['TotalAmount']['CurCode'] ?? 'PKR'),
                             ];
                         }
@@ -973,45 +761,418 @@ class PiaService
 
                 $flightsForOd[] = $flight;
             }
+            // $bundleKey = null;
+            // dd($matchedJourneyId, $keys, $response['Response']['DataLists']['PaxJourneyList']);
 
             $originDestGroups[] = [
                 'departureCode' => $origin,
                 'arrivalCode' => $destination,
                 'flights' => $flightsForOd,
-                'responseId' => (string)($response['Body']['IATA_AirShoppingRS']['Response']['ShoppingResponse']['ShoppingResponseRefID'] ?? ''),
+                'responseId' => (string)($response['Response']['ShoppingResponse']['ShoppingResponseRefID'] ?? ''),
             ];
         }
 
-        $result = $originDestGroups;
-        $result['transactionId'] = (string)($response['Body']['IATA_AirShoppingRS']['PayloadAttributes']['EchoTokenText'] ?? null);
+        $result['flight'] = $originDestGroups;
+        $result['bundles'] = $bundles;
+        $result['transactionId'] = (string)($response['PayloadAttributes']['EchoTokenText'] ?? null);
 
         return $result;
     }
-    private function getBaggageDetailsByServiceDef($serviceDefId, $response)
+    public function parseOrderViewResponse($response)
     {
-        $serviceDefinitions = is_array($response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition'])
-            ? $response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition']
-            : [$response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition']];
+        // $response = json_decode($response, true);
+        // dd($response['Response']['DataLists']);
+        $result = [
+            'transaction_id' => null,
+            'paymentLimit' => null,
+            'order' => [],
+            'passengers' => [],
+            'journeys' => [],
+            'segments' => [],
+            'baggage_allowances' => [],
+            'services' => [],
+            'tickets' => [],
+            'totalPrice' => null,
+        ];
+        // if ($this->regenerateLogs)
+        //     file_put_contents($this->logPath, "CUSTOM:\n" . json_encode($response, JSON_PRETTY_PRINT) . "\n\n\n\n\n\n", FILE_APPEND);
+
+        // dd($response);
+        $responseData = $response['Response'];
+        $dataLists = $responseData['DataLists'];
+        $order = $responseData['Order'] ?? null;
+        // Check if essential data is present
+        if (!isset($responseData['DataLists'])) {
+            Log::warning('Missing required DataLists in OrderViewRS response', ['response' => $responseData]);
+            return $result;
+        }
+
+        if ($order) {
+            $result['order'] = [
+                'orderID' => $order['OrderID'],
+                'creationDate' => $order['CreationDateTime'],
+                'ownerCode' => $order['OwnerCode'],
+                'ownerType' => $order['OwnerTypeCode'],
+                'statusCode' => $order['StatusCode'],
+            ];
+            $result['totalPrice'] = isset($order['TotalPrice']['TotalAmount'])
+                ? (string)$order['TotalPrice']['TotalAmount']
+                : null;
+            // $result['totalPrice'] = $order['TotalPrice']['TotalAmount'] ?? '';
+        }
+
+
+        // Extract transaction ID
+        $result['transaction_id'] = isset($response['PayloadAttributes']['EchoTokenText'])
+            ? (string)$response['PayloadAttributes']['EchoTokenText']
+            : null;
+
+        // Parse BaggageAllowanceList
+        if (isset($dataLists['BaggageAllowanceList']['BaggageAllowance'])) {
+            $baggageAllowances = isset($dataLists['BaggageAllowanceList']['BaggageAllowance'][0])
+                ? $dataLists['BaggageAllowanceList']['BaggageAllowance']
+                : [$dataLists['BaggageAllowanceList']['BaggageAllowance']];
+
+            foreach ($baggageAllowances as $baggage) {
+                $result['baggage_allowances'][] = [
+                    'baggage_allowance_id' => (string)($baggage['BaggageAllowanceID'] ?? ''),
+                    'type' => (string)($baggage['TypeCode'] ?? 'Unknown'),
+                    'piece_allowance' => [
+                        'applicable_party' => (string)($baggage['PieceAllowance']['ApplicablePartyText'] ?? ''),
+                        'total_quantity' => (int)($baggage['PieceAllowance']['TotalQty'] ?? 0),
+                        'max_weight' => [
+                            'value' => (float)($baggage['PieceAllowance']['PieceWeightAllowance']['MaximumWeightMeasure'] ?? 0),
+                            'unit' => (string)($baggage['PieceAllowance']['PieceWeightAllowance']['MaximumWeightMeasure']['UnitCode'] ?? 'KG'),
+                        ],
+                    ],
+                ];
+            }
+        }
+
+        // Parse PaxSegmentList (if available)
+        $paxSegmentMap = [];
+        if (isset($dataLists['PaxSegmentList']['PaxSegment'])) {
+            $paxSegments = isset($dataLists['PaxSegmentList']['PaxSegment'][0])
+                ? $dataLists['PaxSegmentList']['PaxSegment']
+                : [$dataLists['PaxSegmentList']['PaxSegment']];
+
+            foreach ($paxSegments as $segment) {
+                if (isset($segment['PaxSegmentID'])) {
+                    $paxSegmentMap[(string)$segment['PaxSegmentID']] = $segment;
+                    $result['segments'][] = [
+                        'segment_id' => (string)($segment['PaxSegmentID'] ?? ''),
+                        'origin' => (string)($segment['Dep']['IATA_LocationCode'] ?? ''),
+                        'origin_name' => (string)($segment['Dep']['StationName'] ?? ''),
+                        'destination' => (string)($segment['Arrival']['IATA_LocationCode'] ?? ''),
+                        'destination_name' => (string)($segment['Arrival']['StationName'] ?? ''),
+                        'departure_time' => (string)($segment['Dep']['AircraftScheduledDateTime'] ?? ''),
+                        'arrival_time' => (string)($segment['Arrival']['AircraftScheduledDateTime'] ?? ''),
+                        'flight_number' => (string)($segment['MarketingCarrierInfo']['MarketingCarrierFlightNumberText'] ?? ''),
+                        'carrier' => (string)($segment['MarketingCarrierInfo']['CarrierDesigCode'] ?? ''),
+                        'carrier_name' => (string)($segment['MarketingCarrierInfo']['CarrierName'] ?? ''),
+                        'duration' => (string)($segment['Duration'] ?? ''),
+                        'aircraft_type' => (string)($this->getAircraftType($segment['DatedOperatingLeg'] ?? []) ?? ''),
+                    ];
+                } else {
+                    Log::warning('Invalid segment structure in PaxSegmentList', ['segment' => $segment]);
+                }
+            }
+        }
+
+        // Parse PaxJourneyList
+        if (isset($dataLists['PaxJourneyList']['PaxJourney'])) {
+            $paxJourneys = isset($dataLists['PaxJourneyList']['PaxJourney'][0])
+                ? $dataLists['PaxJourneyList']['PaxJourney']
+                : [$dataLists['PaxJourneyList']['PaxJourney']];
+
+            foreach ($paxJourneys as $journey) {
+                if (!isset($journey['PaxJourneyID'])) {
+                    Log::warning('Invalid journey structure in PaxJourneyList', ['journey' => $journey]);
+                    continue;
+                }
+
+                // $segmentRefs = isset($journey['PaxSegmentRefID'][0]) ? $journey['PaxSegmentRefID'] : [$journey['PaxSegmentRefID']];
+                $segmentRefs = isset($journey['PaxSegmentRefID']) ? (is_array($journey['PaxSegmentRefID']) ? $journey['PaxSegmentRefID']
+                    : [$journey['PaxSegmentRefID']]) : [];
+
+                // dd($segmentRefs, $journey);
+                $journeySegments = [];
+                foreach ($segmentRefs as $segmentRef) {
+                    if (isset($paxSegmentMap[(string)$segmentRef])) {
+                        $journeySegments[] = (string)$segmentRef;
+                    }
+                }
+
+                $result['journeys'][] = [
+                    'journey_id' => (string)$journey['PaxJourneyID'],
+                    'segment_refs' => $journeySegments,
+                    'origin_dest_id' => null, // To be filled in OriginDestList parsing
+                    'origin' => null,
+                    'destination' => null,
+                ];
+            }
+        }
+
+        // Parse OriginDestList
+        if (isset($dataLists['OriginDestList']['OriginDest'])) {
+            $originDests = isset($dataLists['OriginDestList']['OriginDest'][0])
+                ? $dataLists['OriginDestList']['OriginDest']
+                : [$dataLists['OriginDestList']['OriginDest']];
+
+            foreach ($originDests as $od) {
+                if (!isset($od['OriginDestID']) || !isset($od['OriginCode']) || !isset($od['DestCode'])) {
+                    Log::warning('Invalid OriginDest structure', ['originDest' => $od]);
+                    continue;
+                }
+
+                $paxJourneyRefs = isset($od['PaxJourneyRefID'][0])
+                    ? $od['PaxJourneyRefID']
+                    : [$od['PaxJourneyRefID']];
+
+                $result['journeys'] = array_map(function ($journey) use ($od, $paxJourneyRefs) {
+                    $paxJourneyRefs = (array) $paxJourneyRefs;
+                    if (in_array($journey['journey_id'], $paxJourneyRefs)) {
+                        $journey['origin_dest_id'] = (string)$od['OriginDestID'];
+                        $journey['origin'] = (string)$od['OriginCode'];
+                        $journey['destination'] = (string)$od['DestCode'];
+                    }
+                    return $journey;
+                }, $result['journeys']);
+            }
+        }
+
+        // Parse ServiceList (if available)
+        $serviceMap = [];
+        if (isset($responseData['Order']['OrderItem'])) {
+            $orderItems = isset($responseData['Order']['OrderItem'][0])
+                ? $responseData['Order']['OrderItem']
+                : [$responseData['Order']['OrderItem']];
+            $result['paymentLimit'] = $orderItems[0]['PaymentTimeLimitDateTime'] ?? now()->addHours(24)->toDateTimeString();
+
+            foreach ($orderItems as $item) {
+                if (isset($item['Service'])) {
+                    $services = isset($item['Service'][0]) ? $item['Service'] : [$item['Service']];
+                    foreach ($services as $service) {
+                        $paxSegmentRefs = [];
+                        if (isset($service['ServiceAssociations']['PaxSegmentRef']['PaxSegmentRefID'])) {
+                            $paxSegmentRefID = $service['ServiceAssociations']['PaxSegmentRef']['PaxSegmentRefID'];
+                            $paxSegmentRefs = is_array($paxSegmentRefID) ? $paxSegmentRefID : [$paxSegmentRefID];
+                        } elseif (isset($service['ServiceAssociations']['ServiceDefinitionRef']['ServiceDefinitionFlightAssociations']['PaxSegmentRef']['PaxSegmentRefID'])) {
+                            $paxSegmentRefID = $service['ServiceAssociations']['ServiceDefinitionRef']['ServiceDefinitionFlightAssociations']['PaxSegmentRef']['PaxSegmentRefID'];
+                            $paxSegmentRefs = is_array($paxSegmentRefID) ? $paxSegmentRefID : [$paxSegmentRefID];
+                        }
+
+                        $serviceData = [
+                            'service_id' => (string)($service['ServiceID'] ?? ''),
+                            'pax_ref_id' => (string)($service['PaxRefID'] ?? ''),
+                            'status_code' => (string)($service['StatusCode'] ?? ''),
+                            'segment_refs' => array_map('strval', $paxSegmentRefs),
+                            'service_definition_id' => isset($service['ServiceAssociations']['ServiceDefinitionRef']['ServiceDefinitionRefID'])
+                                ? $service['ServiceAssociations']['ServiceDefinitionRef']['ServiceDefinitionRefID']
+                                : '',
+                            // 'baggage_allowance_ref' => $this->getBaggageDetailsByServiceDefOC(
+                            //     (string)($service['ServiceAssociations']['ServiceDefinitionRef']['ServiceDefinitionRefID'] ?? ''),
+                            //     $responseData
+                            // ),
+                        ];
+                        $result['services'][] = $serviceData;
+                        $serviceMap[$serviceData['pax_ref_id']][] = $serviceData;
+                    }
+                }
+            }
+        }
+
+        // Parse TicketList (if available)
+        if (isset($responseData['TicketDocInfo'])) {
+            $tickets = isset($responseData['TicketDocInfo'][0])
+                ? $responseData['TicketDocInfo']
+                : [$responseData['TicketDocInfo']];
+
+            foreach ($tickets as $ticket) {
+                $result['tickets'][] = [
+                    'pax_id' => $ticket['PaxRefID'] ?? '',
+                    'ticketNumber' => $ticket['Ticket']['TicketNumber'] ?? '',
+                    'bookingId' => $ticket['BookingRef']['BookingID'] ?? '',
+                ];
+            }
+        }
+        $penaltyMap = [];
+        if (isset($dataLists['PenaltyList']['Penalty'])) {
+            $penalties = isset($dataLists['PenaltyList']['Penalty'][0])
+                ? $dataLists['PenaltyList']['Penalty']
+                : [$dataLists['PenaltyList']['Penalty']];
+
+            foreach ($penalties as $penalty) {
+                if (isset($penalty['PenaltyID']) && $penalty['TypeCode'] === 'Cancellation') {
+                    $paxRefId = implode('-', array_slice(explode('-', $penalty['PenaltyID']), 0, 2)); // Extract PaxRefID from PenaltyID
+                    $penaltyMap[$paxRefId] = [
+                        'penalty_id' => $penalty['PenaltyID'] ?? null,
+                        'type_code' => $penalty['TypeCode'] ?? null,
+                        'cancel_fee' => (float)($penalty['Price']['TotalAmount'] ?? 0),
+                    ];
+                }
+            }
+        }
+        if (isset($dataLists['PaxList']['Pax'])) {
+            $passengers = isset($dataLists['PaxList']['Pax'][0])
+                ? $dataLists['PaxList']['Pax']
+                : [$dataLists['PaxList']['Pax']];
+
+            foreach ($passengers as $pax) {
+                $paxId = (string)($pax['PaxID'] ?? '');
+                $paxData = [
+                    'pax_id' => $paxId,
+                    'ptc' => (string)($pax['PTC'] ?? ''),
+                    'given_name' => (string)($pax['Individual']['GivenName'] ?? ''),
+                    'surname' => (string)($pax['Individual']['Surname'] ?? ''),
+                    'gender' => (string)($pax['Individual']['GenderCode'] ?? ''),
+                    'birthdate' => (string)($pax['Birthdate'] ?? ''),
+                    'citizenship' => (string)($pax['CitizenshipCountryCode'] ?? ''),
+                    'individual_id' => (string)($pax['Individual']['IndividualID'] ?? ''),
+                    'title' => (string)($pax['Individual']['TitleName'] ?? ''),
+                    'ticket' => [],
+                    'fare_details' => [],
+                    'services' => [],
+                    'cancel_fee' => $penaltyMap[$paxId] ?? [],
+                ];
+
+                // Map ticket to passenger
+                foreach ($result['tickets'] as $ticket) {
+                    if ($ticket['pax_id'] === $paxData['pax_id']) {
+                        $paxData['ticket'] = [
+                            'ticketNumber' => $ticket['ticketNumber'],
+                            'bookingId' => $ticket['bookingId'],
+                        ];
+                    }
+                }
+
+                // Map fare details from OrderItem
+                if (isset($responseData['Order']['OrderItem'])) {
+                    $orderItems = is_array($responseData['Order']['OrderItem'])
+                        ? $responseData['Order']['OrderItem']
+                        : [$responseData['Order']['OrderItem']];
+
+                    foreach ($orderItems as $item) {
+                        if (isset($item['FareDetail']['PaxRefID']) && (string)$item['FareDetail']['PaxRefID'] === $paxData['pax_id']) {
+                            $fareDetail = $item['FareDetail'];
+                            $fareComponents = is_array($fareDetail['FareComponent'])
+                                ? $fareDetail['FareComponent']
+                                : [$fareDetail['FareComponent']];
+
+                            $paxData['fare_details'] = [
+                                'pricing_code' => (string)($fareDetail['FareCalculationInfo']['PricingCodeText'] ?? ''),
+                                'fare_components' => array_map(function ($component) {
+                                    return [
+                                        'cabin_type' => [
+                                            'code' => (string)($component['CabinType']['CabinTypeCode'] ?? ''),
+                                            'name' => (string)($component['CabinType']['CabinTypeName'] ?? ''),
+                                        ],
+                                        'fare_basis_city_pair' => (string)($component['FareBasisCityPairText'] ?? ''),
+                                        'fare_basis_code' => (string)($component['FareBasisCode'] ?? ''),
+                                        'fare_type_code' => (string)($component['FareTypeCode'] ?? ''),
+                                        'pax_segment_ref_id' => (string)($component['PaxSegmentRefID'] ?? ''),
+                                        'rbd_code' => (string)($component['RBD']['RBD_Code'] ?? ''),
+                                    ];
+                                }, $fareComponents),
+                                'fare_price_type' => [
+                                    'code' => (string)($fareDetail['FarePriceType']['FarePriceTypeCode'] ?? ''),
+                                    'price' => [
+                                        'base_amount' => (float)($fareDetail['FarePriceType']['Price']['BaseAmount'] ?? 0),
+                                        'equiv_amount' => (float)($fareDetail['FarePriceType']['Price']['EquivAmount'] ?? 0),
+                                        'total_amount' => (float)($fareDetail['FarePriceType']['Price']['TotalAmount'] ?? 0),
+                                        'currency' => (string)($fareDetail['FarePriceType']['Price']['TotalAmount']['CurCode'] ?? 'PKR'),
+                                        'discount' => (float)($fareDetail['FarePriceType']['Price']['Discount']['DiscountAmount'] ?? 0),
+                                        'fee' => (float)($fareDetail['FarePriceType']['Price']['Fee']['Amount'] ?? 0),
+                                        'surcharge' => (float)($fareDetail['FarePriceType']['Price']['Surcharge']['TotalAmount'] ?? 0),
+                                        'taxes' => array_map(function ($tax) {
+                                            return [
+                                                'amount' => (float)($tax['Amount'] ?? 0),
+                                                'tax_code' => (string)($tax['TaxCode'] ?? ''),
+                                                'refund_ind' => (string)($tax['RefundInd'] ?? 'false'),
+                                            ];
+                                        }, $fareDetail['FarePriceType']['Price']['TaxSummary']['Tax'] ?? []),
+                                        'total_tax_amount' => (float)($fareDetail['FarePriceType']['Price']['TaxSummary']['TotalTaxAmount'] ?? 0),
+                                    ],
+                                ],
+                                'order_item_id' => (string)($item['OrderItemID'] ?? ''),
+                                'owner_code' => (string)($item['OwnerCode'] ?? ''),
+                                'payment_time_limit' => (string)($item['PaymentTimeLimitDateTime'] ?? ''),
+                            ];
+                        }
+                    }
+                }
+
+                $paxData['services'] = $serviceMap[$paxData['pax_id']] ?? [];
+
+                $result['passengers'][] = $paxData;
+            }
+        }
+        return $result;
+    }
+
+
+    // ------------------------------------------------------------------ Helper's helper ---------------------------------------------------------------------------------------------------
+    private function getBaggageDetailsByServiceDef($serviceDefId, $responseData)
+    {
+        $serviceDefinitions = isset($responseData['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition'][0])
+            ? $responseData['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition']
+            : [$responseData['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition']];
 
         foreach ($serviceDefinitions as $service) {
             if ((string)$service['ServiceDefinitionID'] === $serviceDefId && isset($service['ServiceDefinitionAssociation']['BaggageAllowanceRef']['BaggageAllowanceRefID'])) {
                 $baggageRef = (string)$service['ServiceDefinitionAssociation']['BaggageAllowanceRef']['BaggageAllowanceRefID'];
-                return $this->getBaggageDetails($baggageRef, $response);
+                return $this->getBaggageDetails($baggageRef, $responseData);
             }
         }
         return null;
     }
-    private function getOfferItem($item)
+    private function getServiceDetailsByServiceDef($serviceDefId, $response)
+    {
+        $serviceDefinitions = isset($response['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition'][0])
+            ? $response['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition']
+            : [$response['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition']];
+
+        foreach ($serviceDefinitions as $service) {
+            if ((string)$service['ServiceDefinitionID'] === $serviceDefId && isset($service['ServiceDefinitionAssociation']['BaggageAllowanceRef']['BaggageAllowanceRefID'])) {
+                return [
+                    'id' => $service['ServiceDefinitionID'] ?? '',
+                    'name' => $service['Name'] ?? 'Unknown',
+                    'code' => $service['ServiceCode'] ?? '',
+                ];
+            }
+        }
+        return null;
+    }
+    private function getOfferItem($item, $response)
     {
         if (empty($item)) return $item;
-        $items = (is_array($item)) ? $item : [$item];
+        $items = (isset($item[0])) ? $item : [$item];
         $offers = [];
         foreach($items as $offer) {
+            $baggageAllowances = [];
+            $serviceArray = [];
+            $services = isset($offer['Service'][0]) ? $offer['Service'] : [$offer['Service']];
+            foreach ($services as $service) {
+                $serviceDefId = $service['ServiceAssociations']['ServiceDefinitionRef']['ServiceDefinitionRefID'] 
+                ?? null;
+                
+                if ($serviceDefId) {
+                    $baggageDetails = $this->getBaggageDetailsByServiceDef($serviceDefId, $response);
+                    $serviceDetails = $this->getServiceDetailsByServiceDef($serviceDefId, $response);
+                    if ($baggageDetails) {
+                        $baggageAllowances[] = $baggageDetails;
+                    }
+                    if ($serviceDetails) {
+                        $serviceArray[] = $serviceDetails;
+                    }
+                }
+            }
+            // dd($baggageAllowances, $services, $item, $response);
             $offers[] = [
                 'id' => $offer['OfferItemID'] ?? '',
                 'fareDetail' => $offer['FareDetail'] ?? [],
                 'mandatoryInd' => $offer['MandatoryInd'] ?? '',
-                'paymentLimit' => $this->formatDateTime($offer['OfferItemPaymentTimeLimit']['PaymentTimeLimitDate']['PaymentTimeLimitDateTime'] ?? ''),
+                'paymentLimit' => $offer['OfferItemPaymentTimeLimit']['PaymentTimeLimitDate']['PaymentTimeLimitDateTime'] ?? '',
                 'price' => [
                     'base_amount' => number_format((float)($offer['Price']['BaseAmount'] ?? 0), 2),
                     'discount' => number_format((float)($offer['Price']['Discount']['DiscountAmount'] ?? 0), 2),
@@ -1019,22 +1180,13 @@ class PiaService
                     'surcharge' => $offer['Price']['Surcharge'] ?? [],
                     'taxSummary' => $offer['Price']['TaxSummary'] ?? [],
                     'total_amount' => number_format((float)($offer['Price']['TotalAmount'] ?? 0), 2),
-                    'service' => $offer['Service'] ?? [],
-                ]
+                ],
+                'service' => $serviceArray,
+                'baggage' => $baggageAllowances,
             ];
         }
         return $offers;
     }
-    /**
-     * Format date and time for display
-     */
-    private function formatDateTime($dateTime)
-    {
-        return Carbon::parse($dateTime)->format('D, M d Y H:i');
-    }
-    /**
-     * Format duration (e.g., PT1H55M to 1h 55m)
-     */
     private function formatDuration($duration)
     {
         try {
@@ -1048,33 +1200,30 @@ class PiaService
             return $duration; // Return raw value if parsing fails
         }
     }
-    /**
-     * Get cabin type for a segment
-     */
-    private function getCabinType($segmentRef, $offer)
+    private function getCabinType($offerItem)
     {
         // dd($offer);
-        $fareDetails = is_array($offer['OfferItem']) && isset($offer['OfferItem'][0]) && is_array($offer['OfferItem'][0]) ? $offer['OfferItem'] : [$offer['OfferItem']];
+        $fareDetails = isset($offerItem[0]) ? $offerItem : [$offerItem];
         foreach ($fareDetails as $fareDetail) {
-            $fareComponents = is_array($fareDetail['FareDetail']) && isset($fareDetail['FareDetail'][0]) && is_array($fareDetail['FareDetail'][0]) ? $fareDetail['FareDetail'] : (isset($fareDetail['FareDetail']) ? [$fareDetail['FareDetail']] : []);
+            $fareComponents = isset($fareDetail['FareDetail'][0]) ? $fareDetail['FareDetail'] : (isset($fareDetail['FareDetail']) ? [$fareDetail['FareDetail']] : []);
             foreach ($fareComponents as $fareComponent) {
-                $paxSegmentRefs = isset($fareComponent['FareComponent']['PaxSegmentRefID']) ? (is_array($fareComponent['FareComponent']['PaxSegmentRefID']) ? $fareComponent['FareComponent']['PaxSegmentRefID'] : [$fareComponent['FareComponent']['PaxSegmentRefID']]) : [];
+                return $fareComponent['FareComponent']['CabinType']['CabinTypeName'] ?? 'EconomY';
+                // $paxSegmentRefs = isset($fareComponent['FareComponent']['PaxSegmentRefID']) ? (is_array($fareComponent['FareComponent']['PaxSegmentRefID']) ? $fareComponent['FareComponent']['PaxSegmentRefID'] : [$fareComponent['FareComponent']['PaxSegmentRefID']]) : [];
+                // // dd($segmentRef, $fareComponent, $paxSegmentRefs);
                 // dd($segmentRef, $paxSegmentRefs, $fareComponent);
-                if (in_array((string)$segmentRef, $paxSegmentRefs)) {
-                    return (string)($fareComponent['FareComponent']['CabinType']['CabinTypeName'] ?? 'EconomY');
-                }
+                // if (in_array((string)$segmentRef, $paxSegmentRefs)) {
+                //     // dd($fareComponent['FareComponent']['CabinType']['CabinTypeName'] ?? 'EconomY');
+                //     return $fareComponent['FareComponent']['CabinType']['CabinTypeName'] ?? 'EconomY';
+                // }
             }
         }
         return 'EconomY';
     }
-    /**
-     * Get baggage allowance for a segment
-     */
     private function getBaggageAllowance($segmentRef, $response)
     {
         $baggageAllowances = [];
 
-        $serviceDefinitionsRaw = $response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition'] ?? [];
+        $serviceDefinitionsRaw = $response['Response']['DataLists']['ServiceDefinitionList']['ServiceDefinition'] ?? [];
 
         // Ensure it's an array of service definitions
         $serviceDefinitions = is_array($serviceDefinitionsRaw) && isset($serviceDefinitionsRaw[0])
@@ -1109,12 +1258,9 @@ class PiaService
 
         return $baggageAllowances;
     }
-    /**
-     * Get baggage details by reference ID
-     */
     private function getBaggageDetails($baggageRef, $response)
     {
-        $baggageAllowancesRaw = $response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['BaggageAllowanceList']['BaggageAllowance'] ?? [];
+        $baggageAllowancesRaw = $response['Response']['DataLists']['BaggageAllowanceList']['BaggageAllowance'] ?? [];
 
         $baggageAllowances = is_array($baggageAllowancesRaw) && isset($baggageAllowancesRaw[0])
             ? $baggageAllowancesRaw
@@ -1132,14 +1278,11 @@ class PiaService
         }
         return null;
     }
-    /**
-     * Get passenger type
-     */
     private function getPassengerType($paxRef, $response)
     {
-        $passengers = is_array($response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['PaxList']['Pax'])
-            ? $response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['PaxList']['Pax']
-            : [$response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['PaxList']['Pax']];
+        $passengers = isset($response['Response']['DataLists']['PaxList']['Pax'][0])
+            ? $response['Response']['DataLists']['PaxList']['Pax']
+            : [$response['Response']['DataLists']['PaxList']['Pax']];
 
         foreach ($passengers as $pax) {
             if ((string)$pax['PaxID'] === $paxRef) {
@@ -1148,9 +1291,6 @@ class PiaService
         }
         return 'Unknown';
     }
-    /**
-     * Get aircraft type from DatedOperatingLeg, handling single or multiple legs
-     */
     private function getAircraftType($datedOperatingLeg)
     {
         if (!is_array($datedOperatingLeg)) {
@@ -1173,14 +1313,11 @@ class PiaService
 
         return null;
     }
-    /**
-     * Determine trip type
-     */
     private function determineTripType($journeys, $response)
     {
-        $originDests = is_array($response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['OriginDestList']['OriginDest'])
-            ? $response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['OriginDestList']['OriginDest']
-            : [$response['Body']['IATA_AirShoppingRS']['Response']['DataLists']['OriginDestList']['OriginDest']];
+        $originDests = is_array($response['Response']['DataLists']['OriginDestList']['OriginDest'])
+            ? $response['Response']['DataLists']['OriginDestList']['OriginDest']
+            : [$response['Response']['DataLists']['OriginDestList']['OriginDest']];
 
         $journeyCount = count($journeys);
         if ($journeyCount === 1) {
@@ -1207,18 +1344,57 @@ class PiaService
 
         return count($uniqueCities) > 2 ? 'Multi-city' : 'Connecting';
     }
-
     private function getSoapHeaders($action)
     {
         return [
             'Username' => $this->username,
             'Password' => $this->password,
-            'Content-Type' => 'application/xml',
-            'Accept' => 'application/xml',
-            'SOAPAction' => "cranendc/{$action}.",
+            'Content-Type' => 'text/xml;charset=UTF-8',
+            'Accept' => '*/*',
+            'SOAPAction' => "cranendc/{$action}",
         ];
     }
+    public function getCarrierName()
+    {
+        return 'pia';
+    }
+
+    // Order Create Helpers
+    private function getAircraftTypeOC($datedOperatingLeg)
+    {
+        return isset($datedOperatingLeg['AircraftCode'])
+            ? (string)$datedOperatingLeg['AircraftCode']
+            : null;
+    }
+    // private function getBaggageDetailsByServiceDefOC($serviceDefId, $response)
+    // {
+    //     dd($serviceDefId, $response);
+    //     if (isset($response['DataLists']['BaggageAllowanceList']['BaggageAllowance'])) {
+    //         $baggageAllowances = is_array($response['DataLists']['BaggageAllowanceList']['BaggageAllowance'])
+    //             ? $response['DataLists']['BaggageAllowanceList']['BaggageAllowance']
+    //             : [$response['DataLists']['BaggageAllowanceList']['BaggageAllowance']];
+
+    //         foreach ($baggageAllowances as $baggage) {
+    //             if ((string)$baggage['BaggageAllowanceID'] === $serviceDefId) {
+    //                 return [
+    //                     'baggage_allowance_id' => (string)$baggage['BaggageAllowanceID'],
+    //                     'type' => (string)($baggage['TypeCode'] ?? 'Unknown'),
+    //                     'piece_allowance' => [
+    //                         'applicable_party' => (string)($baggage['PieceAllowance']['ApplicablePartyText'] ?? ''),
+    //                         'total_quantity' => (int)($baggage['PieceAllowance']['TotalQty'] ?? 0),
+    //                         'max_weight' => [
+    //                             'value' => (float)($baggage['PieceAllowance']['PieceWeightAllowance']['MaximumWeightMeasure'] ?? 0),
+    //                             'unit' => (string)($baggage['PieceAllowance']['PieceWeightAllowance']['MaximumWeightMeasure']['UnitCode'] ?? 'KG'),
+    //                         ],
+    //                     ],
+    //                 ];
+    //             }
+    //         }
+    //     }
+    //     return null;
+    // }
     // FLOW: doAirShopping > doOrderCreate > DoOrderRetrieve > doOrderChange > DoVoidTicket > DoAddAncillary
     //       DoServiceList > DoSeatAvailability > DoBaggageServiceList > DoTicketPreview > doOfferPrice > doOrderCancelCommit
     // connected flight route KHI - LHE - DXB
+    // http://127.0.0.1:8000/flights?arr=KHI&dest=DXB&dep=2025-11-25&return=2025-11-28&cabinClass=Y&adt=2&chd=1&inf=1
 }

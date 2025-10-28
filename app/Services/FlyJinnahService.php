@@ -29,8 +29,14 @@ class FlyJinnahService
     public function __construct(HelperService $helperService)
     {
         $this->regenerateLogs = true;
-        $this->logPath = storage_path('logs/flyjinnah_logs.txt');
-        $this->logPathBooking = storage_path('logs/flyjinnah_logs_bookings.txt');
+        $logDir = storage_path('logs/flyjinnah');
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+        $this->logPath = $logDir . '/' . now()->format('Y_m_d') . '.log';
+        $this->logPathBooking = $logDir . '/bookings_' . now()->format('Y_m_d') . '.log';
+        // $this->logPath = storage_path('logs/flyjinnah_logs.txt');
+        // $this->logPathBooking = storage_path('logs/flyjinnah_logs_bookings.txt');
 
         $this->helperService = $helperService;
         $this->agencyName = config('services.agency.name');
@@ -60,16 +66,55 @@ class FlyJinnahService
         ';
         $this->tempToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBQllERVNUX09ORUFQSSIsImlwIjoiNzIuMjU1LjYyLjIxNiIsImlkIjoiMTZmMDRmZjgtOTJlNS00NmNkLWE5YmUtZjYyMzM4MzYxZjgxIiwiZm4iOiJEZXN0aW5hdGlvbiBUb3VycyBUZXN0IiwibG4iOiJSZXZpc2VkIiwib2MiOiJBQUNLSEkyNzE3Iiwic3QiOiIiLCJwcml2aWxlZ2VzIjpbIkxBQUFBQUkiXSwiaWF0IjoxNzU1NzYwOTQ1LCJleHAiOjE3NTU4NDczNDV9.BdJiUD-H1TOZ9z15-qzAqZ9ym9fLNrfRtMjPMCz6jkU';
     }
+    public function sendRequest($endpoint, $xmlBody, $isBooking = false)
+    {
+        try {
+            if ($this->regenerateLogs) {
+                $formattedRequest = $this->helperService->formatXml((string) $xmlBody);
+                file_put_contents($this->logPath, "{$endpoint} Request:\n{$formattedRequest}\n\n\n", FILE_APPEND);
+                if ($isBooking) {
+                    file_put_contents($this->logPathBooking, "{$endpoint} Request:\n{$formattedRequest}\n\n\n", FILE_APPEND);
+                }
+            }
+            $response = $this->helperService->postXml($this->flight_details, $this->getSoapHeaders($endpoint), $xmlBody);
+            if ($this->regenerateLogs) {
+                $formattedResponse = $this->helperService->formatXml((string) $response);
+                file_put_contents($this->logPath, "{$endpoint} Response:\n{$formattedResponse}\n\n\n\n\n\n", FILE_APPEND);
+                if ($isBooking) {
+                    file_put_contents($this->logPathBooking, "{$endpoint} Response:\n{$formattedResponse}\n\n\n\n\n\n", FILE_APPEND);
+                }
+            }
+
+            if (!$response || !$response->successful()) {
+                \Log::error('Flight booking request failed Flyjinnah', [
+                    'status' => $response?->status(),
+                    'response' => $response?->body()
+                ]);
+                return ['error' => "Flight booking request failed Flyjinnah ({$endpoint}).", 'details' => $response?->body()];
+            }
+            // dd($response->body());
+            return $response;
+        } catch (RequestException $e) {
+            $response = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
+            Log::error('Flyjinnah API Request Error', [
+                'endpoint' => $endpoint,
+                'error' => $e->getMessage(),
+                'response' => $response,
+            ]);
+            throw new \Exception('API request failed: ' . $e->getMessage());
+        }
+    }
     public function authenticate()
     {
         if(!$this->authUsername){
-            dd('env error run config cache cmd :)', $this->authUsername);
+            \Log::error('Env error run config cache cmd', ['message' => $e->getMessage()]);
+            return null;
         }
         try {
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "Authenticate Request:\n" . json_encode([
-                'login' => $this->authUsername,
-                'password' => $this->authPassword,
-            ], JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);}
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "Authenticate Request:\n" . json_encode([
+            //     'login' => $this->authUsername,
+            //     'password' => $this->authPassword,
+            // ], JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);}
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
@@ -79,10 +124,10 @@ class FlyJinnahService
                 'login' => $this->authUsername,
                 'password' => $this->authPassword,
             ]);
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "Authenticate Response:\n" . json_encode([
-                'response' => $response->body(),
-                'status' => $response->status(),
-            ], JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);}
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "Authenticate Response:\n" . json_encode([
+            //     'response' => $response->body(),
+            //     'status' => $response->status(),
+            // ], JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);}
             // dd($response->body());
             if (!$response->successful()) {
                 \Log::error('Authentication Failed', [
@@ -192,7 +237,7 @@ class FlyJinnahService
             "currencyCode" => "PKR",
             "cabinClass" => "Y",
             "metaData" => [
-                "agentCode" => "RBGALY10",
+                "agentCode" => "OTA",
                 "country" => "PK",
                 "station" => "KHI",
                 "salesChannel" => "TravelAgent",
@@ -265,7 +310,7 @@ class FlyJinnahService
         }
         
 
-        $soapUrl = $this->flight_details;
+        // $soapUrl = $this->flight_details;
 
         $xmlBody = '<?xml version="1.0" encoding="utf-8"?>
         <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -299,29 +344,35 @@ class FlyJinnahService
             </soap:Body>
         </soap:Envelope>';
         // dd($xmlBody);
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "GetBundlesRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "GetBundlesRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         try {
-            $cookieJar = new CookieJar();
-            $response = Http::withHeaders([
-                'Content-Type' => 'text/xml; charset=utf-8',
-                'SOAPAction' => '',
-            ])
-            ->withOptions([
-                'verify' => false,
-                'cookies' => $cookieJar
-            ])
-            ->withBody($xmlBody, 'text/xml')
-            ->post($soapUrl);
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "GetBundlesRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+            $response = $this->sendRequest('GetBundles', $xmlBody);
+
+            if (!$response || isset($response['error'])) {
+                \Log::error('GetBundlesRQ request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (GetBundlesRQ).', 'details' => $response];
+            }
+            // $cookieJar = new CookieJar();
+            // $response = Http::withHeaders([6+
+            //     'Content-Type' => 'text/xml; charset=utf-8',
+            //     'SOAPAction' => '',
+            // ])
+            // ->withOptions([
+            //     'verify' => false,
+            //     'cookies' => $cookieJar
+            // ])
+            // ->withBody($xmlBody, 'text/xml')
+            // ->post($soapUrl);
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "GetBundlesRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
             // \Log::info('SOAP XML Request:', ['xml' => $xmlBody]);
 
-            if (!$response->successful()) {
-                \Log::error('Flight details request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight details request failed.', 'details' => $response->body()];
-            }
+            // if (!$response->successful()) {
+            //     \Log::error('Flight details request failed', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight details request failed.', 'details' => $response->body()];
+            // }
 
             $setCookieHeader = $response->header('Set-Cookie');
             $jsessionId = null;
@@ -424,29 +475,36 @@ class FlyJinnahService
             </soap:Body>
         </soap:Envelope>';
         // dd($xmlBody);
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "BundlePriceRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "BundlePriceRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         try {
-            $response = Http::withHeaders([
-                'Content-Type' => 'text/xml; charset=utf-8',
-                'SOAPAction' => '',
-                'JSESSIONID' => $jsessionId,
-            ])
-            ->withOptions([
-                'verify' => false,
-                'cookies' => $cookieJar
-            ])
-            ->withBody($xmlBody, 'text/xml')
-            ->post($soapUrl);
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "BundlePriceRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+            $response = $this->sendRequest('BundlePriceRS', $xmlBody);
 
-            if (!$response->successful()) {
-                \Log::error('Flight details request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight details request failed.', 'details' => $response->body()];
+            if (!$response || isset($response['error'])) {
+                \Log::error('GetBundlePriceRS request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (GetBundlePriceRS).', 'details' => $response];
             }
             return $this->helperService->XMLtoJSON($response->body());
+            // $response = Http::withHeaders([
+            //     'Content-Type' => 'text/xml; charset=utf-8',
+            //     'SOAPAction' => '',
+            //     'Cookie' => $jsessionId,
+            // ])
+            // ->withOptions([
+            //     'verify' => false,
+            //     'cookies' => $cookieJar
+            // ])
+            // ->withBody($xmlBody, 'text/xml')
+            // ->post($soapUrl);
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "BundlePriceRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+
+            // if (!$response->successful()) {
+            //     \Log::error('Flight details request failed', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight details request failed.', 'details' => $response->body()];
+            // }
+            // return $this->helperService->XMLtoJSON($response->body());
 
         } catch (\Exception $e) {
             \Log::error('Exception in booking flight', ['message' => $e->getMessage()]);
@@ -488,29 +546,35 @@ class FlyJinnahService
             </soap:Envelope>
         ';
         // dd($xmlBody);
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "SeatMapRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "SeatMapRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         try {
-            $response = Http::withHeaders([
-                'Content-Type' => 'text/xml; charset=utf-8',
-                'SOAPAction' => '',
-                'JSESSIONID' => $jsessionId,
-            ])
-            ->withOptions([
-                'verify' => false,
-                'cookies' => $cookieJar,
-            ])
-            ->withBody($xmlBody, 'text/xml')
-            ->post($soapUrl);
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "SeatMapRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-    
-            // \Log::info('SOAP Seat XML Request:', ['xml' => $xmlBody]);
-            if (!$response->successful()) {
-                \Log::error('Flight seat map request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight seat map request failed.', 'details' => $response->body()];
+            $response = $this->sendRequest('SeatMap', $xmlBody);
+
+            if (!$response || isset($response['error'])) {
+                \Log::error('SeatMapRQ request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (SeatMapRQ).', 'details' => $response];
             }
+            // $response = Http::withHeaders([
+            //     'Content-Type' => 'text/xml; charset=utf-8',
+            //     'SOAPAction' => '',
+            //     'Cookie' => $jsessionId,
+            // ])
+            // ->withOptions([
+            //     'verify' => false,
+            //     'cookies' => $cookieJar,
+            // ])
+            // ->withBody($xmlBody, 'text/xml')
+            // ->post($soapUrl);
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "SeatMapRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+    
+            // // \Log::info('SOAP Seat XML Request:', ['xml' => $xmlBody]);
+            // if (!$response->successful()) {
+            //     \Log::error('Flight seat map request failed', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight seat map request failed.', 'details' => $response->body()];
+            // }
             return $this->helperService->XMLtoJSON($response->body());
         } catch (\Exception $e) {
             \Log::error('Exception in seat map flight', ['message' => $e->getMessage()]);
@@ -552,29 +616,35 @@ class FlyJinnahService
             </soap:Envelope>
         ';
         // dd($xmlBody);
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "MealMapRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "MealMapRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         try {
-            $response = Http::withHeaders([
-                'Content-Type' => 'text/xml; charset=utf-8',
-                'SOAPAction' => '',
-                'JSESSIONID' => $jsessionId,
-            ])
-            ->withOptions([
-                'verify' => false,
-                'cookies' => $cookieJar,
-            ])
-            ->withBody($xmlBody, 'text/xml')
-            ->post($soapUrl);
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "MealMapRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+            $response = $this->sendRequest('MealMap', $xmlBody);
 
-            // \Log::info('SOAP meal XML Request:', ['xml' => $xmlBody]);
-            if (!$response->successful()) {
-                \Log::error('Flight meal map request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight meal map request failed.', 'details' => $response->body()];
+            if (!$response || isset($response['error'])) {
+                \Log::error('MealMapRQ request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (MealMapRQ).', 'details' => $response];
             }
+            // $response = Http::withHeaders([
+            //     'Content-Type' => 'text/xml; charset=utf-8',
+            //     'SOAPAction' => '',
+            //     'Cookie' => $jsessionId,
+            // ])
+            // ->withOptions([
+            //     'verify' => false,
+            //     'cookies' => $cookieJar,
+            // ])
+            // ->withBody($xmlBody, 'text/xml')
+            // ->post($soapUrl);
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "MealMapRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+
+            // // \Log::info('SOAP meal XML Request:', ['xml' => $xmlBody]);
+            // if (!$response->successful()) {
+            //     \Log::error('Flight meal map request failed', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight meal map request failed.', 'details' => $response->body()];
+            // }
     
             // \Log::info('SOAP meal XML Request:', ['xml' => $response->body()]);
             // dd($this->helperService->XMLtoJSON($response->body()));
@@ -619,29 +689,35 @@ class FlyJinnahService
             </soap:Envelope>
         ';
         // dd($xmlBody);
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "BaggageMapRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "BaggageMapRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         try {
-            $response = Http::withHeaders([
-                'Content-Type' => 'text/xml; charset=utf-8',
-                'SOAPAction' => '',
-                'JSESSIONID' => $jsessionId,
-            ])
-            ->withOptions([
-                'verify' => false,
-                'cookies' => $cookieJar,
-            ])
-            ->withBody($xmlBody, 'text/xml')
-            ->post($soapUrl);
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "BaggageMapRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-    
-            // \Log::info('SOAP baggage XML Request:', ['xml' => $xmlBody]);
-            if (!$response->successful()) {
-                \Log::error('Flight baggage map request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight baggage map request failed.', 'details' => $response->body()];
+            $response = $this->sendRequest('BaggageMap', $xmlBody);
+
+            if (!$response || isset($response['error'])) {
+                \Log::error('BaggageMapRQ request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (BaggageMapRQ).', 'details' => $response];
             }
+            // $response = Http::withHeaders([
+            //     'Content-Type' => 'text/xml; charset=utf-8',
+            //     'SOAPAction' => '',
+            //     'Cookie' => $jsessionId,
+            // ])
+            // ->withOptions([
+            //     'verify' => false,
+            //     'cookies' => $cookieJar,
+            // ])
+            // ->withBody($xmlBody, 'text/xml')
+            // ->post($soapUrl);
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "BaggageMapRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+    
+            // // \Log::info('SOAP baggage XML Request:', ['xml' => $xmlBody]);
+            // if (!$response->successful()) {
+            //     \Log::error('Flight baggage map request failed', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight baggage map request failed.', 'details' => $response->body()];
+            // }
     
             // \Log::info('SOAP baggage XML Request:', ['xml' => $response->body()]);
             // dd($this->helperService->XMLtoJSON($response->body()));
@@ -765,30 +841,36 @@ class FlyJinnahService
             </soap:Body>
         </soap:Envelope>';
         // dd($xmlBody);
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "FinalPriceRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "FinalPriceRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         try {
-            $response = Http::withHeaders([
-                'Content-Type' => 'text/xml; charset=utf-8',
-                'SOAPAction' => '',
-                'JSESSIONID' => $jsessionId,
-            ])
-            ->withOptions([
-                'timeout' => 120,
-                'verify' => false,
-                'cookies' => $cookieJar,
-            ])
-            ->withBody($xmlBody, 'text/xml')
-            ->post($soapUrl);
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "FinalPriceRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-            // dd($this->helperService->XMLtoJSON($response->body()));
-            // \Log::info('SOAP Final Price XML Request:', ['xml' => $xmlBody]);
-            if (!$response->successful()) {
-                \Log::error('Flight Final Price request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight Final Price request failed.', 'details' => $response->body()];
+            $response = $this->sendRequest('FinalPrice', $xmlBody);
+
+            if (!$response || isset($response['error'])) {
+                \Log::error('FinalPriceRQ request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (FinalPriceRQ).', 'details' => $response];
             }
+            // $response = Http::withHeaders([
+            //     'Content-Type' => 'text/xml; charset=utf-8',
+            //     'SOAPAction' => '',
+            //     'Cookie' => $jsessionId,
+            // ])
+            // ->withOptions([
+            //     'timeout' => 120,
+            //     'verify' => false,
+            //     'cookies' => $cookieJar,
+            // ])
+            // ->withBody($xmlBody, 'text/xml')
+            // ->post($soapUrl);
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "FinalPriceRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+            // // dd($this->helperService->XMLtoJSON($response->body()));
+            // // \Log::info('SOAP Final Price XML Request:', ['xml' => $xmlBody]);
+            // if (!$response->successful()) {
+            //     \Log::error('Flight Final Price request failed', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight Final Price request failed.', 'details' => $response->body()];
+            // }
             // \Log::info('SOAP Final Price XML Request:', ['xml' => $response->body()]);
             return $this->helperService->XMLtoJSON($response->body());
         } catch (\Exception $e) {
@@ -896,30 +978,36 @@ class FlyJinnahService
                 </soap:Body>
             </soap:Envelope>
         ';
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "BookFlightRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "BookFlightRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         // dd($xmlBody);
         try {
-            $response = Http::withHeaders([
-                'Content-Type' => 'text/xml; charset=utf-8',
-                'SOAPAction' => '',
-                'JSESSIONID' => $jsessionId,
-            ])
-            ->withOptions([
-                'timeout' => 120,
-                'verify' => false,
-                'cookies' => $cookieJar,
-            ])
-            ->withBody($xmlBody, 'text/xml')
-            ->post($soapUrl);
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "BookFlightRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-            // \Log::info('SOAP XML Booking Request:', ['xml' => $xmlBody]);
-            if (!$response->successful()) {
-                \Log::error('Flight booking request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight booking request failed.', 'details' => $response->body()];
+            $response = $this->sendRequest('BookFlight', $xmlBody, true);
+
+            if (!$response || isset($response['error'])) {
+                \Log::error('BookFlightRQ request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (BookFlightRQ).', 'details' => $response];
             }
+            // $response = Http::withHeaders([
+            //     'Content-Type' => 'text/xml; charset=utf-8',
+            //     'SOAPAction' => '',
+            //     'Cookie' => $jsessionId,
+            // ])
+            // ->withOptions([
+            //     'timeout' => 120,
+            //     'verify' => false,
+            //     'cookies' => $cookieJar,
+            // ])
+            // ->withBody($xmlBody, 'text/xml')
+            // ->post($soapUrl);
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "BookFlightRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+            // // \Log::info('SOAP XML Booking Request:', ['xml' => $xmlBody]);
+            // if (!$response->successful()) {
+            //     \Log::error('Flight booking request failed', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight booking request failed.', 'details' => $response->body()];
+            // }
             return $this->helperService->XMLtoJSON($response->body());
         } catch (\Exception $e) {
             \Log::error('Exception in booking flight', ['message' => $e->getMessage()]);
@@ -980,30 +1068,36 @@ class FlyJinnahService
                 </soap:Body>
             </soap:Envelope>
         ';
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         // dd($xmlBody);
         try {
-            $response = Http::withHeaders([
-                'Content-Type' => 'text/xml; charset=utf-8',
-                'SOAPAction' => 'modifyReservation',
-                'JSESSIONID' => $jsessionId,
-            ])
-            ->withOptions([
-                'verify' => false,
-                'cookies' => $cookieJar,
-            ])
-            ->withBody($xmlBody, 'text/xml')
-            ->post($soapUrl);
-            // dd($response->body());
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-            // \Log::info('SOAP XML Booking Request:', ['xml' => $xmlBody]);
-            if (!$response->successful()) {
-                \Log::error('Flight booking request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight booking request failed.', 'details' => $response->body()];
+            $response = $this->sendRequest('OrderChange', $xmlBody, true);
+
+            if (!$response || isset($response['error'])) {
+                \Log::error('OrderChangeRQ request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (OrderChangeRQ).', 'details' => $response];
             }
+            // $response = Http::withHeaders([
+            //     'Content-Type' => 'text/xml; charset=utf-8',
+            //     'SOAPAction' => 'modifyReservation',
+            //     'Cookie' => $jsessionId,
+            // ])
+            // ->withOptions([
+            //     'verify' => false,
+            //     'cookies' => $cookieJar,
+            // ])
+            // ->withBody($xmlBody, 'text/xml')
+            // ->post($soapUrl);
+            // // dd($response->body());
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+            // // \Log::info('SOAP XML Booking Request:', ['xml' => $xmlBody]);
+            // if (!$response->successful()) {
+            //     \Log::error('Flight booking request failed', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight booking request failed.', 'details' => $response->body()];
+            // }
             $jsonResponse = $this->helperService->XMLtoJSON($response);
             if ($jsonResponse['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($jsonResponse['error'] ?? null)) {
                 return $jsonResponse;
@@ -1049,29 +1143,35 @@ class FlyJinnahService
                 </soap:Body>
             </soap:Envelope>
         ';
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "getReservationbyPNRRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "getReservationbyPNRRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         // dd($xmlBody);
         try {
-            $response = Http::withHeaders([
-                'Content-Type' => 'text/xml; charset=utf-8',
-                'SOAPAction' => 'getReservationbyPNR',
-            ])
-            ->withOptions([
-                'verify' => false,
-                'cookies' => $cookieJar,
-            ])
-            ->withBody($xmlBody, 'text/xml')
-            ->post($soapUrl);
-            // dd($response->body());
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "getReservationbyPNRRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-            // \Log::info('SOAP XML Booking Request:', ['xml' => $xmlBody]);
-            if (!$response->successful()) {
-                \Log::error('Flight booking request failed', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight booking request failed.', 'details' => $response->body()];
+            $response = $this->sendRequest('GetReservationbyPNR', $xmlBody);
+
+            if (!$response || isset($response['error'])) {
+                \Log::error('GetReservationbyPNRRQ request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (GetReservationbyPNRRQ).', 'details' => $response];
             }
+            // $response = Http::withHeaders([
+            //     'Content-Type' => 'text/xml; charset=utf-8',
+            //     'SOAPAction' => 'getReservationbyPNR',
+            // ])
+            // ->withOptions([
+            //     'verify' => false,
+            //     'cookies' => $cookieJar,
+            // ])
+            // ->withBody($xmlBody, 'text/xml')
+            // ->post($soapUrl);
+            // // dd($response->body());
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "getReservationbyPNRRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
+            // // \Log::info('SOAP XML Booking Request:', ['xml' => $xmlBody]);
+            // if (!$response->successful()) {
+            //     \Log::error('Flight booking request failed', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight booking request failed.', 'details' => $response->body()];
+            // }
             $setCookieHeader = $response->header('Set-Cookie');
             $jsessionId = null;
             if (preg_match('/JSESSIONID=([^;]+)/', $setCookieHeader, $matches)) $jsessionId = $matches[0];
@@ -1174,7 +1274,7 @@ class FlyJinnahService
         }
         foreach ($flights as $flightData) {
             if (!$flightData) continue;
-            $departureCode = $flightData['origin']['airportCode'] ?? $flightData['destination'];
+            $departureCode = $flightData['origin']['airportCode'] ?? $flightData['destination'] ?? '';
             $departureTerminal = $flightData['origin']['terminal'] ?? $flightData['depTerminal'] ?? '';
             $arrivalCode = $flightData['destination']['airportCode'] ?? $flightData['origin'];
             $arrivalTerminal = $flightData['destination']['terminal'] ?? $flightData['arrTerminal'] ?? '';
@@ -1414,5 +1514,15 @@ class FlyJinnahService
     public function getCarrierName()
     {
         return 'flyJinnah';
+    }
+    private function getSoapHeaders($action)
+    {
+        // Action null tha :)
+        $jsessionId = session('JSESSIONID', '');
+        return [
+            'Content-Type' => 'text/xml; charset=utf-8',
+            'SOAPAction' => $action,
+            'Cookie' => $jsessionId,
+        ];
     }
 }

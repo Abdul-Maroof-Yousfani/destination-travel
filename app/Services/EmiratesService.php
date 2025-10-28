@@ -35,8 +35,12 @@ class EmiratesService
     public function __construct(HelperService $helperService)
     {
         $this->regenerateLogs = true;
-        $this->logPath = storage_path('logs/emirates_logs.txt');
-        $this->logPathBooking = storage_path('logs/emirates_logs_bookings.txt');
+        $logDir = storage_path('logs/emirates');
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+        $this->logPath = $logDir . '/' . now()->format('Y_m_d') . '.log';
+        $this->logPathBooking = $logDir . '/bookings_' . now()->format('Y_m_d') . '.log';
 
         $this->helperService = $helperService;
         $this->randomId = Str::random(30);
@@ -52,6 +56,46 @@ class EmiratesService
         $this->subscriptionKey = config('services.emirates_api.subscription_key');
         $this->pcc = config('services.emirates_api.pcc');
         $this->role = config('services.emirates_api.role');
+    }
+    public function sendRequest($endpoint, $xmlBody, $isBooking = false)
+    {
+        try {
+            if ($this->regenerateLogs) {
+                $formattedRequest = $this->helperService->formatXml((string) $xmlBody);
+                file_put_contents($this->logPath, "{$endpoint} Request:\n{$formattedRequest}\n\n\n", FILE_APPEND);
+                if ($isBooking) {
+                    file_put_contents($this->logPathBooking, "{$endpoint} Request:\n{$formattedRequest}\n\n\n", FILE_APPEND);
+                }
+            }
+            $response = $this->helperService->postXml($this->url, $this->getSoapHeaders($endpoint), $xmlBody);
+            if ($this->regenerateLogs) {
+                $formattedResponse = $this->helperService->formatXml((string) $response);
+                file_put_contents($this->logPath, "{$endpoint} Response:\n{$formattedResponse}\n\n\n\n\n\n", FILE_APPEND);
+                if ($isBooking) {
+                    file_put_contents($this->logPathBooking, "{$endpoint} Response:\n{$formattedResponse}\n\n\n\n\n\n", FILE_APPEND);
+                }
+            }
+
+            if (!$response || !$response->successful()) {
+                \Log::error('Flight booking request failed Emirate', [
+                    'status' => $response?->status(),
+                    'response' => $response?->body()
+                ]);
+                return ['error' => "Flight booking request failed Emirate ({$endpoint}).", 'details' => $response?->body()];
+            }
+            // dd($response->body());
+            $parsed = $this->helperService->XMLtoJSONEmirate($response);
+
+            return $parsed['SOAP-ENV:Body']['XXTransactionResponse']['RSP'] ?? $parsed;
+        } catch (RequestException $e) {
+            $response = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
+            Log::error('Emirate API Request Error', [
+                'endpoint' => $endpoint,
+                'error' => $e->getMessage(),
+                'response' => $response,
+            ]);
+            throw new \Exception('API request failed: ' . $e->getMessage());
+        }
     }
     public function searchFlights($data) // AirShoppingRQ
     {
@@ -123,27 +167,35 @@ class EmiratesService
                         </DataLists>
                     </AirShoppingRQ>';
         // dd($this->getSoapEnvelope($body));
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
-            $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('AirShoppingRQ'), $this->getSoapEnvelope($body));
+            $data = $this->sendRequest('AirShoppingRQ', $this->getSoapEnvelope($body));
+
+            if (!$data || isset($data['error']) || isset($data['AirShoppingRS']['Errors'])) {
+                \Log::error('AirShoppingRQ request failed', ['response' => $data]);
+                return ['error' => 'Flight booking request failed Emirate (AirShoppingRQ).', 'details' => $data];
+            }
+
+            $airShoppingRS = $data['AirShoppingRS'];
+            // $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('AirShoppingRQ'), $this->getSoapEnvelope($body));
             // dd($response->body());
-            if (!$response->successful()) {
-                \Log::error('Flight details request failed Emirates', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight search request failed Emirates.', 'details' => $response->body()];
-            }
+            // if (!$response->successful()) {
+            //     \Log::error('Flight details request failed Emirates', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight search request failed Emirates.', 'details' => $response->body()];
+            // }
 
-            $responseXml = $response->body();
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRS Response:\n" . (string) $responseXml . "\n\n\n\n\n\n", FILE_APPEND);}
-            $data = $this->helperService->XMLtoJSONEmirate($responseXml);
+            // $responseXml = $response->body();
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRS Response:\n" . (string) $responseXml . "\n\n\n\n\n\n", FILE_APPEND);}
+            // $data = $this->helperService->XMLtoJSONEmirate($responseXml);
             // dd($data);
-            $airShoppingRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['AirShoppingRS'];
+            // $airShoppingRS = $data['AirShoppingRS'];
 
-            if(isset($airShoppingRS['Errors'])){
-                return ['error' => 'Flight search failed.', 'details' => $airShoppingRS['Errors']['Error']];
-            }
+            // if(isset($airShoppingRS['Errors']) || $data['error']){
+            //     return ['error' => 'Flight search failed.', 'details' => $airShoppingRS['Errors']['Error']];
+            // }
 
             $flightData = [
                 'offers' => $airShoppingRS['OffersGroup']['AirlineOffers']['Offer'] ?? '',
@@ -158,6 +210,7 @@ class EmiratesService
                 'responseId' => $airShoppingRS['ShoppingResponseID']['ResponseID']['value'] ?? '',
                 'currencyFormat' => collect($airShoppingRS['Metadata']['Other']['OtherMetadata'] ?? [])
                     ->firstWhere(fn($item) => array_key_exists('CurrencyMetadatas', $item))['CurrencyMetadatas'] ?? [],
+                'cabinClass' => $cabinClass,
                 'request' => 1,
             ];
             // dd($flightData);
@@ -220,26 +273,32 @@ class EmiratesService
                     </DataLists>
                 </OfferPriceRQ>';
         // dd($this->getSoapEnvelope($body));
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OfferPriceRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OfferPriceRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
-            $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('OfferPriceRQ'), $this->getSoapEnvelope($body));
-            // dd($response->body());
-            if (!$response->successful()) {
-                \Log::error('Flight bundle request failed Emirates', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return ['error' => 'Flight bundle request failed Emirates.', 'details' => $response->body()];
-            }
-            $responseXml = $response->body();
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "OfferPriceRS Response:\n" . (string) $responseXml . "\n\n\n\n\n\n", FILE_APPEND);}
-            $data = $this->helperService->XMLtoJSONEmirate($responseXml);
-            // dd($responseXml);
-            $offerPriceRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OfferPriceRS'];
+            $data = $this->sendRequest('OfferPriceRQ', $this->getSoapEnvelope($body));
 
-            if(isset($offerPriceRS['Errors'])){
-                return ['error' => 'Flight bundle failed.', 'details' => $offerPriceRS['Errors']['Error']];
+            if (!$data || isset($data['error']) || isset($data['OfferPriceRS']['Errors'])) {
+                \Log::error('OfferPriceRQ request failed', ['response' => $data]);
+                return ['error' => 'Flight booking request failed Emirate (OfferPriceRQ).', 'details' => $data];
             }
+            $offerPriceRS = $data['OfferPriceRS'];
+            // $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('OfferPriceRQ'), $this->getSoapEnvelope($body));
+            // // dd($response->body());
+            // if (!$response->successful()) {
+            //     \Log::error('Flight bundle request failed Emirates', [
+            //         'status' => $response->status(),
+            //         'response' => $response->body()
+            //     ]);
+            //     return ['error' => 'Flight bundle request failed Emirates.', 'details' => $response->body()];
+            // }
+            // $responseXml = $response->body();
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OfferPriceRS Response:\n" . (string) $responseXml . "\n\n\n\n\n\n", FILE_APPEND);}
+            // $data = $this->helperService->XMLtoJSONEmirate($responseXml);
+            // dd($responseXml);
+
+            // if(isset($offerPriceRS['Errors'])){
+            //     return ['error' => 'Flight bundle failed (OfferPriceRS).', 'details' => $offerPriceRS['Errors']['Error']];
+            // }
             $flightData = [
                 'offers' => $offerPriceRS['PricedOffer'] ?? '',
                 'passengers' => $offerPriceRS['DataLists']['PassengerList']['Passenger'] ?? '',
@@ -313,32 +372,39 @@ class EmiratesService
                     </Query>
                 </OrderCreateRQ>';
         // dd($this->getSoapEnvelope($body));
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCreateRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
-        if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderCreateRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCreateRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderCreateRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
-            $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('OrderCreateRQ'), $this->getSoapEnvelope($body));
-            if (!$response || !$response->successful()) {
-                \Log::error('Flight booking request failed Emirates', [
-                    'status' => $response?->status(),
-                    'response' => $response?->body()
-                ]);
-                return ['error' => 'Flight booking request failed Emirates.', 'details' => $response?->body()];
+            $data = $this->sendRequest('OrderCreateRQ', $this->getSoapEnvelope($body), true);
+
+            if (!$data || isset($data['error']) || isset($data['OrderViewRS']['Errors'])) {
+                \Log::error('OrderCreateRQ request failed', ['response' => $data]);
+                return ['error' => 'Flight booking request failed Emirate (OrderCreateRQ).', 'details' => $data];
             }
+            $orderViewRS = $data['OrderViewRS'];
+            // $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('OrderCreateRQ'), $this->getSoapEnvelope($body));
+            // if (!$response || !$response->successful()) {
+            //     \Log::error('Flight booking request failed Emirates', [
+            //         'status' => $response?->status(),
+            //         'response' => $response?->body()
+            //     ]);
+            //     return ['error' => 'Flight booking request failed Emirates.', 'details' => $response?->body()];
+            // }
 
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCreateRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
-            if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderCreateRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCreateRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
+            // if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderCreateRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
 
-            $data = $this->helperService->XMLtoJSONEmirate($response->body());
-            // dd($data);
+            // $data = $this->helperService->XMLtoJSONEmirate($response->body());
+            // // dd($data);
 
-            $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'] ?? null;
-            if (!$orderViewRS) {
-                return ['error' => 'Invalid response structure.', 'details' => $data];
-            }
+            // $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'] ?? null;
+            // if (!$orderViewRS) {
+            //     return ['error' => 'Invalid response structure.', 'details' => $data];
+            // }
 
-            if (isset($orderViewRS['Errors'])) {
-                return ['error' => 'Flight booking failed.', 'details' => $orderViewRS['Errors']['Error']];
-            }
+            // if (isset($orderViewRS['Errors'])) {
+            //     return ['error' => 'Flight booking failed.', 'details' => $orderViewRS['Errors']['Error']];
+            // }
 
             $flightData = [
                 'offers' => $orderViewRS['Response']['Order'] ?? '',
@@ -392,31 +458,38 @@ class EmiratesService
                     </Query>
                 </OrderRetrieveRQ>';
         // dd($this->getSoapEnvelope($body));
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderRetrieveRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderRetrieveRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
-            $response = $this->helperService->postXml(
-                $this->url,
-                $this->getSoapHeaders('OrderRetrieveRQ'),
-                $this->getSoapEnvelope($body)
-            );
+            $data = $this->sendRequest('OrderRetrieveRQ', $this->getSoapEnvelope($body));
 
-            if (!$response || !$response->successful()) {
-                \Log::error('Flight booking request failed Emirates', [
-                    'status' => $response?->status(),
-                    'response' => $response?->body()
-                ]);
-                return ['error' => 'Flight booking request failed Emirates (orderRetrieve).', 'details' => $response?->body()];
+            if (!$data || isset($data['error']) || isset($data['OrderViewRS']['Errors'])) {
+                \Log::error('OrderRetrieveRQ request failed', ['response' => $data]);
+                return ['error' => 'Flight booking request failed Emirate (OrderRetrieveRQ).', 'details' => $data];
             }
+            $orderViewRS = $data['OrderViewRS'];
+            // $response = $this->helperService->postXml(
+            //     $this->url,
+            //     $this->getSoapHeaders('OrderRetrieveRQ'),
+            //     $this->getSoapEnvelope($body)
+            // );
 
-            if ($this->regenerateLogs) file_put_contents($this->logPath, "OrderRetrieveRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);
-            $data = $this->helperService->XMLtoJSONEmirate($response->body());
+            // if (!$response || !$response->successful()) {
+            //     \Log::error('Flight booking request failed Emirates', [
+            //         'status' => $response?->status(),
+            //         'response' => $response?->body()
+            //     ]);
+            //     return ['error' => 'Flight booking request failed Emirates (orderRetrieve).', 'details' => $response?->body()];
+            // }
 
-            $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'] ?? null;
-            if (!$orderViewRS) return ['error' => 'Invalid response structure.', 'details' => $data];
+            // if ($this->regenerateLogs) file_put_contents($this->logPath, "OrderRetrieveRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);
+            // $data = $this->helperService->XMLtoJSONEmirate($response->body());
 
-            if (isset($orderViewRS['Errors'])) {
-                return ['error' => 'Flight booking failed. (orderRetrieve)', 'details' => $orderViewRS['Errors']['Error']];
-            }
+            // $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'] ?? null;
+            // if (!$orderViewRS) return ['error' => 'Invalid response structure.', 'details' => $data];
+
+            // if (isset($orderViewRS['Errors'])) {
+            //     return ['error' => 'Flight booking failed. (orderRetrieve)', 'details' => $orderViewRS['Errors']['Error']];
+            // }
 
             $flightData = [
                 'offers' => $orderViewRS['Response']['Order'] ?? '',
@@ -477,32 +550,44 @@ class EmiratesService
                     </Query>
                 </OrderChangeRQ>';
         // dd($this->getSoapEnvelope($body));
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
-        if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderChangeRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderChangeRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
-            $response = $this->helperService->postXml(
-                $this->url,
-                $this->getSoapHeaders('OrderChangeRQ'),
-                $this->getSoapEnvelope($body)
-            );
+            $data = $this->sendRequest('OrderChangeRQ', $this->getSoapEnvelope($body), true);
+            // dd($data);
 
-            if (!$response || !$response->successful()) {
-                \Log::error('Flight booking request failed Emirates', [
-                    'status' => $response?->status(),
-                    'response' => $response?->body()
-                ]);
-                return ['error' => 'Flight booking request failed Emirates (orderChange).', 'details' => $response?->body()];
+            if (!$data || isset($data['error']) || isset($data['OrderViewRS']['Errors'])) {
+                \Log::error('OrderChangeRQ request failed', ['response' => $data]);
+                return ['error' => 'Flight booking request failed Emirate (OrderChangeRQ).', 'details' => $data];
             }
+            $orderViewRS = $data['OrderViewRS'];
+            if (isset($orderViewRS['Warnings'])) {
+                return ['error' => 'Flight booking request failed Emirate (OrderChangeRQ).', 'details' => $orderViewRS['Warnings']['Warning']['value']];
 
-            if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
-            if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
+            }
+            // $response = $this->helperService->postXml(
+            //     $this->url,
+            //     $this->getSoapHeaders('OrderChangeRQ'),
+            //     $this->getSoapEnvelope($body)
+            // );
 
-            $data = $this->helperService->XMLtoJSONEmirate($response->body());
+            // if (!$response || !$response->successful()) {
+            //     \Log::error('Flight booking request failed Emirates', [
+            //         'status' => $response?->status(),
+            //         'response' => $response?->body()
+            //     ]);
+            //     return ['error' => 'Flight booking request failed Emirates (orderChange).', 'details' => $response?->body()];
+            // }
 
-            $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'] ?? null;
-            if (!$orderViewRS) return ['error' => 'Invalid response structure.', 'details' => $data];
+            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
+            // if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n\n\n", FILE_APPEND);}
 
-            if (isset($orderViewRS['Errors'])) return ['error' => 'Flight booking failed.', 'details' => $orderViewRS['Errors']['Error']];
+            // $data = $this->helperService->XMLtoJSONEmirate($response->body());
+
+            // $orderViewRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderViewRS'] ?? null;
+            // if (!$orderViewRS) return ['error' => 'Invalid response structure.', 'details' => $data];
+
+            // if (isset($orderViewRS['Errors'])) return ['error' => 'Flight booking failed.', 'details' => $orderViewRS['Errors']['Error']];
 
             $flightData = [
                 'offers' => $orderViewRS['Response']['Order'] ?? '',
@@ -552,33 +637,40 @@ class EmiratesService
                     </Query>
                 </OrderCancelRQ>';
         // dd($this->getSoapEnvelope($body));
-        if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCancelRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
-        if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderCancelRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderCancelRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
+        // if ($this->regenerateLogs) {file_put_contents($this->logPathBooking, "OrderCancelRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
-            $response = $this->helperService->postXml(
-                $this->url,
-                $this->getSoapHeaders('OrderCancelRQ'),
-                $this->getSoapEnvelope($body)
-            );
+            $data = $this->sendRequest('orderCancel', $this->getSoapEnvelope($body), true);
 
-            if (!$response || !$response->successful()) {
-                \Log::error('Flight booking request failed Emirates (orderCancel)', [
-                    'status' => $response?->status(),
-                    'response' => $response?->body()
-                ]);
-                return ['error' => 'Flight booking request failed Emirates (orderCancel).', 'details' => $response?->body()];
+            if (!$data || isset($data['error']) || isset($data['OrderViewRS']['Errors'])) {
+                \Log::error('orderCancel request failed', ['response' => $data]);
+                return ['error' => 'Flight booking request failed Emirate (orderCancel).', 'details' => $data];
             }
+            $orderCancelRS = $data['OrderCancelRS'];
+            // $response = $this->helperService->postXml(
+            //     $this->url,
+            //     $this->getSoapHeaders('OrderCancelRQ'),
+            //     $this->getSoapEnvelope($body)
+            // );
 
-            if ($this->regenerateLogs) file_put_contents($this->logPath, "OrderCancelRS Response:\n" . (string) $response->body() . "\n", FILE_APPEND);
-            if ($this->regenerateLogs) file_put_contents($this->logPathBooking, "OrderCancelRS Response:\n" . (string) $response->body() . "\n", FILE_APPEND);
-            $data = $this->helperService->XMLtoJSONEmirate($response->body());
+            // if (!$response || !$response->successful()) {
+            //     \Log::error('Flight booking request failed Emirates (orderCancel)', [
+            //         'status' => $response?->status(),
+            //         'response' => $response?->body()
+            //     ]);
+            //     return ['error' => 'Flight booking request failed Emirates (orderCancel).', 'details' => $response?->body()];
+            // }
 
-            $orderCancelRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderCancelRS'] ?? null;
-            if (!$orderCancelRS) return ['error' => 'Invalid response structure.', 'details' => $data];
+            // if ($this->regenerateLogs) file_put_contents($this->logPath, "OrderCancelRS Response:\n" . (string) $response->body() . "\n", FILE_APPEND);
+            // if ($this->regenerateLogs) file_put_contents($this->logPathBooking, "OrderCancelRS Response:\n" . (string) $response->body() . "\n", FILE_APPEND);
+            // $data = $this->helperService->XMLtoJSONEmirate($response->body());
 
-            if (isset($orderCancelRS['Errors'])) {
-                return ['error' => 'Flight booking failed.', 'details' => $orderCancelRS['Errors']['Error']];
-            }
+            // $orderCancelRS = $data['SOAP-ENV:Body']['XXTransactionResponse']['RSP']['OrderCancelRS'] ?? null;
+            // if (!$orderCancelRS) return ['error' => 'Invalid response structure.', 'details' => $data];
+
+            // if (isset($orderCancelRS['Errors'])) {
+            //     return ['error' => 'Flight booking failed.', 'details' => $orderCancelRS['Errors']['Error']];
+            // }
             // dd($orderCancelRS);
 
             $flightData = [
@@ -691,6 +783,7 @@ class EmiratesService
         $serviceList = collect($data['serviceList']) ?? null;
         $responseId = $data['responseId'] ?? null;
         $transactionId = $data['transactionId'] ?? null;
+        $cabinClass = $data['cabinClass'] ?? 'y';
         $request = $data['request'];
         $ticketInfos = !empty($data['ticketInfos']) ? (collect(isset($data['ticketInfos'][0]) ? $data['ticketInfos'] : [$data['ticketInfos']])) : null;
         // dd($destinations, $flights, $segments, $offers, $baggages, $priceClass, $responseId);
@@ -734,7 +827,6 @@ class EmiratesService
                         $priceClassRef = $offer['FlightsOverview']['FlightRef']['@attributes']['PriceClassRef'] ?? null;
                         $offer['priceClass'] = $priceClassRef ? $priceClass->where('@attributes.PriceClassID', $priceClassRef)->values()->first() : '';
                         $refs = $offer['BookingReferences']['BookingReference'] ?? [];
-                        // dd($refs);
 
                         $bookingReferences = [
                             'bookingId' => ($refs[0]['OtherID']['value'] ?? '') . ' ' . ($refs[0]['ID']['value'] ?? ''),
@@ -803,7 +895,8 @@ class EmiratesService
                     $duration = ($hours > 0 ? $hours . 'h ' : '') . ($minutes > 0 ? $minutes . 'm' : '');
                     $segmentDetails[] = [
                         'Departure' => $first['Departure'] ?? [],
-                        'Arrival' => $flightSegments->last()['Arrival'] ?? [],
+                        // 'Arrival' => $flightSegments->last()['Arrival'] ?? [],
+                        'Arrival' => $first['Arrival'] ?? [],
                         'segmentKey' => $first['@attributes']['SegmentKey'] ?? [],
                         'flightDetails' => [
                             'isConnected' => isset($first['@attributes']['ConnectInd']) ? filter_var($first['@attributes']['ConnectInd'], FILTER_VALIDATE_BOOLEAN) : null,
@@ -856,6 +949,9 @@ class EmiratesService
                     'infantRef' => $pax['InfantRef']['value'] ?? null,
                 ];
             }
+        }
+        if($request === 1) {
+            $data['cabinClass'] = $cabinClass;
         }
         $data['transactionId'] = $transactionId;
         // dd($data);
@@ -1179,174 +1275,174 @@ class EmiratesService
     
         return $xml . "</PassengerList>";
     }
-    private function formatBookFlight($data)
-    {
-        // dd($data);
-        if (empty($data) || empty($data['destinationList']) || empty($data['flights']) || empty($data['flightSegments']) || empty($data['offers']) || empty($data['baggageList']) || empty($data['priceClass'])) return 'Something missing';
+    // private function formatBookFlight($data)
+    // {
+    //     // dd($data);
+    //     if (empty($data) || empty($data['destinationList']) || empty($data['flights']) || empty($data['flightSegments']) || empty($data['offers']) || empty($data['baggageList']) || empty($data['priceClass'])) return 'Something missing';
 
-        $destinations = isset($data['destinationList'][0]) ? $data['destinationList'] : [$data['destinationList']];
-        $flights = collect(isset($data['flights'][0]) ? $data['flights'] : [$data['flights']]);
-        $segments = collect(isset($data['flightSegments'][0]) ? $data['flightSegments'] : [$data['flightSegments']]);
-        $offers = collect(isset($data['offers'][0]) ? $data['offers'] : [$data['offers']]);
-        $baggages = collect(isset($data['baggageList'][0]) ? $data['baggageList'] : [$data['baggageList']]);
-        $priceClass = collect(isset($data['priceClass'][0]) ? $data['priceClass'] : [$data['priceClass']]);
-        $passengers = collect(isset($data['passengers'][0]) ? $data['passengers'] : [$data['passengers']]);
-        // dd($passengers);
-        $serviceList = collect($data['serviceList']) ?? null;
-        $responseId = $data['responseId'] ?? null;
-        $request = $data['request'];
-        // dd($destinations, $flights, $segments, $offers, $baggages, $priceClass, $responseId);
-        $timeZone = config('variables.setting.timezone') ?? 'Asia/Karachi';
-        $data = [];
-        $tax = config('variables.flyjinnah_api.tax') ?? 0;
-        $matchedOffers = '';
-        foreach ($destinations as $item) {
-            $flightIds = explode(' ', $item['FlightReferences']['value'] ?? ''); // fetch bundle with this Aliiiiiiiiiii);
-            $matchedFlights = $flights->filter(fn($flight) => in_array($flight['@attributes']['FlightKey'] ?? null, $flightIds))->values();
-            $flightSegmentReferences = $matchedFlights->map(fn($flight) => explode(' ', $flight['SegmentReferences']['value'] ?? ''))->values();
-            // dd($flightSegmentReferences);
-            $segmentDetails=[];
-            foreach ($flightSegmentReferences as $segmentIds) {
-                $flightSegments = collect($segmentIds)
-                    ->map(fn($id) => $segments->firstWhere('@attributes.SegmentKey', $id))
-                    ->filter()
-                    ->values();
+    //     $destinations = isset($data['destinationList'][0]) ? $data['destinationList'] : [$data['destinationList']];
+    //     $flights = collect(isset($data['flights'][0]) ? $data['flights'] : [$data['flights']]);
+    //     $segments = collect(isset($data['flightSegments'][0]) ? $data['flightSegments'] : [$data['flightSegments']]);
+    //     $offers = collect(isset($data['offers'][0]) ? $data['offers'] : [$data['offers']]);
+    //     $baggages = collect(isset($data['baggageList'][0]) ? $data['baggageList'] : [$data['baggageList']]);
+    //     $priceClass = collect(isset($data['priceClass'][0]) ? $data['priceClass'] : [$data['priceClass']]);
+    //     $passengers = collect(isset($data['passengers'][0]) ? $data['passengers'] : [$data['passengers']]);
+    //     // dd($passengers);
+    //     $serviceList = collect($data['serviceList']) ?? null;
+    //     $responseId = $data['responseId'] ?? null;
+    //     $request = $data['request'];
+    //     // dd($destinations, $flights, $segments, $offers, $baggages, $priceClass, $responseId);
+    //     $timeZone = config('variables.setting.timezone') ?? 'Asia/Karachi';
+    //     $data = [];
+    //     $tax = config('variables.flyjinnah_api.tax') ?? 0;
+    //     $matchedOffers = '';
+    //     foreach ($destinations as $item) {
+    //         $flightIds = explode(' ', $item['FlightReferences']['value'] ?? ''); // fetch bundle with this Aliiiiiiiiiii);
+    //         $matchedFlights = $flights->filter(fn($flight) => in_array($flight['@attributes']['FlightKey'] ?? null, $flightIds))->values();
+    //         $flightSegmentReferences = $matchedFlights->map(fn($flight) => explode(' ', $flight['SegmentReferences']['value'] ?? ''))->values();
+    //         // dd($flightSegmentReferences);
+    //         $segmentDetails=[];
+    //         foreach ($flightSegmentReferences as $segmentIds) {
+    //             $flightSegments = collect($segmentIds)
+    //                 ->map(fn($id) => $segments->firstWhere('@attributes.SegmentKey', $id))
+    //                 ->filter()
+    //                 ->values();
 
-                $relatedFlightKeys = $matchedFlights
-                    ->filter(fn($flight) => !array_diff($segmentIds, explode(' ', $flight['SegmentReferences']['value'] ?? '')))
-                    ->pluck('@attributes.FlightKey')
-                    ->all();
-                // dd($relatedFlightKeys);
+    //             $relatedFlightKeys = $matchedFlights
+    //                 ->filter(fn($flight) => !array_diff($segmentIds, explode(' ', $flight['SegmentReferences']['value'] ?? '')))
+    //                 ->pluck('@attributes.FlightKey')
+    //                 ->all();
+    //             // dd($relatedFlightKeys);
 
-                $matchedOffers = $offers
-                    ->filter(function ($offer) use ($relatedFlightKeys) {
-                        return isset($offer['FlightsOverview']['FlightRef']['value'])
-                            ? in_array($offer['FlightsOverview']['FlightRef']['value'], $relatedFlightKeys)
-                            : true;
-                    })
-                    ->map(function ($offer) use ($baggages, $priceClass, $serviceList, $passengers) {
-                        $offer['BaggageAllowance'] = collect($offer['BaggageAllowance'] ?? [])
-                            ->map(fn($allowance) => $this->updateBaggageAllowance($allowance, $baggages))
-                            ->all();
-                        // dd($offer);
-                        // $item = isset($offer['OfferItem'][0]) ? $offer['OfferItem'][0] : $offer['OfferItem'];
-                        $priceClassRef = $offer['FlightsOverview']['FlightRef']['@attributes']['PriceClassRef'] ?? null;
-                        $offer['priceClass'] = $priceClassRef ? $priceClass->where('@attributes.PriceClassID', $priceClassRef)->values()->first() : '';
-                        return [
-                            'offerID' => $offer['@attributes'] ?? null,
-                            'parameters' => $offer['Parameters'] ?? null,
-                            'timeLimits' => $offer['TimeLimits'] ?? null,
-                            'totalPrice' =>  [
-                                'code' => $offer['TotalPrice']['DetailCurrencyPrice']['Total']['@attributes']['Code'] ?? '',
-                                'amount' => $offer['TotalPrice']['DetailCurrencyPrice']['Total']['value'] ?? '',
-                            ],
-                            'offerItem' => $this->formatOfferItems2($offer['OrderItems'], $serviceList, $passengers),
-                            'baggageAllowance' => $offer['BaggageAllowance'],
-                            'priceClass' => $offer['priceClass'],
-                        ];
-                    })->values();
-                $expTime = isset($matchedOffers->first()['timeLimits']['OfferExpiration']['@attributes']['DateTime']) ? Carbon::parse($matchedOffers->first()['timeLimits']['OfferExpiration']['@attributes']['DateTime'])->setTimezone($timeZone) : now()->addMinutes(20);
-                session([
-                    'IdsExpireTimeEmi' => $expTime,
-                ]);
-                // dd($matchedOffers);
-                $lowestPrice = [
-                    'code' => $matchedOffers->min(fn($offer) => data_get($offer, 'totalPrice.code', 'PKR')),
-                    'amount' => $matchedOffers->min(fn($offer) => (float) data_get($offer, 'totalPrice.amount', 0)) + $tax
-                ];
-                if ($flightSegments->isNotEmpty()) {
-                    $secondFlight = [];
-                    if (count($flightSegments) > 1) {
-                        $last = $flightSegments->last();
-                        $secondFlight = [
-                            'departure' => $last['Departure'] ?? [],
-                            'arrival' => $last['Arrival'] ?? [],
-                            'isConnected' => isset($last['@attributes']['ConnectInd']) ? filter_var($last['@attributes']['ConnectInd'], FILTER_VALIDATE_BOOLEAN) : null,
-                            'details' => $last['FlightDetail'] ?? [],
-                            'equipment' => $last['Equipment'] ?? [],
-                            'marketingCarrier' => $last['MarketingCarrier'] ?? [],
-                        ];
-                    }
-                    $first = $flightSegments->first();
-                    $totalMinutes = 0;
-                    try {
-                        $d1 = new \DateInterval($first['FlightDetail']['FlightDuration']['Value']['value'] ?? 'PT0M');
-                        $totalMinutes += ($d1->h * 60) + $d1->i;
-                    } catch (\Exception $e) {
-                        \Log::error('Exception in calculate duration', ['message' => $e->getMessage()]);
-                    }
+    //             $matchedOffers = $offers
+    //                 ->filter(function ($offer) use ($relatedFlightKeys) {
+    //                     return isset($offer['FlightsOverview']['FlightRef']['value'])
+    //                         ? in_array($offer['FlightsOverview']['FlightRef']['value'], $relatedFlightKeys)
+    //                         : true;
+    //                 })
+    //                 ->map(function ($offer) use ($baggages, $priceClass, $serviceList, $passengers) {
+    //                     $offer['BaggageAllowance'] = collect($offer['BaggageAllowance'] ?? [])
+    //                         ->map(fn($allowance) => $this->updateBaggageAllowance($allowance, $baggages))
+    //                         ->all();
+    //                     // dd($offer);
+    //                     // $item = isset($offer['OfferItem'][0]) ? $offer['OfferItem'][0] : $offer['OfferItem'];
+    //                     $priceClassRef = $offer['FlightsOverview']['FlightRef']['@attributes']['PriceClassRef'] ?? null;
+    //                     $offer['priceClass'] = $priceClassRef ? $priceClass->where('@attributes.PriceClassID', $priceClassRef)->values()->first() : '';
+    //                     return [
+    //                         'offerID' => $offer['@attributes'] ?? null,
+    //                         'parameters' => $offer['Parameters'] ?? null,
+    //                         'timeLimits' => $offer['TimeLimits'] ?? null,
+    //                         'totalPrice' =>  [
+    //                             'code' => $offer['TotalPrice']['DetailCurrencyPrice']['Total']['@attributes']['Code'] ?? '',
+    //                             'amount' => $offer['TotalPrice']['DetailCurrencyPrice']['Total']['value'] ?? '',
+    //                         ],
+    //                         'offerItem' => $this->formatOfferItems2($offer['OrderItems'], $serviceList, $passengers),
+    //                         'baggageAllowance' => $offer['BaggageAllowance'],
+    //                         'priceClass' => $offer['priceClass'],
+    //                     ];
+    //                 })->values();
+    //             $expTime = isset($matchedOffers->first()['timeLimits']['OfferExpiration']['@attributes']['DateTime']) ? Carbon::parse($matchedOffers->first()['timeLimits']['OfferExpiration']['@attributes']['DateTime'])->setTimezone($timeZone) : now()->addMinutes(20);
+    //             session([
+    //                 'IdsExpireTimeEmi' => $expTime,
+    //             ]);
+    //             // dd($matchedOffers);
+    //             $lowestPrice = [
+    //                 'code' => $matchedOffers->min(fn($offer) => data_get($offer, 'totalPrice.code', 'PKR')),
+    //                 'amount' => $matchedOffers->min(fn($offer) => (float) data_get($offer, 'totalPrice.amount', 0)) + $tax
+    //             ];
+    //             if ($flightSegments->isNotEmpty()) {
+    //                 $secondFlight = [];
+    //                 if (count($flightSegments) > 1) {
+    //                     $last = $flightSegments->last();
+    //                     $secondFlight = [
+    //                         'departure' => $last['Departure'] ?? [],
+    //                         'arrival' => $last['Arrival'] ?? [],
+    //                         'isConnected' => isset($last['@attributes']['ConnectInd']) ? filter_var($last['@attributes']['ConnectInd'], FILTER_VALIDATE_BOOLEAN) : null,
+    //                         'details' => $last['FlightDetail'] ?? [],
+    //                         'equipment' => $last['Equipment'] ?? [],
+    //                         'marketingCarrier' => $last['MarketingCarrier'] ?? [],
+    //                     ];
+    //                 }
+    //                 $first = $flightSegments->first();
+    //                 $totalMinutes = 0;
+    //                 try {
+    //                     $d1 = new \DateInterval($first['FlightDetail']['FlightDuration']['Value']['value'] ?? 'PT0M');
+    //                     $totalMinutes += ($d1->h * 60) + $d1->i;
+    //                 } catch (\Exception $e) {
+    //                     \Log::error('Exception in calculate duration', ['message' => $e->getMessage()]);
+    //                 }
 
-                    if (!empty($secondFlight) && isset($secondFlight['details']['FlightDuration']['Value']['value'])) {
-                        try {
-                            $d2 = new \DateInterval($secondFlight['details']['FlightDuration']['Value']['value']);
-                            $totalMinutes += ($d2->h * 60) + $d2->i;
-                        } catch (\Exception $e) {
-                            \Log::error('Exception in calculate duration', ['message' => $e->getMessage()]);
-                        }
-                    }
+    //                 if (!empty($secondFlight) && isset($secondFlight['details']['FlightDuration']['Value']['value'])) {
+    //                     try {
+    //                         $d2 = new \DateInterval($secondFlight['details']['FlightDuration']['Value']['value']);
+    //                         $totalMinutes += ($d2->h * 60) + $d2->i;
+    //                     } catch (\Exception $e) {
+    //                         \Log::error('Exception in calculate duration', ['message' => $e->getMessage()]);
+    //                     }
+    //                 }
 
-                    $hours = floor($totalMinutes / 60);
-                    $minutes = $totalMinutes % 60;
-                    $duration = ($hours > 0 ? $hours . 'h ' : '') . ($minutes > 0 ? $minutes . 'm' : '');
-                    $segmentDetails[] = [
-                        'Departure' => $first['Departure'] ?? [],
-                        'Arrival' => $flightSegments->last()['Arrival'] ?? [],
-                        'segmentKey' => $first['@attributes']['SegmentKey'] ?? [],
-                        'flightDetails' => [
-                            'isConnected' => filter_var($first['@attributes']['ConnectInd'], FILTER_VALIDATE_BOOLEAN),
-                            'details' => $first['FlightDetail'] ?? [],
-                            'equipment' => $first['Equipment'] ?? [],
-                            'marketingCarrier' => $first['MarketingCarrier'] ?? [],
-                        ],
-                        'secondFlight' => $secondFlight,
-                        'duration' => $duration ?? '',
-                        'price' => $lowestPrice,
-                        'bundles' => $request === 1 ? $matchedOffers->all() : [],
-                    ];
-                }
-            }
-            if($request === 2 || $request === 3) {
-                $data['segments'][] = [
-                    'departureCode' => $this->helperService->codeToCountry($item['DepartureCode']),
-                    'arrivalCode' => $this->helperService->codeToCountry($item['ArrivalCode']),
-                    'flights' => collect($segmentDetails)->first(),
-                    'responseId' => $responseId,
-                ];
-            } else {
-                $data[] = [
-                    'departureCode' => $this->helperService->codeToCountry($item['DepartureCode']),
-                    'arrivalCode' => $this->helperService->codeToCountry($item['ArrivalCode']),
-                    'flights' => $segmentDetails,
-                    'responseId' => $responseId,
-                ];
-            }
-        }
-        if($request === 2 || $request === 3) {
-            $data['bundle'] = $matchedOffers->first();
-            $expTime = isset($data['bundle']['timeLimits']['OfferExpiration']['@attributes']['DateTime']) ? Carbon::parse($data['bundle']['timeLimits']['OfferExpiration']['@attributes']['DateTime'])->setTimezone($timeZone) : now()->addMinutes(20);
-            session([
-                'IdsExpireTimeEmi' => $expTime,
-            ]);
-        }
-        if($request === 3) {
-            $data['passengers'] = [];
-            foreach ($passengers as $pax) {
-                $data['passengers'][] = [
-                    'id' => $pax['@attributes']['PassengerID'] ?? '',
-                    'type' => $pax['PTC']['value'] ?? '',
-                    'birthdate' => $pax['Birthdate']['value'] ?? '',
-                    'gender' => $pax['Individual']['Gender']['value'] ?? '',
-                    'givenName' => $pax['Individual']['GivenName']['value'] ?? '',
-                    'surname' => $pax['Individual']['Surname']['value'] ?? '',
-                    'title' => $pax['Individual']['NameTitle']['value'] ?? '',
-                    'contactRef' => $pax['ContactInfoRef']['value'] ?? null,
-                    'infantRef' => $pax['InfantRef']['value'] ?? null,
-                ];
-            }
-        }
-        // dd($data);
-        return $data;
-    }
+    //                 $hours = floor($totalMinutes / 60);
+    //                 $minutes = $totalMinutes % 60;
+    //                 $duration = ($hours > 0 ? $hours . 'h ' : '') . ($minutes > 0 ? $minutes . 'm' : '');
+    //                 $segmentDetails[] = [
+    //                     'Departure' => $first['Departure'] ?? [],
+    //                     'Arrival' => $flightSegments->last()['Arrival'] ?? [],
+    //                     'segmentKey' => $first['@attributes']['SegmentKey'] ?? [],
+    //                     'flightDetails' => [
+    //                         'isConnected' => filter_var($first['@attributes']['ConnectInd'], FILTER_VALIDATE_BOOLEAN),
+    //                         'details' => $first['FlightDetail'] ?? [],
+    //                         'equipment' => $first['Equipment'] ?? [],
+    //                         'marketingCarrier' => $first['MarketingCarrier'] ?? [],
+    //                     ],
+    //                     'secondFlight' => $secondFlight,
+    //                     'duration' => $duration ?? '',
+    //                     'price' => $lowestPrice,
+    //                     'bundles' => $request === 1 ? $matchedOffers->all() : [],
+    //                 ];
+    //             }
+    //         }
+    //         if($request === 2 || $request === 3) {
+    //             $data['segments'][] = [
+    //                 'departureCode' => $this->helperService->codeToCountry($item['DepartureCode']),
+    //                 'arrivalCode' => $this->helperService->codeToCountry($item['ArrivalCode']),
+    //                 'flights' => collect($segmentDetails)->first(),
+    //                 'responseId' => $responseId,
+    //             ];
+    //         } else {
+    //             $data[] = [
+    //                 'departureCode' => $this->helperService->codeToCountry($item['DepartureCode']),
+    //                 'arrivalCode' => $this->helperService->codeToCountry($item['ArrivalCode']),
+    //                 'flights' => $segmentDetails,
+    //                 'responseId' => $responseId,
+    //             ];
+    //         }
+    //     }
+    //     if($request === 2 || $request === 3) {
+    //         $data['bundle'] = $matchedOffers->first();
+    //         $expTime = isset($data['bundle']['timeLimits']['OfferExpiration']['@attributes']['DateTime']) ? Carbon::parse($data['bundle']['timeLimits']['OfferExpiration']['@attributes']['DateTime'])->setTimezone($timeZone) : now()->addMinutes(20);
+    //         session([
+    //             'IdsExpireTimeEmi' => $expTime,
+    //         ]);
+    //     }
+    //     if($request === 3) {
+    //         $data['passengers'] = [];
+    //         foreach ($passengers as $pax) {
+    //             $data['passengers'][] = [
+    //                 'id' => $pax['@attributes']['PassengerID'] ?? '',
+    //                 'type' => $pax['PTC']['value'] ?? '',
+    //                 'birthdate' => $pax['Birthdate']['value'] ?? '',
+    //                 'gender' => $pax['Individual']['Gender']['value'] ?? '',
+    //                 'givenName' => $pax['Individual']['GivenName']['value'] ?? '',
+    //                 'surname' => $pax['Individual']['Surname']['value'] ?? '',
+    //                 'title' => $pax['Individual']['NameTitle']['value'] ?? '',
+    //                 'contactRef' => $pax['ContactInfoRef']['value'] ?? null,
+    //                 'infantRef' => $pax['InfantRef']['value'] ?? null,
+    //             ];
+    //         }
+    //     }
+    //     // dd($data);
+    //     return $data;
+    // }
     private function formatMinorUnitsAmount($currencyFormat, $code, $amount)
     {
         // dd($currencyFormat, $code, $amount);
@@ -1484,6 +1580,10 @@ class EmiratesService
             ];
         }
         return $tickets;
+    }
+    public function getCarrierName()
+    {
+        return 'emirates';
     }
 }
 
