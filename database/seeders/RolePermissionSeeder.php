@@ -13,13 +13,30 @@ class RolePermissionSeeder extends Seeder
         $admin = Role::firstOrCreate(['name' => 'admin']);
         $agent = Role::firstOrCreate(['name' => 'agent']);
 
-        $permissions = ['manage bookings', 'view dashboard'];
+        $permissions = [
+            'delete bookings',
+            'manage users',
+
+            'cancel booking',
+            'view dashboard',
+            'manage bookings',
+            'manage agents',
+            'manage setting',
+            'manage roles',
+            'view bookings',
+            'manage payment',
+            'issue tickets',
+            'manage airports',
+            'download logs',
+        ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        $admin->givePermissionTo($permissions);
-        $agent->givePermissionTo('view dashboard');
+        $adminPermissions = collect($permissions);
+        $admin->syncPermissions($adminPermissions);
+
+        $agent->syncPermissions(['view dashboard']);
     }
 }

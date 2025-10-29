@@ -12,12 +12,12 @@ class AdminAuthController extends Controller
     public function loginPage()
     {
         if (Auth::check()) {
-            if (Auth::user()->hasRole('admin')) {
-                return redirect()->route('admin.dashboard');
-            }
-            if (Auth::user()->hasRole('agent')) {
-                return redirect()->route('agent.dashboard');
-            }
+            return redirect()->route('admin.dashboard');
+            // if (Auth::user()->hasRole('admin')) {
+            // }
+            // if (Auth::user()->hasRole('agent')) {
+            //     return redirect()->route('agent.dashboard');
+            // }
         }
 
         return view('admin.login');
@@ -34,21 +34,15 @@ class AdminAuthController extends Controller
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
 
-            if ($user->hasRole('admin')) {
-                $request->session()->regenerate();
-                return response()->json([
-                    'success' => true,
-                    'redirect' => route('admin.dashboard')
-                ]);
-            }
+            $request->session()->regenerate();
+            return response()->json(['success' => true, 'redirect' => route('admin.dashboard')]);
+            // if ($user->hasRole('admin')) {
+            // }
 
-            if ($user->hasRole('agent')) {
-                $request->session()->regenerate();
-                return response()->json([
-                    'success' => true,
-                    'redirect' => route('agent.dashboard')
-                ]);
-            }
+            // if ($user->hasRole('agent')) {
+            //     $request->session()->regenerate();
+            //     return response()->json(['success' => true, 'redirect' => route('agent.dashboard')]);
+            // }
 
             Auth::logout();
             return response()->json(['message' => 'Access denied.'], 403);

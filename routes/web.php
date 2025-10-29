@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use Filament\Notifications\Notification;
 use App\Http\Controllers\FlightController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\AirportController;
@@ -15,14 +16,13 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 // Livewire::routes();
 Route::view('/', 'home.home')->name('home');
+Route::view('login', 'login')->name('login');
+Route::view('register', 'register')->name('register');
 Route::view('terms-and-conditions', 'home.pages.terms-and-conditions')->name('terms-and-conditions');
 Route::view('about-us', 'home.pages.about-us')->name('about-us');
-
-// new route----------------------------
 Route::view('search-booking', 'home.pages.search-booking')->name('search.booking');
 Route::get('view-booking-details', [HomeController::class, 'viewBookingDetails'])->name('view.booking.details');
 Route::post('search-booking', [HomeController::class, 'searchBooking'])->name('search.booking.submit');
-// -------------------------------------
 
 Route::get('get-airport', [HomeController::class, 'airports'])->name('airport');
 Route::post('verify-client', [FlightController::class, 'verifyClient'])->name('verify.client');
@@ -55,31 +55,42 @@ Route::post('login', 'App\Http\Controllers\AuthController@login')->name('login.s
 Route::post('register', 'App\Http\Controllers\AuthController@register')->name('register.submit');
 
 Route::redirect('admin', 'admin/login')->name('admin.home');
-// Route::redirect('agent', 'admin/login')->name('agent.home');
-Route::view('login', 'login')->name('login');
-Route::view('register', 'register')->name('register');
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::view('dashboard', 'admin.dashboard')->name('dashboard');
 
-    Route::get('download-logs', [AdminDashboardController::class, 'downloadLogs'])->name('download.logs.all');
-    Route::get('download-logs/bookings', [AdminDashboardController::class, 'downloadLogsBookings'])->name('download.logs.bookings');
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
-    Route::get('orders', [OrderController::class, 'list'])->name('orders');
-    Route::get('orders-fetch', [OrderController::class, 'fetch'])->name('orders.fetch');
-    Route::get('orders/{booking}', [OrderController::class, 'details'])->name('orders.details');
-    
-    Route::get('agents', [AgentController::class, 'index'])->name('agents');
-    Route::get('agents/{agent}/edit-permision', [AgentController::class, 'editPermission'])->name('agents.edit.permission');
-    Route::post('agents/{agent}/update-permision', [AgentController::class, 'updatePermissions'])->name('agents.update.permission');
-    
-    Route::post('agents', [AgentController::class, 'store'])->name('agents.store');
-    Route::post('agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
-    Route::get('agents/{agent}/delete', [AgentController::class, 'destroy'])->name('agents.destroy');
-    Route::get('agents/{agent}/login', [AgentController::class, 'loginAs'])->name('agents.login');
+    Route::view('dashboard', 'admin.dashboard')->name('dashboard')->middleware('permission:view dashboard');
 
-    Route::get('settings', [SettingController::class, 'view'])->name('settings');
+    // Route::get('download-logs', [AdminDashboardController::class, 'downloadLogs'])->name('download.logs.all');
+    // Route::get('download-logs/bookings', [AdminDashboardController::class, 'downloadLogsBookings'])->name('download.logs.bookings');
 
-    Route::prefix('airports')->name('airports.')->group(function () {
+    Route::resource('roles', RoleController::class)->except(['show'])->middleware('permission:manage roles');
+
+    Route::middleware(['permission:manage bookings'])->prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'list'])->name('index');
+        Route::get('fetch', [OrderController::class, 'fetch'])->name('fetch');
+        Route::get('{booking}', [OrderController::class, 'details'])->name('details')->middleware('permission:view bookings');
+        Route::post('log/add', [OrderController::class, 'logStore'])->name('log.add');
+        Route::get('booking/{booking}/logs', [OrderController::class, 'logHistory'])->name('booking.logs');
+
+        Route::middleware(['permission:manage payment'])->prefix('payment')->name('payment.')->group(function () {
+            Route::post('store', [OrderController::class, 'paymentStore'])->name('store');
+            Route::put('{payment}', [OrderController::class, 'paymentUpdate'])->name('update');
+            Route::delete('{payment}', [OrderController::class, 'paymentDestroy'])->name('destroy');
+        });
+    });
+
+    Route::middleware(['permission:manage agents'])->prefix('agents')->name('agents.')->group(function () {
+        Route::get('/', [AgentController::class, 'index'])->name('index');
+        Route::post('/', [AgentController::class, 'store'])->name('store');
+        Route::post('{agent}', [AgentController::class, 'update'])->name('update');
+        Route::get('{agent}/delete', [AgentController::class, 'destroy'])->name('destroy');
+        Route::get('{agent}/login', [AgentController::class, 'loginAs'])->name('login');
+        Route::post('{agent}/update-permision', [AgentController::class, 'updatePermissions'])->name('update.permission');
+    });
+
+    Route::get('settings', [SettingController::class, 'view'])->name('settings')->middleware('permission:manage setting');
+
+    Route::middleware(['permission:manage airports'])->prefix('airports')->name('airports.')->group(function () {
         Route::get('/', [AirportController::class, 'index'])->name('index');
         Route::get('list', [AirportController::class, 'list'])->name('list');
         Route::get('single', [AirportController::class, 'single'])->name('single');
@@ -89,42 +100,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('{id}', [AirportController::class, 'show'])->name('show');
     });
 
-    Route::prefix('logs')->name('logs.')->group(function () {
+    Route::middleware(['permission:download logs'])->prefix('logs')->name('logs.')->group(function () {
         Route::post('dates', [SettingController::class, 'getAvailableDates'])->name('dates');
         Route::get('download', [SettingController::class, 'downloadFile'])->name('download');
     });
 });
 Route::post('admin/logout', 'App\Http\Controllers\Admin\AdminAuthController@logout')->name('admin.logout');
 // -------------------------------------ADMIN----------------------------------------------
-
-// -------------------------------------AGENT----------------------------------------------
-// Route::middleware(['auth', 'role:agent'])->prefix('agent')->name('agent.')->group(function () {
-//     Route::view('dashboard', 'agent.dashboard')->name('dashboard');
-//     Route::view('orders', 'agent.orders.list')->name('orders');
-//     Route::view('order/{order}', 'agent.orders.manage')->name('order');
-// });
-// -------------------------------------AGENT----------------------------------------------
-// -------------------------------------BOTH----------------------------------------------
-
-Route::middleware(['auth', 'role:admin|agent'])->group(function () {
-    Route::post('log/add', [OrderController::class, 'logStore'])->name('log.add');
-    Route::get('booking/{booking}/logs', [OrderController::class, 'logHistory'])->name('booking.logs');
-    Route::post('payment/store', [OrderController::class, 'paymentStore'])->name('payment.store');
-    Route::put('payment/{payment}', [OrderController::class, 'paymentUpdate'])->name('payment.update');
-    Route::delete('payment/{payment}', [OrderController::class, 'paymentDestroy'])->name('payment.destroy');
-});
-
-
-
-
-
-
-// -------------------------------------BOTH----------------------------------------------
-// Route::view('flights', 'admin.flights')->name('admin.flights');
-    // Route::view('users', 'admin.users')->name('admin.users');
-    // Route::view('bookings', 'admin.bookings')->name('admin.bookings');
-    // Route::view('settings', 'admin.settings')->name('admin.settings');
-    // Route::view('notifications', 'admin.notifications')->name('admin.notifications');
 
 Route::get('send-notification', 
     function () {

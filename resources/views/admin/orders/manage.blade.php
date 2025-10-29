@@ -112,7 +112,9 @@
                 @if ($booking->canceled_at)
                     <div class="py-2"><strong>Order Canceled At:</strong> {{ \Carbon\Carbon::parse($booking->canceled_at)->format('d M Y h:i A') }}</div>
                 @else
-                    <button class="btn btn-sm btn_secondary" data-bs-toggle="modal" data-bs-target="#cacelOrderDetailsModal">Cancel Order</button>
+                    @can('cancel booking')
+                        <button class="btn btn-sm btn_secondary" data-bs-toggle="modal" data-bs-target="#cacelOrderDetailsModal">Cancel Order</button>
+                    @endcan
                 @endif
                 {{-- <button class="btn btn-sm btn_secondary_outline">Refund Form</button> --}}
             </div>
@@ -304,15 +306,17 @@
     <div class="col-md-9 right-side">
         {{-- Top Btns --}}
         <div class="d-block d-md-flex justify-content-between">
-            <a href="{{ route('admin.orders') }}" class="btn btn_secondary_outline d-flex align-items-center mb-3"><i class='bx bx-chevron-left'></i> Back to Order Management</a>
+            <a href="{{ route('admin.orders.index') }}" class="btn btn_secondary_outline d-flex align-items-center mb-3"><i class='bx bx-chevron-left'></i> Back to Order Management</a>
             <div class="btn-group d-block">
                 <button class="btn btn_secondary_outline" data-bs-toggle="modal" data-bs-target="#fareRulesModal">Show Fare Rules</button>
                 <button class="btn btn_{{ $booking->client->status ? 'success' : 'danger' }}_outline">{{ $booking->client->status ? 'Regular User' : 'Guest User' }}</button>
                 <button class="btn btn_{{ $booking->status === 'issued' ? 'success' : 'danger' }}">Ticket {{ strtoupper($booking->status) }}</button>
                 <button class="btn btn_secondary_outline" data-bs-toggle="modal" data-bs-target="#detailedOverviewModal">Detailed Overview</button>
-                @if ($booking->tickets->isEmpty())
-                    <button class="btn btn-outline-dark updatePriceBtn" data-payment-exist="{{ $booking->payments->isEmpty() ? 0 : 1 }}" data-booking-id="{{ $booking->id }}" data-client-id="{{ $booking->client_id }}">Issue Tickets</button>
-                @endif
+                @can('issue tickets')
+                    @if ($booking->tickets->isEmpty())
+                        <button class="btn btn-outline-dark updatePriceBtn" data-payment-exist="{{ $booking->payments->isEmpty() ? 0 : 1 }}" data-booking-id="{{ $booking->id }}" data-client-id="{{ $booking->client_id }}">Issue Tickets</button>
+                    @endif
+                @endcan
                 @if ($booking->errorLogs->isNotEmpty())
                     <button class="btn btn_danger_outline" data-bs-toggle="modal" data-bs-target="#errorLogsModal">Error Logs</button>
                     <x-modal id="errorLogsModal" title="Error Logs" size="modal-lg">
@@ -639,8 +643,10 @@
         {{-- Payments --}}
         <div class="card box">
             <div class="section-title">
-                Payments 
-                <button class="btn btn_secondary_outline m-1 float-end" data-bs-toggle="modal" data-bs-target="#addPayment" type="button">Add Payment</button>
+                Payments
+                @can('manage payment')
+                    <button class="btn btn_secondary_outline m-1 float-end" data-bs-toggle="modal" data-bs-target="#addPayment" type="button">Add Payment</button>
+                @endcan
             </div>
 
             <table class="table table-bordered">
@@ -671,14 +677,16 @@
                             <td>{{ $payment->refund_status ?? 'N/A' }}</td>
                             <td>{{ $payment->base_price_code }} {{ number_format($payment->base_price, 2) }}</td>
                             <td>
-                                <button class="btn btn_secondary_outline" data-bs-toggle="modal" data-bs-target="#editPayment{{ $payment->id }}">Adjust</button>
+                                @can('manage payment')
+                                    <button class="btn btn_secondary_outline" data-bs-toggle="modal" data-bs-target="#editPayment{{ $payment->id }}">Adjust</button>
+                                @endcan
                             </td>
                         </tr>
 
                         {{-- Edit Modal --}}
                         <x-modal id="editPayment{{ $payment->id }}" title="Edit Payment" size="modal-lg">
                             {{-- UPDATE form --}}
-                            <form id="update-payment-{{ $payment->id }}" method="POST" action="{{ route('payment.update', $payment) }}">
+                            <form id="update-payment-{{ $payment->id }}" method="POST" action="{{ route('admin.orders.payment.update', $payment) }}">
                                 @csrf
                                 @method('PUT')
                                 <div class="modal-body">
@@ -694,7 +702,7 @@
                             </form>
 
                             {{-- DELETE form (separate, hidden) --}}
-                            <form id="delete-payment-{{ $payment->id }}" method="POST" action="{{ route('payment.destroy', $payment) }}" class="d-none">
+                            <form id="delete-payment-{{ $payment->id }}" method="POST" action="{{ route('admin.orders.payment.destroy', $payment) }}" class="d-none">
                                 @csrf
                                 @method('DELETE')
                             </form>
@@ -709,7 +717,7 @@
 
             {{-- Add Payment Modal --}}
             <x-modal id="addPayment" title="Add Payment" size="modal-lg">
-                <form method="POST" action="{{ route('payment.store') }}">
+                <form method="POST" action="{{ route('admin.orders.payment.store') }}">
                     @csrf
                     <input type="hidden" name="booking_id" value="{{ $booking->id }}">
                     <input type="hidden" name="client_id" value="{{ $booking->client_id }}">
@@ -790,7 +798,7 @@
             formData.append('_token', '{{ csrf_token() }}');
 
             $.ajax({
-                url: '{{ route("log.add") }}',
+                url: '{{ route("admin.orders.log.add") }}',
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -812,7 +820,7 @@
             $('#logHistoryModal').modal('show');
 
             $.ajax({
-                url: `/booking/${bookingId}/logs`,
+                url: "{{ route('admin.orders.booking.logs', ':id') }}".replace(':id', bookingId),
                 method: 'GET',
                 success: function (response) {
                     let logs = response.logs;

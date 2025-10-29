@@ -10,18 +10,31 @@
     <!-- Navbar Links -->
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link active" href="{{ route('admin.dashboard') }}">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ route('admin.orders') }}">Orders</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ route('admin.agents') }}">Agents</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ route('admin.settings') }}">Settings</a>
-        </li>
+        @can('view dashboard')
+          <li class="nav-item">
+            <a class="nav-link active" href="{{ route('admin.dashboard') }}">Home</a>
+          </li>
+        @endcan
+        @can('manage bookings')
+          <li class="nav-item">
+            <a class="nav-link" href="{{ route('admin.orders.index') }}">Orders</a>
+          </li>
+        @endcan
+        @can('manage agents')
+          <li class="nav-item">
+            <a class="nav-link" href="{{ route('admin.agents.index') }}">Agents</a>
+          </li>
+        @endcan
+        @can('manage setting')
+          <li class="nav-item">
+            <a class="nav-link" href="{{ route('admin.settings') }}">Settings</a>
+          </li>
+        @endcan
+        @can('manage roles')
+          <li class="nav-item">
+            <a class="nav-link" href="{{ route('admin.roles.index') }}">Roles & Permissions</a>
+          </li>
+        @endcan
       </ul>
 
       <!-- Right Icons -->

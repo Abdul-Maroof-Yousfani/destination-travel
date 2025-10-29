@@ -14,8 +14,12 @@ class AgentController extends Controller
 {
     public function index()
     {
-        $agents = User::role('agent')->orderBy('created_at' ,'desc')->get();
-        return view('admin.agents.list', compact('agents'));
+        // $agents = User::role('agent')->orderBy('created_at' ,'desc')->get();
+        $roles = Role::all();
+        $agents = User::whereDoesntHave('roles', fn($q) => $q->where('name', 'admin'))
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return view('admin.agents.list', compact('agents', 'roles'));
     }
 
     /**
@@ -86,22 +90,20 @@ class AgentController extends Controller
      */
     public function loginAs(User $agent)
     {
-        if (!$agent->hasRole('agent')) {
-            return redirect()->back()->with('error', 'This user is not an agent.');
-        }
+        if (!$agent) return redirect()->back()->with('error', 'This user is not found.');
 
         Auth::login($agent);
 
-        return redirect()->route('agent.dashboard')->with('message', 'Logged in as agent.')->with('status', 'success');
+        return redirect()->route('admin.dashboard')->with('message', 'Logged in as agent.')->with('status', 'success');
     }
 
-    public function editPermission(User $agent)
-    {
-        $permissions = Permission::all();
-        $roles = Role::all();
+    // public function editPermission(User $agent)
+    // {
+    //     $permissions = Permission::all();
+    //     $roles = Role::all();
 
-        return view('admin.agents.edit', compact('agent', 'permissions', 'roles'));
-    }
+    //     return view('admin.agents.edit', compact('agent', 'permissions', 'roles'));
+    // }
 
     public function updatePermissions(Request $request, User $agent)
     {
@@ -113,6 +115,6 @@ class AgentController extends Controller
         $agent->syncPermissions($request->permissions ?? []);
         $agent->syncRoles($request->roles ?? []);
 
-        return redirect()->route('admin.agents')->with('success', 'Permissions updated.');
+        return redirect()->route('admin.agents.index')->with('success', 'Permissions updated.');
     }
 }

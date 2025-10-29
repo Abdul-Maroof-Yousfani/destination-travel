@@ -15,65 +15,73 @@
 @endsection
 
 @section('content')
+<div class="row">
+    <h2 class="fw-bold mb-4">Settings</h2>
+</div>
 <div class="row justify-content-between h-100">
-    <div class="col-md-6">
-        <div class="card shadow-lg">
-            <div class="card-header bg_primary text-white">
-                <h4 class="mb-0">Download Airline Logs</h4>
-            </div>
-            <div class="card-body">
-                @csrf
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-6">
-                        <label class="form-label">Select Airline</label>
-                        <select id="airlineSelect" class="form-select" required>
-                            <option value="">-- Select Airline --</option>
-                            @foreach($airlines as $airline)
-                                <option value="{{ $airline }}">{{ ucfirst($airline) }}</option>
-                            @endforeach
-                        </select>
-                    </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label">Available Log Dates</label>
-                        <input type="text" id="logCalendar" class="form-control" placeholder="Select date" readonly>
-                    </div>
+    @can('download logs')
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg">
+                <div class="card-header bg_primary text-white">
+                    <h4 class="mb-0">Download Airline Logs</h4>
                 </div>
+                <div class="card-body">
+                    @csrf
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label">Select Airline</label>
+                            <select id="airlineSelect" class="form-select" required>
+                                <option value="">-- Select Airline --</option>
+                                @foreach($airlines as $airline)
+                                    <option value="{{ $airline }}">{{ ucfirst($airline) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                <div id="logInfo" class="mt-4" style="display:none;">
-                    <h5>Files for <span id="selectedDate"></span></h5>
-                    <div id="fileButtons" class="mt-3 d-flex gap-3"></div>
+                        <div class="col-md-6">
+                            <label class="form-label">Available Log Dates</label>
+                            <input type="text" id="logCalendar" class="form-control" placeholder="Select date" readonly>
+                        </div>
+                    </div>
+
+                    <div id="logInfo" class="mt-4" style="display:none;">
+                        <h5>Files for <span id="selectedDate"></span></h5>
+                        <div id="fileButtons" class="mt-3 d-flex gap-3"></div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-6 mx-auto">
-        <div class="card shadow-lg">
-            <div class="card-header bg_primary text-white d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">Manage Airports</h4>
-                <button class="btn btn-light btn-sm" id="addAirportBtn">+ Add Airport</button>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Search Airport</label>
-                    <select id="airportSearch" class="form-select" data-placeholder="Search airport name or code"></select>
+    @endcan
+    @can('manage airports')
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg">
+                <div class="card-header bg_primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Manage Airports</h4>
+                    <button class="btn btn-light btn-sm" id="addAirportBtn">+ Add Airport</button>
                 </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Search Airport</label>
+                        <select id="airportSearch" class="form-select" data-placeholder="Search airport name or code"></select>
+                    </div>
 
-                <table class="table table-striped table-hover" id="airportTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Order By</th>
-                            <th>Name</th>
-                            <th>Code</th>
-                            <th>Country</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody><tr><td colspan="4" class="text-center text-muted">Loading...</td></tr></tbody>
-                </table>
+                    <table class="table table-striped table-hover" id="airportTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order By</th>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Country</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody><tr><td colspan="4" class="text-center text-muted">Loading...</td></tr></tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
+    @endcan
 
     <!-- Modal -->
     <div class="modal fade" id="airportModal" tabindex="-1" aria-hidden="true">
@@ -226,7 +234,7 @@ $(function(){
     function loadAirports() {
         $.get('{{ route("admin.airports.list") }}', function(data){
             if (!data.length) {
-                tableBody.html('<tr><td colspan="4" class="text-center text-muted">No airports found</td></tr>');
+                tableBody.html('<tr><td colspan="5" class="text-center text-muted">No airports found</td></tr>');
                 return;
             }
             let html = '';

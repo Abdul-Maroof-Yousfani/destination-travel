@@ -7,7 +7,7 @@
     <div>
         <div class="d-flex justify-content-between align-items-center">
             <h2 class="mb-4 fw-bold">Manage Orders</h2>
-            <div class="dropdown">
+            {{-- <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     Download Logs
                 </button>
@@ -21,7 +21,7 @@
                     <li><a class="dropdown-item" href="{{ route('admin.download.logs.all', ['type' => 'pia']) }}">All (PIA)</a></li>
                     <li><a class="dropdown-item" href="{{ route('admin.download.logs.bookings', ['type' => 'pia']) }}">Only Bookings (PIA)</a></li>
                 </ul>
-            </div>
+            </div> --}}
         </div>
         <div class="table-responsive">
             <table class="table table-bordered table-striped align-middle text-center">
@@ -109,6 +109,7 @@
 @section('script')
 <script>
     $(document).ready(function () {
+        const canViewBooking = @json(auth()->user()->can('view bookings'));
         let currentPage = 1;
         const orderDetailsUrl = '{{ route("admin.orders.details", ":booking") }}';
         function fetchBookings(page = 1) {
@@ -155,7 +156,7 @@
                                 <td>${booking.total_tax_price}</td>
                                 <td>0</td>
                                 <td>${booking.created_at}</td>
-                                <td><a href="${url}" class="btn btn-sm btn_primary">View/Manage</a></td>
+                                <td>${canViewBooking ? `<a href="${url}" class="btn btn-sm btn_primary">View/Manage</a>` : ''}</td>
                             </tr>`;
                         });
                     }
