@@ -1,18 +1,6 @@
 <!-- Departure Flights -->
 {{-- @dd($flightData) --}}
-@php
-    use Carbon\Carbon;
-    use App\Helpers\HelperFunctions;
-    // Temp
-    use Illuminate\Support\Facades\Cache;
-
-    // flight_data_rtn
-    // flight_data_ow
-    // $flightData = Cache::remember('flight_data_rtn', 6600, function () use ($flightData) {
-    //     return $flightData; // first response will be cached
-    // });
-    // Temp
-@endphp
+@php use Carbon\Carbon; @endphp
 <style>
     .flight-card {
         border: 1px solid #e0e0e0;
@@ -347,8 +335,6 @@
         </div>
     </div>
 @endif
-
-
 <script>
     $(document).ready(function() {
         let paxCount = @json($paxCount);

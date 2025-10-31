@@ -1,8 +1,6 @@
 @php
    $user = auth()->guard('client')->user();
-   if ($user) {
-      $user->load('passengers');
-   }
+   if ($user) $user->load('passengers');
    // dd($user);
 @endphp
 <div class="contact">
@@ -112,8 +110,12 @@
                                <i class="fa-solid fa-circle-info"></i>
                                <div class="tooltip-content">
                                   <h2>Given Name</h2>
-                                  <p>Enter as highlighted in passport</p>
-                                  <img src="/assets/images/passport-vctor2.jpg" alt="Tooltip Image">
+                                  <p>Enter as highlighted</p>
+                                  @if ($flightData['isLocal'])
+                                    <img src="{{ asset('assets/images/passenger/cnic-name.png') }}" alt="Tooltip Image">
+                                  @else
+                                    <img src="{{ asset('assets/images/passenger/passport-vctor2.jpg') }}" alt="Tooltip Image">
+                                  @endif
                                </div>
                             </div>
                          </div>
@@ -132,8 +134,12 @@
                                  <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i>
                                  <div class="tooltip-content">
                                     <h2>Surname</h2>
-                                    <p>Enter as highlighted in passport</p>
-                                    <img src="/assets/images/passport-vctor.jpg" alt="Tooltip Image">
+                                    <p>Enter as highlighted</p>
+                                  @if ($flightData['isLocal'])
+                                    <img src="{{ asset('assets/images/passenger/cnic-name.png') }}" alt="Tooltip Image">
+                                  @else
+                                    <img src="{{ asset('assets/images/passenger/passport-vctor.jpg') }}" alt="Tooltip Image">
+                                  @endif
                                  </div>
                               </div>
                             </div>
@@ -261,62 +267,37 @@
                          </div>
                       </div>
                    </div>
-                   <div class="row">
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                         <label for="{{ $i }}_passportnumber">Passport Number</label>
-                            <div class="infos">
-                               <input type="text" name="{{ $key }}_passportnumber[]" id="{{ $i }}_passportnumber" class="form-control" aria-describedby="helpId" required>
-                               <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Passport Number"></i>
-                            </div>
-                         </div>
-                      </div>
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                            <label for="{{ $i }}_passportexp">Passport Expiry</label>
-                            <input class="form-control" id="{{ $i }}_passportexp" type="date" name="{{ $key }}_passportexp[]" required>
-                            <small id="helpId" class="text-muted">Please ensure is currently valid</small>
-                         </div>
-                      </div>
-                   </div>
-                   {{-- <div class="row">
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                            <label for="{{ $i }}_area_code">Area Code</label>
-                            <div class="infos">
-                               <input type="number" name="{{ $key }}_area_code[]" id="{{ $i }}_area_code" class="form-control" value="123123" aria-describedby="helpId" required>
-                               <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Area Code"></i>
-                            </div>
-                         </div>
-                      </div>
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                            <label for="{{ $i }}_phone_code">Enter Country Phone Code</label>
-                            <div class="infos">
-                               <input type="number" name="{{ $key }}_phone_code[]" id="{{ $i }}_phone_code" class="form-control" value="123123" aria-describedby="helpId" required>
-                               <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Enter Country Phone Code"></i>
-                            </div>
-                         </div>
-                      </div>
-                   </div>
-                   <div class="row">
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                            <label for="{{ $i }}_phone">Enter Phone</label>
-                            <div class="infos">
-                               <input type="number" name="{{ $key }}_phone[]" id="{{ $i }}_phone" class="form-control" value="123123" aria-describedby="helpId" required>
-                               <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Enter Phone"></i>
-                            </div>
-                         </div>
-                      </div>
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                            <label for="">Frequent Flyer Number <span>(optional)</span></label>
-                            <input type="number" name="" id="" class="form-control" placeholder="" aria-describedby="helpId">
-                            <small id="helpId" class="text-muted">Loyalty points / miles won't be added for incorrect entries.</small>
-                         </div>
-                      </div>
-                   </div> --}}
+                   @if ($key !== 'inf')
+                     <div class="row">
+                        <div class="col-md-12 col-lg-6">
+                           <div class="form-group">
+                           <label for="{{ $i }}_passportnumber">@if ($flightData['isLocal']) Cnic @else Passport @endif Number</label>
+                              <div class="infos">
+                                 <input type="text" name="{{ $key }}_passportnumber[]" id="{{ $i }}_passportnumber" class="form-control" aria-describedby="helpId" required>
+                                    <div class="tooltip-container">
+                                       <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Passport Number"></i>
+                                       <div class="tooltip-content">
+                                          <h2>@if ($flightData['isLocal']) Cnic @else Passport @endif Number</h2>
+                                          <p>Enter as highlighted</p>
+                                          @if ($flightData['isLocal'])
+                                             <img src="{{ asset('assets/images/passenger/cnic-no.png') }}" alt="Tooltip Image">
+                                          @else
+                                             <img src="{{ asset('assets/images/passenger/passport-vctor.jpg') }}" alt="Tooltip Image">
+                                          @endif
+                                       </div>
+                                    </div>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="col-md-12 col-lg-6">
+                           <div class="form-group">
+                              <label for="{{ $i }}_passportexp">@if ($flightData['isLocal']) Cnic @else Passport @endif Expiry</label>
+                              <input class="form-control" id="{{ $i }}_passportexp" type="date" name="{{ $key }}_passportexp[]" required>
+                              <small id="helpId" class="text-muted">Please ensure is currently valid</small>
+                           </div>
+                        </div>
+                     </div>
+                   @endif
                 </div>
              @endfor
          </div>
@@ -324,12 +305,6 @@
    @endforeach
 @endif
 <script>
-   // $('#userEmail').on('blur', function () {
-   //    const email = $(this).val();
-   //    if (email) {
-   //       verifyClient(email);
-   //    }
-   // });
    $(document).ready(function () {
       function updateDisabledPassengers() {
          const usedPassengerIds = [];

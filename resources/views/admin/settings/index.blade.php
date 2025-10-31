@@ -120,15 +120,22 @@
                                 <label class="form-label">City Code</label>
                                 <input type="text" id="city_code" class="form-control">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label class="form-label">Airport Type</label>
+                                <select name="is_local" id="is_local" class="form-control">
+                                    <option selected value="0">International</option>
+                                    <option value="1">Domestic</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label">City</label>
                                 <input type="text" id="city" class="form-control">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label">State</label>
                                 <input type="text" id="state" class="form-control">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="form-label">County</label>
                                 <input type="text" id="county" class="form-control">
                             </div>
@@ -271,6 +278,7 @@ $(function(){
         $.get('{{ route("admin.airports.single") }}', { code }, function (airport) {
             if (airport && airport.id) {
                 openModal(airport);
+                $('#airportSearch').val(null).trigger('change');
             } else {
                 _alert('Airport not found in local DB', 'error');
             }
@@ -291,12 +299,15 @@ $(function(){
     $(document).on('click', '.editBtn', function(){
         const id = $(this).data('id');
         $.get('{{ route("admin.airports.show", ":id") }}'.replace(':id', id), function(airport){
-            if (airport && airport.id) openModal(airport);
+            if (airport && airport.id) setTimeout(() => openModal(airport), 100);
             else _alert('Airport not found.', 'error');
         }).fail(() => _alert('Error fetching airport details.', 'error'));
     });
 
     function openModal(airport) {
+        $('#airportForm')[0].reset();
+        $('#airport_id').val('');
+
         $('#modalTitle').text('Edit Airport');
         $('#airport_id').val(airport.id);
         $('#name').val(airport.name);
@@ -305,12 +316,21 @@ $(function(){
         $('#country').val(airport.country);
         $('#time_zone').val(airport.time_zone);
         $('#city_code').val(airport.city_code);
+        $('#is_local').val(airport.is_local ? '1' : '0'); 
         $('#city').val(airport.city);
         $('#state').val(airport.state);
         $('#county').val(airport.county);
         editMode = true;
-        modal.show();
+        modal.hide();
+        setTimeout(() => modal.show(), 150);
     }
+    $('#airportModal').on('hidden.bs.modal', function(){
+        // Reset modal state completely when hidden
+        $('#airportForm')[0].reset();
+        $('#airport_id').val('');
+        editMode = false;
+    });
+
 
     $('#saveAirportBtn').on('click', function(){
         const id = $('#airport_id').val();
@@ -322,6 +342,7 @@ $(function(){
             country: $('#country').val(),
             time_zone: $('#time_zone').val(),
             city_code: $('#city_code').val(),
+            is_local: $('#is_local').val() === '1' ? 1 : 0,
             city: $('#city').val(),
             state: $('#state').val(),
             county: $('#county').val()

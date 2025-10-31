@@ -250,17 +250,17 @@ class FlightController extends Controller
     public function booking()
     {
         // dd(session('data', []));
-        // dd(session('IdsExpireTime'));
-        // dd(session('totalFare', []));
-        if (session('data.airline') === 'emirate') {
-            return view('home.booking', [
-                'data' => session('data', []),
-                'totalFare' => session('totalFare', []),
-                'tax' => config('variables.flyjinnah_api.tax') ?? 0
-            ]);
+        $data = session('data', []);
+        $isLocal = false;
+        if (!empty($data)) {
+            $departure = filter_var($data['departure']['departure']['local'], FILTER_VALIDATE_BOOLEAN);
+            $arrival   = filter_var($data['departure']['arrival']['local'], FILTER_VALIDATE_BOOLEAN);
+            $isLocal = $departure && $arrival;
         }
+        $data['isLocal'] = $isLocal;
+        // dd($data);
         return view('home.booking', [
-            'data' => session('data', []),
+            'data' => $data,
             'totalFare' => session('totalFare', []),
             'tax' => config('variables.flyjinnah_api.tax') ?? 0
         ]);

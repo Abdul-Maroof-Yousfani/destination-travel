@@ -13,7 +13,11 @@ class Airport extends Model
 
     protected $primaryKey = 'id';
 
+    protected $casts = [
+        'is_local' => 'boolean',
+    ];
+
     public $timestamps = true;
 
-    protected $fillable = [ 'name', 'code', 'time_zone', 'city_code', 'country', 'city', 'state', 'county', 'order_by' ];
+    protected $fillable = [ 'name', 'code', 'time_zone', 'city_code', 'country', 'city', 'state', 'county', 'order_by', 'is_local' ];
 }

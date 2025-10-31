@@ -91,11 +91,26 @@ class HelperService
         if (!$code || !is_string($code)) {
             return 'Unknown';
         }
-        $airports = Cache::rememberForever('airports_list', function () {
+        // Cache for 360 minutes (6 hours)
+        $airports = Cache::remember('airports_list', 360, function () {
             return Airport::orderBy('name')->pluck('name', 'code')->toArray();
         });
-
         return $airports[$code] ?? $code ?? 'Unknown';
+    }
+
+    function codeToLocalCheck($code)
+    {
+        $code = is_array($code) ? ($code['value'] ?? null) : $code;
+
+        if (!$code || !is_string($code)) {
+            return 'Unknown';
+        }
+        // Cache for 360 minutes (6 hours)
+        $airports = Cache::remember('airports_local_check', 360, function () {
+            return Airport::pluck('is_local', 'code')->toArray();
+        });
+
+        return isset($airports[$code]) ? (bool)$airports[$code] : false;
     }
 
     function formatXml(string $xml): string

@@ -42,11 +42,22 @@ class HelperFunctions
         if (!$code || !is_string($code)) {
             return 'Unknown';
         }
-        $airports = Cache::rememberForever('airports_list', function () {
-            return Airport::orderBy('name')->pluck('name', 'code')->toArray();
-        });
+        // Cache for 360 minutes (6 hours)
+        $airport = Airport::where('code', $code)->value('name');
+        return $airport ?? 'Unknown';
+        // $airports = Cache::remember('airports_list', 360, function () {
+        //     return Airport::orderBy('name')->pluck('name', 'code')->toArray();
+        // });
+        // return $airports[$code] ?? $code ?? 'Unknown';
+    }
+    public static function codeToLocalCheck($code)
+    {
+        $code = is_array($code) ? ($code['value'] ?? null) : $code;
+        if (!$code || !is_string($code)) return false;
 
-        return $airports[$code] ?? $code ?? 'Unknown';
+        $isLocal = Airport::where('code', $code)->value('is_local');
+
+        return (bool) $isLocal;
     }
     // 2h 40m
     public static function calculateDuration(?string $departure, ?string $arrival): ?string

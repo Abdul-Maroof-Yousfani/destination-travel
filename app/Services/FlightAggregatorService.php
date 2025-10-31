@@ -115,6 +115,7 @@ class FlightAggregatorService
                             'departure' => [
                                 'code' => $segments[0]['origin'] ?? '',
                                 'airport' => $this->helper::codeToCountry($segments[0]['origin'] ?? ''),
+                                'local' => $this->helper::codeToLocalCheck($segments[0]['origin'] ?? ''),
                                 'datetime' => $this->helper::formatDateTimeForFlights($departure),
                                 'date' => $this->helper::formatDateForFlights($departure),
                                 'time' => $this->helper::formatTimeForFlights($departure),
@@ -122,6 +123,7 @@ class FlightAggregatorService
                             'arrival' => [
                                 'code' => $segments[1]['destination'] ?? $segments[0]['destination'] ?? '',
                                 'airport' => $this->helper::codeToCountry($segments[1]['destination'] ?? $segments[0]['destination'] ?? ''),
+                                'local' => $this->helper::codeToLocalCheck($segments[1]['destination'] ?? $segments[0]['destination'] ?? ''),
                                 'datetime' => $this->helper::formatDateTimeForFlights($arrival),
                                 'date' => $this->helper::formatDateForFlights($arrival),
                                 'time' => $this->helper::formatTimeForFlights($arrival),
@@ -157,6 +159,7 @@ class FlightAggregatorService
                             'departure' => [
                                 'code' => $segments[0]['origin']['airportCode'] ?? '',
                                 'airport' => $this->helper::codeToCountry($segments[0]['origin']['airportCode'] ?? ''),
+                                'local' => $this->helper::codeToLocalCheck($segments[0]['origin']['airportCode'] ?? ''),
                                 'datetime' => $this->helper::formatDateTimeForFlights($departure),
                                 'date' => $this->helper::formatDateForFlights($departure),
                                 'time' => $this->helper::formatTimeForFlights($departure),
@@ -164,6 +167,7 @@ class FlightAggregatorService
                             'arrival' => [
                                 'code' => $segments[1]['destination']['airportCode'] ?? $segments[0]['destination']['airportCode'] ?? '',
                                 'airport' => $this->helper::codeToCountry($segments[1]['destination']['airportCode'] ?? $segments[0]['destination']['airportCode'] ?? ''),
+                                'local' => $this->helper::codeToLocalCheck($segments[1]['destination']['airportCode'] ?? $segments[0]['destination']['airportCode'] ?? ''),
                                 'datetime' => $this->helper::formatDateTimeForFlights($arrival),
                                 'date' => $this->helper::formatDateForFlights($arrival),
                                 'time' => $this->helper::formatTimeForFlights($arrival),
@@ -210,6 +214,7 @@ class FlightAggregatorService
                             'departure' => [
                                 'code' => $flight['Departure']['AirportCode']['value'] ?? '',
                                 'airport' => $this->helper::codeToCountry($flight['Departure']['AirportCode']['value'] ?? ''),
+                                'local' => $this->helper::codeToLocalCheck($flight['Departure']['AirportCode']['value'] ?? ''),
                                 'datetime' => $this->helper::formatDateTimeForFlights($departure),
                                 'date' => $this->helper::formatDateForFlights($departure),
                                 'time' => $this->helper::formatTimeForFlights($departure),
@@ -217,6 +222,7 @@ class FlightAggregatorService
                             'arrival' => [
                                 'code' => $arrival['AirportCode']['value'] ?? '',
                                 'airport' => $this->helper::codeToCountry($arrival['AirportCode']['value'] ?? ''),
+                                'local' => $this->helper::codeToLocalCheck($arrival['AirportCode']['value'] ?? ''),
                                 'datetime' => $this->helper::formatDateTimeForFlights($arrivalDateTime),
                                 'date' => $this->helper::formatDateForFlights($arrivalDateTime),
                                 'time' => $this->helper::formatTimeForFlights($arrivalDateTime),
@@ -253,12 +259,14 @@ class FlightAggregatorService
                     'departure' => [
                         'code' => $segment['origin'] ?? '',
                         'airport' => $this->helper::codeToCountry($segment['origin'] ?? ''),
+                        'local' => $this->helper::codeToLocalCheck($segment['origin'] ?? ''),
                         'datetime' => $segment['departure_time'] ?? '',
                         'zuluTime' => null,
                     ],
                     'arrival' => [
                         'code' => $segment['destination'] ?? '',
                         'airport' => $this->helper::codeToCountry($segment['destination'] ?? ''),
+                        'local' => $this->helper::codeToLocalCheck($segment['destination'] ?? ''),
                         'datetime' => $segment['arrival_time'] ?? '',
                         'zuluTime' => null,
                     ],
@@ -280,12 +288,14 @@ class FlightAggregatorService
                     'departure' => [
                         'code' => $segment['origin']['airportCode'] ?? '',
                         'airport' => $this->helper::codeToCountry($segment['origin']['airportCode'] ?? ''),
+                        'local' => $this->helper::codeToLocalCheck($segment['origin']['airportCode'] ?? ''),
                         'datetime' => $departure,
                         'zuluTime' => $segment['departureDateTimeZulu'] ?? '',
                     ],
                     'arrival' => [
                         'code' => $segment['destination']['airportCode'] ?? '',
                         'airport' => $this->helper::codeToCountry($segment['destination']['airportCode'] ?? ''),
+                        'local' => $this->helper::codeToLocalCheck($segment['destination']['airportCode'] ?? ''),
                         'datetime' => $arrival,
                         'zuluTime' => $segment['arrivalDateTimeZulu'] ?? '',
                     ],
@@ -310,12 +320,14 @@ class FlightAggregatorService
                 'departure' => [
                     'code' => $segments['Departure']['AirportCode']['value'] ?? '',
                     'airport' => $segments['Departure']['AirportName']['value'] ?? '',
+                    'local' => $this->helper::codeToLocalCheck($segments['Departure']['AirportCode']['value'] ?? ''),
                     'datetime' => ($segments['Departure']['Date']['value'] ?? '') . 'T' . ($segments['Departure']['Time']['value'] ?? ''),
                     'zuluTime' => null,
                 ],
                 'arrival' => [
                     'code' => $firstArrival['AirportCode']['value'] ?? '',
                     'airport' => $firstArrival['AirportName']['value'] ?? '',
+                    'local' => $this->helper::codeToLocalCheck($firstArrival['AirportCode']['value'] ?? ''),
                     'datetime' => ($firstArrival['Date']['value'] ?? '') . 'T' . ($firstArrival['Time']['value'] ?? ''),
                     'zuluTime' => null,
                 ],
@@ -333,12 +345,14 @@ class FlightAggregatorService
                     'segment_key' => null,
                     'departure' => [
                         'code' => $sf['departure']['AirportCode']['value'] ?? '',
+                        'local' => $this->helper::codeToLocalCheck($sf['departure']['AirportCode']['value'] ?? ''),
                         'airport' => $sf['departure']['AirportName']['value'] ?? '',
                         'datetime' => ($sf['departure']['Date']['value'] ?? '') . 'T' . ($sf['departure']['Time']['value'] ?? ''),
                         'zuluTime' => null,
                     ],
                     'arrival' => [
                         'code' => $sf['arrival']['AirportCode']['value'] ?? '',
+                        'local' => $this->helper::codeToLocalCheck($sf['arrival']['AirportCode']['value'] ?? ''),
                         'airport' => $sf['arrival']['AirportName']['value'] ?? '',
                         'datetime' => ($sf['arrival']['Date']['value'] ?? '') . 'T' . ($sf['arrival']['Time']['value'] ?? ''),
                         'zuluTime' => null,
