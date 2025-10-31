@@ -184,7 +184,7 @@
                                 data-flight="{{ json_encode($flight) }}">
                                 {{ $flight['code'] ?? 'PKR' }} {{ $flight['price'] ?? 0 }}
                             </button>
-                            <div class="text-muted small">{{ count($flight) === 1 ? 'One Way' : 'Round Trip' }}</div>
+                            <div class="text-muted small">{{ $flightData['return_count'] === 0 ? 'One Way' : 'Round Trip' }}</div>
                         </div>
                     </div>
                     <!-- Connected Flight Details -->
