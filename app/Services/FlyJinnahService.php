@@ -107,7 +107,7 @@ class FlyJinnahService
     public function authenticate()
     {
         if(!$this->authUsername){
-            \Log::error('Env error run config cache cmd', ['message' => $e->getMessage()]);
+            \Log::error('Env error run config cache cmd');
             return null;
         }
         try {
