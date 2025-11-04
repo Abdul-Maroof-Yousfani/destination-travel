@@ -584,7 +584,7 @@ class FlightController extends Controller
         if ($booking->client_id !== (int)$validatedData['clientId']) return response()->json(['status' => 'error', 'message' => 'Client does not match this booking.'], 403);
         // dd($booking);
         // ✅ Check if payment exists
-        // if (!$booking->payment) return response()->json(['status' => 'error', 'message' => 'No payment found for this booking.'], 400);
+        if (!$booking->payment) return response()->json(['status' => 'error', 'message' => 'No payment found for this booking.'], 400);
 
         $airline = strtolower($booking->airline);
         $now = now()->format('d M Y h:i A');
