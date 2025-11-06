@@ -58,7 +58,7 @@ Route::redirect('admin', 'admin/login')->name('admin.home');
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
-    Route::view('dashboard', 'admin.dashboard')->name('dashboard')->middleware('permission:view dashboard');
+    Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard')->middleware('permission:view dashboard');
 
     // Route::get('download-logs', [AdminDashboardController::class, 'downloadLogs'])->name('download.logs.all');
     // Route::get('download-logs/bookings', [AdminDashboardController::class, 'downloadLogsBookings'])->name('download.logs.bookings');

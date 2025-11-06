@@ -853,7 +853,7 @@ class FlightBookingService
         }
     }
 
-    public function updateBookingFieldsPia(array $response, int $bookingId): Booking
+    public function updateBookingFieldsPia(array $response, int $bookingId): Booking // Fetch API
     {
         $order = $response['order'] ?? [];
         $journeys = $response['journeys'] ?? [];
@@ -900,7 +900,7 @@ class FlightBookingService
         $booking = Booking::findOrFail($bookingId);
         DB::beginTransaction();
         try {
-            $ticketTimeLimit = $data['paymentLimit'] ?? $booking->ticket_limit; // Using paymentLimit
+            $ticketTimeLimit = $data['paymentLimit'] ?? $booking->ticket_limit;
             $paymentTimeLimit = $data['paymentLimit'] ?? $booking->payment_limit;
 
             // Update Booking
@@ -923,9 +923,8 @@ class FlightBookingService
 
             // Create Tickets from tickets array or passengers
             $tickets = [];
-            foreach ($data['tickets'] ?? [] as $ticket) {
-                $passenger = collect($data['passengers'])->firstWhere('pax_id', $ticket['pax_id']) ?? [];
-                $farePrice = $passenger['fare_details']['fare_price_type']['price'] ?? [];
+            foreach ($data['passengers'] ?? [] as $passenger) {
+                $ticket = $passenger['ticket'];
                 $tickets[] = [
                     'airline' => $data['order']['ownerCode'] ?? null,
                     'passenger_reference' => $ticket['pax_id'] ?? null,
@@ -933,8 +932,8 @@ class FlightBookingService
                     'ticket_no' => $ticket['ticketNumber'] ?? null,
                     'type' => $passenger['ptc'] ?? null,
                     'issue_date' => now(), // No issue date in response
-                    'price_code' => $farePrice['currency'] ?? null,
-                    'price' => $farePrice['total_amount'] ?? null,
+                    'price_code' => $passenger['fare_details']['fare_price_type']['price']['currency'] ?? null,
+                    'price' => $passenger['fare_details']['fare_price_type']['price']['total_amount'] ?? null,
                     'price_reference' => null, // Not in PIA
                     'ticket_details' => json_encode($ticket),
                     'client_id' => $booking->client_id,

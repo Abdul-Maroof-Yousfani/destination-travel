@@ -21,7 +21,12 @@ class OrderController extends Controller
     }
     public function fetch(Request $request)
     {
+        $user = auth()->user();
         $query = Booking::with(['client', 'agent']);
+
+        if (!$user->can('manage all bookings')) {
+            $query->where('agent_id', $user->id);
+        }
 
         if ($request->order_id) {
             $query->where('id', 'like', '%' . $request->order_id . '%');
@@ -43,7 +48,7 @@ class OrderController extends Controller
             $query->where('is_oneway', $request->type === 'oneway' ? 1 : 0);
         }
 
-        if ($request->agent) {
+        if ($request->agent && $user->can('manage all bookings')) {
             $query->whereHas('agent', function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->agent . '%');
             });
@@ -75,8 +80,14 @@ class OrderController extends Controller
     }
     public function details(Booking $booking)
     {
+        $user = auth()->user();
+
+        if (!$user->can('manage all bookings') && $booking->agent_id !== $user->id) {
+            abort(403, 'You are not authorized to view this booking.');
+        }
+
         $booking->load(['payments', 'flights.segments', 'tickets', 'client', 'bookingItems.penalties', 'cancelResponse', 'errorLogs', 'bookingRequest']);
-        $agents = User::role('agent')->get();
+        $agents = User::whereDoesntHave('roles', fn($q) => $q->where('name', 'admin'))->get();
         if (!$booking) abort(404, 'Booking not found.');
 
         // dd($agents, $booking);

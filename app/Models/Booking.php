@@ -195,6 +195,11 @@ class Booking extends Model
         $code = $this->price_code ?? 'Rs.';
         return $code . ' ' . number_format($totalPrice, 2);
     }
+    // type
+    public function getTypeAttribute(): string
+    {
+        return $this->is_oneway ? 'ONEWAY' : 'RETURN';
+    }
 
 
 

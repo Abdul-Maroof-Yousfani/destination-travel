@@ -114,4 +114,10 @@ class HelperFunctions
 
         return $map[strtoupper($code)] ?? $code;
     }
+    public static function normalizeToArray($value) {
+        if (empty($value)) return [];
+        return array_keys($value) === range(0, count($value) - 1)
+            ? $value
+            : [$value];
+    }
 }
