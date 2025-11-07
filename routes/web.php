@@ -10,6 +10,7 @@ use App\Http\Controllers\FlightController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\AirportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -56,13 +57,9 @@ Route::post('register', 'App\Http\Controllers\AuthController@register')->name('r
 
 Route::redirect('admin', 'admin/login')->name('admin.home');
 
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth:web'])->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard')->middleware('permission:view dashboard');
-
-    // Route::get('download-logs', [AdminDashboardController::class, 'downloadLogs'])->name('download.logs.all');
-    // Route::get('download-logs/bookings', [AdminDashboardController::class, 'downloadLogsBookings'])->name('download.logs.bookings');
-
     Route::resource('roles', RoleController::class)->except(['show'])->middleware('permission:manage roles');
 
     Route::middleware(['permission:manage bookings'])->prefix('orders')->name('orders.')->group(function () {
@@ -104,6 +101,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('dates', [SettingController::class, 'getAvailableDates'])->name('dates');
         Route::get('download', [SettingController::class, 'downloadFile'])->name('download');
     });
+
+    Route::resource('clients', ClientController::class)->middleware('permission:manage users');
+    Route::post('clients/{client}/toggle-status', [ClientController::class, 'toggleStatus'])->name('clients.toggle-status')->middleware('permission:manage users');
 });
 Route::post('admin/logout', 'App\Http\Controllers\Admin\AdminAuthController@logout')->name('admin.logout');
 // -------------------------------------ADMIN----------------------------------------------

@@ -15,9 +15,9 @@ class RolePermissionSeeder extends Seeder
 
         $permissions = [
             'delete bookings',
-            'manage users',
-            'manage all bookings',
             
+            'manage all bookings',
+            'manage users',
             'view global analytics',
             'cancel booking',
             'view dashboard',

@@ -76,4 +76,15 @@
             });
         });
     });
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    $('.clickable-row').on('click', function () {
+        let href = $(this).data('href');
+        if (href) {
+            window.location.href = href;
+        }
+    });
 </script>

@@ -35,6 +35,11 @@
             <a class="nav-link" href="{{ route('admin.roles.index') }}">Roles & Permissions</a>
           </li>
         @endcan
+        @can('manage users')
+          <li class="nav-item">
+            <a class="nav-link" href="{{ route('admin.clients.index') }}">Users</a>
+          </li>
+        @endcan
       </ul>
 
       <!-- Right Icons -->
