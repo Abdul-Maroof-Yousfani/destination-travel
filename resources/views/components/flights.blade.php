@@ -2,120 +2,31 @@
 {{-- @dd($flightData) --}}
 @php use Carbon\Carbon; @endphp
 <style>
-    .flight-card {
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 20px;
-        margin: 20px auto;
-        background: #fff;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .airline-logo {
-        width: 60px;
-        height: auto;
-    }
-
-    .price-btn,
-    .price-btn-rtn {
-        background-color: #004080;
-        color: #fff;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-weight: bold;
-    }
-
-    .details-section {
-        display: none;
-        border-top: 1px dashed #ccc;
-        margin-top: 15px;
-        padding-top: 15px;
-        font-size: 0.9rem;
-    }
-
-    .connected {
-        font-size: 1em;
-        color: #127f9f;
-        cursor: pointer;
-        text-decoration: underline;
-        font-weight: 600;
-    }
-
-    .durationBadge {
-        border: 1px solid #127f9f;
-        background: #2fbbe530;
-        padding: 2px 4px;
-        border-radius: 5px;
-        font-size: 0.8em !important;
-    }
-
-    .pia-bundle-item {
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 16px;
-        background: #fafafa;
-    }
-
-    .bundle-header {
-        margin-bottom: 12px;
-    }
-
-    .bundle-header h4 {
-        margin: 0 0 4px;
-    }
-
-    .baggage-summary {
-        font-size: 0.9rem;
-        color: #555;
-    }
-
-    .option-card {
-        border: 1px solid #eee;
-        border-radius: 8px;
-        padding: 10px;
-        margin-bottom: 10px;
-        background: #fff;
-    }
-
-    .option-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .option-header h5 {
-        margin: 0;
-        font-size: 1rem;
-    }
-
-    .option-price {
-        font-weight: 600;
-        color: #008000;
-    }
-
-    .fare-list {
-        padding-left: 20px;
-        margin: 5px 0;
-    }
-
-    .service-list {
-        margin-top: 5px;
-    }
-
-    .service-badge {
-        background: #e9ecef;
-        padding: 3px 8px;
-        border-radius: 4px;
-        margin-right: 4px;
-        font-size: 0.8rem;
-    }
-
-    .bundle-footer {
-        margin-top: 12px;
-        text-align: right;
-    }
+ .flight-card{border:1px solid #e0e0e0;border-radius:12px;padding:20px;margin:20px auto;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+.airline-logo{width:60px;height:auto;}
+.price-btn,.price-btn-rtn{background-color:#004080;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:bold;}
+.details-section{display:none;border-top:1px dashed #ccc;margin-top:15px;padding-top:15px;font-size:0.9rem;}
+.connected{font-size:1em;color:#127f9f;cursor:pointer;text-decoration:underline;font-weight:600;}
+.durationBadge{border:1px solid #127f9f;background:#2fbbe530;padding:2px 4px;border-radius:5px;font-size:0.8em !important;}
+.pia-bundle-item{border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:16px;background:#fafafa;}
+.bundle-header{margin-bottom:12px;}
+.bundle-header h4{margin:0 0 4px;}
+.baggage-summary{font-size:0.9rem;color:#555;}
+.option-card{border:1px solid #eee;border-radius:8px;padding:10px;margin-bottom:10px;background:#fff;}
+.option-header{display:flex;justify-content:space-between;align-items:center;}
+.option-header h5{margin:0;font-size:1rem;}
+.option-price{font-weight:600;color:#008000;}
+.fare-list{padding-left:20px;margin:5px 0;}
+.service-list{margin-top:5px;}
+.service-badge{background:#e9ecef;padding:3px 8px;border-radius:4px;margin-right:4px;font-size:0.8rem;}
+.bundle-footer{margin-top:12px;text-align:right;}
+.df-items.plane{display:flex;align-items:end;justify-content:space-between;}
+.df-items.plane h1{font-size:30px;}
+.df-items.plane p{font-size:18px;font-weight:400;}
+.timesHeading{display:flex;justify-content:space-around;}
+.flight-duration{margin:11px 0;}
+.price-btn,.price-btn-rtn{padding:8px 14px;font-size:13px;width:100%;}
+.text-muted.small.roundtrip{text-align:center;font-weight:600;color:#000;}
 </style>
 @if (!empty($flightData))
     @php
@@ -128,9 +39,8 @@
             $departure = $key === 0 ? $flightData['departure'] : $flightData['arrival'];
             $arrival = $key === 0 ? $flightData['arrival'] : $flightData['departure'];
         @endphp
-        <div id="{{ $key === 0 ? 'departure-section' : 'return-section' }}"
-            style="display:{{ $key === 0 ? 'block' : 'none' }};">
-            <div class="d-flex justify-content-between font-weight-bold plane h4">
+        <div class="departure_names"  id="{{ $key === 0 ? 'departure-section' : 'return-section' }}" style="display:{{ $key === 0 ? 'block' : 'none' }};">
+            <div class="df-items plane">
                 <h1>{{ $key === 0 ? 'Departure' : 'Return' }} Flights</h1>
                 <p class="small font-italic">
                     {{ $departure['airport'] }} ({{ $departure['code'] }}) →
@@ -154,28 +64,31 @@
                             <img src="{{ asset('assets/images/logos/' . $logo . '.png') }}" alt="{{ strtoupper($logo) }}"
                                 class="airline-logo mb-1">
                             <div><strong>{{ $flight['carrier'] ?? '' }}</strong></div>
-                            <div class="text-muted small">
-                                {{ $firstSegment['carrier'] }} ({{ $firstSegment['flight_number'] }})
+                            <div class="text-muted small flight-nums">
+                                <p>{{ $firstSegment['carrier'] }} ({{ $firstSegment['flight_number'] }})</p>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-8">
                             <!-- Time Info -->
-                            <div class="timesHeading mb-3 mb-md-0 d-flex align-items-center justify-content-center">
-                                <div><strong>{{ $flightDep['time'] ?? '' }}</strong></div>
-                                <div class="flight-duration m-3">{{ $flight['duration'] ?? '' }}</div>
-                                <div><strong>{{ $flightArr['time'] ?? '' }}</strong></div>
+                            <div class="timesHeading">
+                                <div><h2> <strong>{{ $flightDep['time'] ?? '' }}</strong></h2></div>
+                                <div class="flight-duration">{{ $flight['duration'] ?? '' }}</div>
+                                <div><h2><strong>{{ $flightArr['time'] ?? '' }}</strong></h2></div>
                             </div>
-                            <div class="my-3">
-                                {{ $flightDep['airport'] }} ({{ $flightDep['code'] }}) -
-                                @if ($flight['isConnected'])
+                            <div class="my-3 flight-names-dec">
+                                <p>
+
+                                    {{ $flightDep['airport'] }} ({{ $flightDep['code'] }}) -
+                                    @if ($flight['isConnected'])
                                     <span class="connected">{{ $stopCount }} {{ $stopCount > 1 ? 'Stops' : 'Stop' }}</span>
-                                @else
+                                    @else
                                     Nonstop
-                                @endif
-                                - {{ $flightArr['airport'] }} ({{ $flightArr['code'] }})
+                                    @endif
+                                    - {{ $flightArr['airport'] }} ({{ $flightArr['code'] }})
+                                </p>
                             </div>
-                            {{-- <div class="text-muted small">🧳 Total: 20kg &nbsp;&nbsp; 🍴 Meal</div> --}}
+                            {{-- <div class="text-muted small kgs-total">🧳 Total: 20kg &nbsp;&nbsp; 🍴 Meal</div> --}}
                         </div>
 
                         <!-- Price Info -->
@@ -184,7 +97,7 @@
                                 data-flight="{{ json_encode($flight) }}">
                                 {{ $flight['code'] ?? 'PKR' }} {{ $flight['price'] ?? 0 }}
                             </button>
-                            <div class="text-muted small">{{ $flightData['return_count'] === 0 ? 'One Way' : 'Round Trip' }}</div>
+                            <div class="text-muted small roundtrip">{{ $flightData['return_count'] === 0 ? 'One Way' : 'Round Trip' }}</div>
                         </div>
                     </div>
                     <!-- Connected Flight Details -->
@@ -832,15 +745,27 @@
         // }
         function extractSelectedBundleData(bundle) {
             if (!bundle) return null;
-
+ 
+            // const paxRefIDs = bundle.offerItem
+            //     ?.flatMap(item => item.fareDetail?.map(fd => fd.PaxRefID) || [])
+            //     .flatMap(id => Array.isArray(id) ? id : [id])
+            //     .filter(Boolean) || [];
+ 
             const paxRefIDs = bundle.offerItem
-                ?.flatMap(item => item.fareDetail?.map(fd => fd.PaxRefID) || [])
-                .flatMap(id => Array.isArray(id) ? id : [id]) // flatten mixed arrays + strings
+                ?.flatMap(item => {
+                    const fareDetails = Array.isArray(item.fareDetail)
+                        ? item.fareDetail
+                        : item.fareDetail
+                            ? [item.fareDetail]
+                            : [];
+ 
+                    return fareDetails.map(fd => fd.PaxRefID);
+                })
+                .flatMap(id => Array.isArray(id) ? id : [id])
                 .filter(Boolean) || [];
-
             const uniquePaxRefs = [...new Set(paxRefIDs)];
             const offerItemID = bundle.offerItem?.[0]?.id || '';
-
+ 
             return {
                 PaxRefID: uniquePaxRefs,
                 offerID: bundle.offerID || '',

@@ -1,48 +1,14 @@
 @extends('home/layouts/master')
-
 @section('title', 'Flights')
 @section('style')
     <style>
-        .select-flight {
-            text-align: center;
-        }
-        .der-time ul li h2 {
-            font-size: 20px;
-        }
-    </style>
-    <style>
-        .flight-card {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin: 20px auto;
-        }
-        .flight-duration {
-            background-color: #f2f2f2;
-            padding: 2px 8px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            margin: 5px 0;
-            display: inline-block;
-        }
-        .price-btn {
-            background-color: #127f9f;
-            color: white;
-            font-weight: bold;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            display: inline-block;
-        }
-        .airline-logo {
-            width: 40px;
-            height: auto;
-        }
-        .timesHeading{
-            font-size: 2em;
-            font-weight: bolder;
-        }
+        .select-flight{text-align:center;}
+        .der-time ul li h2{font-size:20px;}
+        .flight-card{border:1px solid #ddd;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin:20px auto;}
+        .flight-duration{background-color:#f2f2f2;padding:2px 8px;border-radius:5px;font-size:0.8rem;margin:5px 0;display:inline-block;}
+        .price-btn{background-color:#127f9f;color:white;font-weight:bold;border:none;padding:8px 15px;border-radius:5px;display:inline-block;}
+        .airline-logo{width:40px;height:auto;}
+        .timesHeading{font-size:2em;font-weight:bolder;}
     </style>
 @endsection
 @section('content')
@@ -61,7 +27,7 @@
         <div class="container">
             <div class="row">
                 {{-- Side Bar Content --}}
-                <div class="col-md-12 col-lg-2 br-right">
+                <div class="col-md-12 col-lg-3 br-right">
                     <div class="sho">
                         <div class="shops">
                             <h5>Stops</h5>
@@ -158,7 +124,7 @@
                             </div>
 
 
-                            <div class="shop-check">
+                            <div class="shop-check shop-check2">
                                 <div class="form-check fomcheck">
                                     <input class="form-check-input" type="checkbox" id="direct">
                                     <label class="form-check-label" for="direct">
@@ -197,7 +163,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-12 col-lg-8">
+                <div class="col-md-12 col-lg-9">
                     {{-- <div class="departure-bo">
                         <div class="daparture-main">
                             <div class="derp-calender">

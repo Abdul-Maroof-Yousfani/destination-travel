@@ -1,41 +1,31 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome & Select2 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <style>
-    .main-flex{display:flex;align-items:center;position:relative;margin-bottom:10px;}
-    .icon-head-loc{margin-right:10px;}
-    .flys{position:relative;}
-    .flys input{width:100%;}
-    .dropdown-list{position:absolute;top:100%;left:0;right:0;z-index:100;background:#fff;border:1px solid #ccc;max-height:200px;overflow-y:auto;display:none;}
-    .dropdown-list div{padding:10px;cursor:pointer;}
-    .dropdown-list div:hover{background-color:#f0f0f0;}
-    .select2-container .select2-selection--single{height:50px;padding:12px 20px;border:1px solid #ddd;border-radius:6px;font-size:15px;background:white;transition:all 0.3s ease;}
-    .select2-container .select2-selection--single:hover{border-color:#127F9F;box-shadow:0 0 0 1px #127F9F;}
-    .select2-container .select2-selection--single:focus{outline:none;border-color:#127F9F;box-shadow:0 0 0 2px rgba(18,127,159,0.3);}
-    .select2-results__option--highlighted{background-color:#127F9F !important;color:white !important;}
-    .select2-container .select2-selection__arrow{height:48px;right:10px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='%23127F9F'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat center;}
-    .select2-container .select2-selection__arrow b{display:none !important;}
-    .select2-dropdown{border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
-    .select2-container .select2-selection--single{height:48px;padding:12px 16px;border:1px solid #e0e0e0;border-radius:8px;font-size:15px;color:#333;background-color:#fff;transition:all 0.2s ease;}
-    .select2-container .select2-selection--single:hover{border-color:#127F9F;}
-    .select2-container .select2-selection--single:focus{outline:none;border-color:#127F9F;box-shadow:0 0 0 2px rgba(18,127,159,0.2);}
-    .select2-container .select2-selection__arrow{height:46px;right:12px;}
-    .select2-container .select2-selection__arrow b{border-color:#127F9F transparent transparent transparent;border-width:6px 6px 0 6px;}
-    .select2-results__option{padding:10px 16px;border-bottom:1px solid #f5f5f5;}
-    .select2-results__option--highlighted{background-color:#f7f7f7 !important;color:#127F9F !important;}
-    .select2-dropdown{border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
-    .select2-results__option[aria-selected=true]{background-color:#f0f0f0;color:#127F9F;}
-    .calendar-container{display:flex;flex-direction:column;gap:6px;max-width:250px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}
-    .calendar-container label{font-size:14px;color:#333;}
-    .modern-calendar{padding:12px 16px;border:1px solid #ccc;border-radius:12px;font-size:16px;outline:none;transition:border-color 0.3s,box-shadow 0.3s;background-color:#f9f9f9;color:#333;}
-    .modern-calendar:focus{border-color:#4A90E2;box-shadow:0 0 0 3px rgba(74,144,226,0.2);}
-    .calendar-wrapper{display:flex;flex-direction:column;gap:8px;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;max-width:250px;}
-    .calendar-wrapper label{font-size:14px;color:#333;}
-    .modern-calendar{padding:12px 16px;border:2px solid #ccc;border-radius:12px;font-size:16px;outline:none;transition:border-color 0.3s ease,box-shadow 0.3s ease;background-color:#f9f9f9;color:#333;}
-    .modern-calendar:focus{border-color:#4A90E2;box-shadow:0 0 0 3px rgba(74,144,226,0.2);}
-    .modern-calendar::-webkit-calendar-picker-indicator{background-color:#4A90E2;border-radius:50%;padding:4px;cursor:pointer;transition:background-color 0.3s ease;}
-    .modern-calendar::-webkit-calendar-picker-indicator:hover{background-color:#357ABD;}
-    .icon-head-loc i{color:#30819c !important;font-size:22px;}
+ .flys{position:relative;}
+.flys input{width:100%;}
+.dropdown-list{position:absolute;top:100%;left:0;right:0;z-index:100;background:#fff;border:1px solid #ccc;max-height:200px;overflow-y:auto;display:none;}
+.dropdown-list div{padding:10px;cursor:pointer;}
+.dropdown-list div:hover{background-color:#f0f0f0;}
+.modern-calendar{padding:12px 16px;border:1px solid #ccc;border-radius:12px;font-size:16px;outline:none;transition:border-color 0.3s,box-shadow 0.3s;background-color:#f9f9f9;color:#333;}
+.modern-calendar:focus{border-color:#4A90E2;box-shadow:0 0 0 3px rgba(74,144,226,0.2);}
+.modern-calendar{padding:12px 16px;border:2px solid #ccc;border-radius:12px;font-size:16px;outline:none;transition:border-color 0.3s ease,box-shadow 0.3s ease;background-color:#f9f9f9;color:#333;}
+.modern-calendar:focus{border-color:#4A90E2;box-shadow:0 0 0 3px rgba(74,144,226,0.2);}
+.modern-calendar::-webkit-calendar-picker-indicator{background-color:#4A90E2;border-radius:50%;padding:4px;cursor:pointer;transition:background-color 0.3s ease;}
+.modern-calendar::-webkit-calendar-picker-indicator:hover{background-color:#357ABD;}
+.booking-section{background:#fff;border-radius:15px;padding:25px;box-shadow:0 4px 15px rgba(0,0,0,.1);}
+.nav-tabs .nav-link.active{background:#0d6efd;color:#fff!important;border:none;}
+.nav-tabs .nav-link{color:#0d6efd;font-weight:500;}
+.search-btn{background:#0d6efd;color:#fff;border-radius:10px;font-weight:500;}
+.search-btn:hover{background:#0b5ed7;}
+.input-group-text{background-color:#fff;cursor:pointer;transition:all 0.3s ease;color:#00839d;}
+.input-group-text:hover{color:#000;}
+.form-control{height:48px;padding:12px 16px;border:1px solid #e0e0e0;border-radius:8px;font-size:15px;color:#333;background-color:#fff !important;transition:all 0.2sease;}
 </style>
 @if (session('error'))
     <script>
@@ -75,7 +65,7 @@
 </script>
 <div class="banner">
     <div class="row align-items-center">
-        <div class="col-md-12 col-lg-4">
+        <div class="col-md-12 col-lg-5">
             <div class="tab-links">
                 <ul class="tab-product  wow fadeInRight">
                     <li data-targetit="box-1" class="current">
@@ -93,7 +83,7 @@
                 </ul>
             </div>
         </div>
-        <div class="col-md-12 col-lg-8">
+        <div class="col-md-12 col-lg-7">
             <div class="tab-head">
                 <h2>Explore beautiful places in the world </h2>
             </div>
@@ -101,7 +91,6 @@
     </div>
     <div class="box-1 showfirst  tab-content">
         <div class="radio-container">
-
             <div>
                 <input type="radio" id="oneWaySearch" name="searchOptions" value="oneWaySearch" checked>
                 <label for="oneWaySearch">One Way</label>
@@ -114,160 +103,116 @@
                 <input type="radio" id="connectedSearch" name="searchOptions" value="connectedSearch">
                 <label for="connectedSearch">Multi City</label>
             </div> --}}
-            <div class="aduls">
-                <div class="dropdown-toggle" id="dropdownToggle1">
-                    <span class="passengerDetails selected-country">
-                        <i class="fa-solid fa-person-walking-luggage"></i> 1 Adult
-                    </span>
-                </div>
-                <div class="dropdown-menu dropdown-menu1" id="dropdownMenu1" style="display: none;">
+
+            <div class="dropdowns" style="display: flex; gap: 15px;">
+                <!-- Adults -->
+                <div class="dropdown">
+                    <div class="dropdown-toggle" id="dropdownToggle1">
+                    <span><i class="fa-solid fa-person-walking-luggage"></i> 1 Adult</span>
+                    <!-- <i class="fa-solid fa-chevron-down"></i> -->
+                    </div>
+                    <div class="dropdown-menu" id="dropdownMenu1">
                     <div class="dropdown-item quantity" id="flightAdults">
                         <span>Adults</span>
+                        <div>
                         <button class="flightDecrement">-</button>
-                        <span class="count">0</span>
+                        <span class="count">1</span>
                         <button class="flightIncrement">+</button>
+                        </div>
                     </div>
                     <div class="dropdown-item quantity" id="flightChildren">
                         <span>Children</span>
+                        <div>
                         <button class="flightDecrement">-</button>
                         <span class="count">0</span>
                         <button class="flightIncrement">+</button>
+                        </div>
                     </div>
                     <div class="dropdown-item quantity" id="flightInfants">
                         <span>Infants</span>
+                        <div>
                         <button class="flightDecrement">-</button>
                         <span class="count">0</span>
                         <button class="flightIncrement">+</button>
+                        </div>
                     </div>
                     <p id="flight-error-message" class="error-limit flightPessangerError"></p>
+                    </div>
                 </div>
-            </div>
-            <!-- Economy -->
-            <div>
-                <div class="dropdown-toggle" id="dropdownToggle2" onclick="toggleDropdown()">
+        
+                <!-- Economy -->
+                <div class="dropdown">
+                    <div class="dropdown-toggle" id="dropdownToggle2">
                     <span class="selected-country">Economy</span>
-                </div>
-                <div class="dropdown-menu dropdown-menu2" id="dropdownMenu2" style="display: none;">
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="cabinClass" checked value="Y" onclick="updateSelection(this)"> Economy
-                        </label>
                     </div>
+                    <div class="dropdown-menu economy-menu" id="dropdownMenu2">
                     <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="cabinClass" value="W" onclick="updateSelection(this)"> Premium Economy
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="cabinClass" value="C" onclick="updateSelection(this)"> Business
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="cabinClass" value="P" onclick="updateSelection(this)"> First
-                        </label>
+                            <label>
+                                <input type="radio" name="cabinClass" checked value="Y" onclick="updateSelection(this)"> Economy
+                            </label>
+                        </div>
+                        <div class="dropdown-item">
+                            <label>
+                                <input type="radio" name="cabinClass" value="W" onclick="updateSelection(this)"> Premium Economy
+                            </label>
+                        </div>
+                        <div class="dropdown-item">
+                            <label>
+                                <input type="radio" name="cabinClass" value="C" onclick="updateSelection(this)"> Business
+                            </label>
+                        </div>
+                        <div class="dropdown-item">
+                            <label>
+                                <input type="radio" name="cabinClass" value="P" onclick="updateSelection(this)"> First
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="fly">
             <ul>
-                <!-- <li>
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </div>
-                        <div class="flys">
-                            <input class="p-2 border-0" type="text" id="from" placeholder="Flying From (City or Airport)">
-                            <div class="dropdown-list" id="fromDropdown"></div>
-                        </div>
-                    </div>
-                </li>
-                <li>
-                    <div class="right-left">
-                    <i class="fa-solid fa-right-left"></i>
-                    </div>
-                </li>
-                <li>
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </div>
-                        <div class="flys flys2">
-                            <input class="p-2 border-0" type="text" id="to" placeholder="Flying To (City or Airport)">
-                            <div class="dropdown-list" id="toDropdown"></div>
-                        </div>
-                    </div>
-                </li> -->
                 <li>
                     <a href="#">
-                        <div class="main-flex">
-                                <div class="icon-head-loc">
-                                    <i class="fa-solid fa-location-dot"></i>
-                                </div>
-                                <div class="flys">
-                                    <!-- <p>Flying From (City or Airport)</p> -->
-                                    <select id="from" class="select2 form-control" data-placeholder="Flying From (City or Airport)"></select>
-                                </div>
+                        <div class="select2-icon-wrapper">
+                            <i class="fa-solid fa-location-dot select2-inner-icon"></i>
+                            <select id="from" class=" select2" data-placeholder="Select Departure City"></select>
                         </div>
                     </a>
                 </li>
                 <li>
-                    <div class="right-left mob-hid">
+                    <div class="mob-hid">
                         <i class="fa-solid fa-right-left"></i>
                     </div>
                 </li>
                 <li>
                     <a href="#">
-                        <div class="main-flex">
-                            
-                            <div class="icon-head-loc">
-                                <i class="fa-solid fa-location-dot"></i>
-                            </div>
-                            <div class="flys flys2">
-                                <!-- <p>Flying To (City or Airport)</p> -->
-                                <select id="to" class="select2 form-control" data-placeholder="Flying To (City or Airport)"></select>
-                            </div>
-                            
+                        <div class="select2-icon-wrapper">
+                            <i class="fa-solid fa-location-dot select2-inner-icon"></i>
+                            <select id="to" class="form-control select2" data-placeholder="Flying To (City or Airport)"></select>
                         </div>
                     </a>
                 </li>
-
-
                 <li>
-                    <div class="main-flex">
-                        
-                            <div class="icon-head-loc">
-                                <i class="fa-solid fa-calendar-days"></i>
-                            </div>
-                            <div class="flys flys2">
-                                <div class="calendar-container calendar-wrapper ">
-                                    <label for="departure">Departure Date</label>
-                                    <input class="p-2 border-0 modern-calendar" type="date" id="departure" name="departure">
-                                </div>
-                            </div>
-                       
+                    <div class="calendar-container flys">
+                        <!-- <label for="departure">Departure Date</label>
+                        <input class="p-2 border-0 modern-calendar" type="date" id="departure" name="departure"> -->
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
+                            <input id="depart" name="departure" type="text" class="form-control" placeholder="Departure Date">
+                        </div>
                     </div>
                 </li>
                 <li>
-                    <div class="main-flex">
-
-                        
-                    
-                            <div class="icon-head-loc">
-                                <i class="fa-solid fa-calendar-days"></i>
-                            </div>
-                            <div class="flys">
-
-
-                            <div class="calendar-container calendar-wrapper">
-                                    <label for="Return">Return Date</label>
-                                    <input class="p-2 border-0 modern-calendar" type="date" id="returnDate">
-                                </div>
-                            </div>
-                        
-                    </div>
+                    <div class="calendar-container flys">
+                        <!-- <label for="Return">Return Date</label>
+                        <input class="p-2 border-0 modern-calendar" type="date" id="returnDate"> -->
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
+                            <input id="return" name="return" type="text" class="form-control" placeholder="Return Date">
+                        </div>
+                    </div>  
                 </li>
                 <li>
                     <div class="search-container">
@@ -277,7 +222,7 @@
             </ul>
         </div>
     </div>
-    <div class="box-2 tab-content">
+    <!-- <div class="box-2 tab-content">
 
         <div class="radio-container">
             <div>
@@ -326,8 +271,8 @@
 
 
 
-            <!-- Economy -->
-            <div>
+      
+            <div class="Economy">
                 <div class="dropdown-toggle" id="dropdownToggle2" onclick="toggleDropdown()">
                     <span class="selected-country">Economy</span>
                 </div>
@@ -418,8 +363,8 @@
                 </li>
             </ul>
         </div>
-    </div>
-    <div class="box-3  tab-content">
+    </div> -->
+    <!-- <div class="box-3  tab-content">
         <div class="radio-container">
             <div>
                 <input type="radio" id="option1" name="options" value="option1">
@@ -461,10 +406,8 @@
                     </div>
                     <p id="error-message" class="error-limit"></p>
                 </div>
-            </div>
-
-            <!-- Economy -->
-            <div>
+      
+            <div class="Economy">
                 <div class="dropdown-toggle" id="dropdownToggle2" onclick="toggleDropdown()">
                     <span class="selected-country">Economy</span>
                 </div>
@@ -617,8 +560,8 @@
 
 
 
-            <!-- Economy -->
-            <div>
+
+            <div class="Economy">
                 <div class="dropdown-toggle" id="dropdownToggle2" onclick="toggleDropdown()">
                     <span class="selected-country">Economy</span>
                 </div>
@@ -715,20 +658,69 @@
                 </li>
             </ul>
         </div>
-    </div>
+    </div> -->
 </div>
+<!-- <script>
+    document.querySelectorAll('.dropdown-toggle').forEach((toggle) => {
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const menu = toggle.nextElementSibling;
+        document.querySelectorAll('.dropdown-menu').forEach((m) => {
+        if (m !== menu) m.classList.remove('active');
+        });
+        menu.classList.toggle('active');
+    });
+    });
 
+    document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown-menu').forEach((m) => m.classList.remove('active'));
+    });
+</script>
 <script>
-    // const staticAirports = [
-    //     { id: 'KHI', text: 'Karachi (KHI)' },
-    //     { id: 'ISB', text: 'Islamabad (ISB)' },
-    //     { id: 'DXB', text: 'Dubai (DXB)' },
-    //     { id: 'JFK', text: 'New York (JFK)' },
-    //     // { id: 'LHE', text: 'Lahore (LHE)' },
-    //     { id: 'LAX', text: 'Los Angeles (LAX)' },
-    //     { id: 'ORD', text: 'Chicago (ORD)' },
-    //     { id: 'BAH', text: 'Bahrain (BAH)' },
-    // ];
+    $(document).ready(function () {
+    $(".select2").select2({
+        theme: "default",
+        placeholder: $(this).data("placeholder"),
+        minimumResultsForSearch: 5,
+        width: "100%",
+    });
+    });
+</script>
+<script>
+
+  // Dual-month date pickers
+  flatpickr("#depart", {
+    dateFormat: "d M Y",
+    minDate: "today",
+    onChange: function(selectedDates, dateStr) {
+      if (selectedDates.length > 0) {
+        returnPicker.set('minDate', selectedDates[0]);
+      }
+    }
+  });
+
+  const returnPicker = flatpickr("#return", {
+    dateFormat: "d M Y",
+    minDate: "today"
+  });
+
+  flatpickr("#tourStart", { dateFormat: "d M Y", minDate: "today" });
+  flatpickr("#tourEnd", { dateFormat: "d M Y", minDate: "today" });
+  flatpickr("#checkIn", { dateFormat: "d M Y", minDate: "today" });
+  flatpickr("#checkOut", { dateFormat: "d M Y", minDate: "today" });
+  flatpickr("#visaDate", { dateFormat: "d M Y", minDate: "today" });
+
+
+</script>
+<script>
+    document.querySelectorAll('.input-group-text').forEach(icon => {
+    icon.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        if (input) input.focus();
+    });
+    });
+</script>
+<script>
     const staticAirports = [
         @foreach($airports as $airport)
             { id: '{{ $airport->code }}', text: '{{ addslashes($airport->name) }} ({{ $airport->code }})' },
@@ -925,8 +917,289 @@
         setupAirportSelect('#from');
         setupAirportSelect('#to');
     });
-</script>
+</script> -->
 <!-- citys -->
+
+
+
+
+<script>
+/* ==========================
+   DROPDOWN MENU HANDLER
+========================== */
+document.querySelectorAll('.dropdown-toggle').forEach((toggle) => {
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const menu = toggle.nextElementSibling;
+    document.querySelectorAll('.dropdown-menu').forEach((m) => {
+      if (m !== menu) m.classList.remove('active');
+    });
+    menu.classList.toggle('active');
+  });
+});
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.dropdown-menu').forEach((m) => m.classList.remove('active'));
+});
+</script>
+
+<script>
+/* ==========================
+   SELECT2 INITIALIZATION
+========================== */
+$(document).ready(function () {
+  $(".select2").select2({
+    theme: "default",
+    placeholder: function() {
+      return $(this).data("placeholder");
+    },
+    minimumResultsForSearch: 5,
+    width: "100%",
+  });
+});
+</script>
+
+<script>
+/* ==========================
+   FLATPICKR INITIALIZATION
+========================== */
+const returnPicker = flatpickr("#return", {
+  dateFormat: "d M Y",
+  minDate: "today"
+});
+
+flatpickr("#depart", {
+  dateFormat: "d M Y",
+  minDate: "today",
+  onChange: function(selectedDates) {
+    if (selectedDates.length > 0) {
+      returnPicker.set('minDate', selectedDates[0]);
+    }
+  }
+});
+
+flatpickr("#tourStart", { dateFormat: "d M Y", minDate: "today" });
+flatpickr("#tourEnd", { dateFormat: "d M Y", minDate: "today" });
+flatpickr("#checkIn", { dateFormat: "d M Y", minDate: "today" });
+flatpickr("#checkOut", { dateFormat: "d M Y", minDate: "today" });
+flatpickr("#visaDate", { dateFormat: "d M Y", minDate: "today" });
+</script>
+
+<script>
+/* ==========================
+   INPUT FOCUS ON ICON CLICK
+========================== */
+document.querySelectorAll('.input-group-text').forEach(icon => {
+  icon.addEventListener('click', function() {
+    const input = this.previousElementSibling;
+    if (input) input.focus();
+  });
+});
+</script>
+
+<script>
+/* ==========================
+   AIRPORT SELECT2 WITH STATIC + AJAX
+========================== */
+const staticAirports = [
+  @foreach($airports as $airport)
+    { id: '{{ $airport->code }}', text: '{{ addslashes($airport->name) }} ({{ $airport->code }})' },
+  @endforeach
+];
+
+function setupAirportSelect(selector) {
+  $(selector).select2({
+    theme: 'classic',
+    placeholder: $(selector).data('placeholder'),
+    minimumInputLength: 0,
+    ajax: {
+      transport: function (params, success, failure) {
+        const term = params.data.term || '';
+
+        if (!term.length) {
+          success({ results: staticAirports });
+          return;
+        }
+
+        $.ajax({
+          url: '{{ route("airport") }}',
+          dataType: 'json',
+          delay: 250,
+          data: { term },
+          success: function (data) {
+            success({ results: data.results });
+          },
+          error: failure
+        });
+      },
+      processResults: function (data) {
+        return data;
+      },
+      cache: true
+    }
+  });
+}
+
+function setInitialAirportValue(selector, code) {
+  if (!code) return;
+
+  const staticMatch = staticAirports.find(a => a.id === code);
+
+  if (staticMatch) {
+    const option = new Option(staticMatch.text, staticMatch.id, true, true);
+    $(selector).append(option).trigger('change');
+  } else {
+    $.ajax({
+      url: '{{ route("airport") }}',
+      data: { term: code },
+      dataType: 'json',
+      success: function (data) {
+        const match = data.results.find(item => item.id === code);
+        if (match) {
+          const option = new Option(match.text, match.id, true, true);
+          $(selector).append(option).trigger('change');
+        }
+      }
+    });
+  }
+}
+</script>
+
+<script>
+/* ==========================
+   FLIGHT SEARCH LOGIC
+========================== */
+$(document).ready(function () {
+  const getURLParam = (param) => new URLSearchParams(window.location.search).get(param) || "";
+
+  let departure = $("#departure");
+  let returnDate = $("#returnDate");
+
+  let today = new Date().toISOString().split('T')[0];
+  departure.attr("min", today);
+
+  departure.val(getURLParam("dep"));
+  returnDate.val(getURLParam("return"));
+
+  returnDate.attr("min", departure.val() || today);
+
+  departure.on("change", function () {
+    let selectedDeparture = $(this).val();
+    returnDate.attr("min", selectedDeparture);
+
+    if (returnDate.val() < selectedDeparture) {
+      returnDate.val("");
+    }
+  });
+
+  setInitialAirportValue('#from', getURLParam("arr"));
+  setInitialAirportValue('#to', getURLParam("dest"));
+
+  if (!$("#returnDate").val()) {
+    $("#returnDate").prop("disabled", true);
+    $("#oneWaySearch").prop("checked", true);
+  } else {
+    $("#returnSearch").prop("checked", true);
+  }
+
+  $('#oneWaySearch').change(function() {
+    $("#returnDate").prop("disabled", this.checked).val(null);
+  });
+
+  $('#returnSearch').change(function() {
+    $("#returnDate").prop("disabled", !this.checked);
+    $("#returnDate").val(getURLParam("return"));
+  });
+
+  let adults = parseInt(getURLParam("adt")) || 1;
+  let children = parseInt(getURLParam("chd")) || 0;
+  let infants = parseInt(getURLParam("inf")) || 0;
+
+  $("#flightAdults .count").text(adults);
+  $("#flightChildren .count").text(children);
+  $("#flightInfants .count").text(infants);
+
+  const updatePassengerSummary = () => {
+    let totalPassengers = adults + children + infants;
+    $(".passengerDetails").html(`<i class="fa-solid fa-person-walking-luggage"></i> ${totalPassengers} Passenger${totalPassengers > 1 ? "s" : ""}`);
+  };
+
+  const validatePassengerCounts = () => {
+    let totalPassengers = adults + children + infants;
+    let errorMsg = "";
+
+    if (infants > adults) {
+      errorMsg = "Infants cannot exceed the number of adults.";
+    } else if (totalPassengers > 9) {
+      errorMsg = "Total passengers cannot be more than 9.";
+    }
+    $(".flightPessangerError").text(errorMsg);
+    return errorMsg === "";
+  };
+
+  $(".flightIncrement, .flightDecrement").click(function () {
+    let parent = $(this).closest(".quantity");
+    let isIncrement = $(this).hasClass("flightIncrement");
+    let totalPassengers = adults + children + infants;
+
+    if (isIncrement) {
+      if (totalPassengers >= 9) {
+        $(".flightPessangerError").text("Total passengers cannot be more than 9.");
+        return;
+      }
+
+      if (parent.attr("id") === "flightAdults") adults++;
+      else if (parent.attr("id") === "flightChildren") children++;
+      else if (parent.attr("id") === "flightInfants") {
+        if (infants < adults) infants++;
+        else {
+          $(".flightPessangerError").text("Infants cannot exceed the number of adults.");
+          return;
+        }
+      }
+    } else {
+      if (parent.attr("id") === "flightAdults") adults = Math.max(adults - 1, 1);
+      else if (parent.attr("id") === "flightChildren") children = Math.max(children - 1, 0);
+      else if (parent.attr("id") === "flightInfants") infants = Math.max(infants - 1, 0);
+    }
+
+    $("#flightAdults .count").text(adults);
+    $("#flightChildren .count").text(children);
+    $("#flightInfants .count").text(infants);
+
+    validatePassengerCounts();
+    updatePassengerSummary();
+  });
+
+  updatePassengerSummary();
+
+  $("#searchFlight").click(function (event) {
+    event.preventDefault();
+
+    let cabinClass = $('input[name="cabinClass"]:checked').val();
+    let from = $('#from').val();
+    let destination = $('#to').val();
+    let departureDate = $("#departure").val();
+    let returnDateVal = $("#returnDate").val();
+
+    if (!from || !destination || !departureDate) {
+      alert("Please fill all required fields.");
+      return;
+    }
+
+    if (!validatePassengerCounts()) return;
+
+    window.location.href = `/flights?arr=${from}&dest=${destination}&dep=${departureDate}&return=${returnDateVal}&cabinClass=${cabinClass}&adt=${adults}&chd=${children}&inf=${infants}`;
+  });
+
+  setupAirportSelect('#from');
+  setupAirportSelect('#to');
+});
+</script>
+
+
+
+
 {{-- <script>
     $(document).ready(function() {
         $('.select2').select2(); // Initialize Select2 for all elements with the class 'select2'

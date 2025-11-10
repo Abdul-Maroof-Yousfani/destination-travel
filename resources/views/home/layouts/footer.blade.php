@@ -116,7 +116,7 @@
     </div>
  </footer>
  <div class="copyright">
-    <div class="col-md-12 col-lg-12">
+    
        <div class="container">
           <div class="row">
              <div class="col-md-12 col-lg-8 text-left copadd">
@@ -148,6 +148,5 @@
              </div>
           </div>
        </div>
-    </div>
  </div>
  
