@@ -546,6 +546,10 @@ ul.m-silder button.slick-arrow.slick-next{top:26px;right:0px !important;}
 .widget a h4{font-size:16px !important;}
 .text-center.idExpIn h3{font-size:15px !important;}
 .footerTimeOutContainer{padding:10px !important;}
+.modal-dialog{max-width:77% !important;}
+.der-time ul{gap:17px;}
+.der-time ul li h2{font-size:17px;}
+.flex-plusul2{height:700px;}
 }
 @media (max-width:1024px){/* home */
 .select2-container{width:160px !important;}
@@ -579,6 +583,8 @@ ul.m-silder button.slick-arrow.slick-prev{left:-555px !important;}
 .youbook h2{font-size:14px !important;}
 .der-time ul li h2{font-size:15px !important;}
 .emr{width:59% !important;}
+.modal-dialog{max-width:86% !important;}
+.emri img{width:100% !important;}
 }
 @media (max-width:768px){.menuWrap2.menuWrap2-mobile{display:block !important;}
 .menuWrap2{display:none !important;}
@@ -611,6 +617,8 @@ section.featured.wow.fadeInRight{padding:8px 0px;}
 .der-time ul li h2{font-size:26px !important;}
 .books ul li p{font-size:16px!important;}
 #msform fieldset>input{float:none !important;width:29% !important;margin-top:-20px !important;float:none !important;}
+.tick>ul{flex-wrap:wrap;}
+.flex-plusul2{height:auto;}
 }
 @media (max-width:480px){.menu-Bar{float:right;margin-top:30px;}
 .logo a img{width:24% !important;}
