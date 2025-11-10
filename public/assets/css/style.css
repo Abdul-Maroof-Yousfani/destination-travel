@@ -163,7 +163,7 @@ span.selected-country{color:#127F9F;font-size:15px;}
 .mob-hid i{border:1px solid #02798b;border-radius:60px;padding:8px 8px;background:#02798b;color:#fff;}
 section.mainBanner{display:flex;align-items:center;justify-content:center;height:452px;background-size:cover;background-repeat:no-repeat;}
 .banner{background-color:#ffffff;padding:25px 25px;border-radius:35px;}
-.tab-links{border-bottom:none !important;border:2px solid #E9E9E9;border-radius:15px 15px 0px 1px;height:100px;display:flex;justify-content:center;align-items:center;padding:0px 5px;}
+.tab-links{border-bottom:none !important;border:2px solid #E9E9E9;border-radius:15px 15px 0px 1px;height:100px;display:flex;justify-content:center;align-items:center;padding:0px 5px;    width: 100%;}
 .tab-links ul{display:flex;align-items:center;justify-content:space-around;width:100%;}
 .tab-links ul.tab-product li a{font-size:14px;color:#8C8C8C;padding:13px 5px;font-weight:500;text-decoration:none;border-radius:5px;}
 .tab-links ul.tab-product li a i{font-size:20px;color:#8C8C8C;}
@@ -292,7 +292,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;hei
 .derp-calender h3{color:#127F9F;font-size:15px;font-weight:500;margin-bottom:5px;}
 .derp-calender p{font-size:10px;color:#595959;margin-bottom:10px;}
 .option .btn-option{margin:0 10px 10px 0;display:flex;background-color:transparent;border:1px solid #d9d9d9;font-size:13px;}
-.departure-bo{display:flex;align-items:flex-start;justify-content:space-between;}
+.departure-bo{display:flex;align-items:flex-start;justify-content:space-between;    width: 100%;}
 .hep2{background:#F7F7F7;border:2px solid #D9D9D9;border-radius:5px;padding:25px 25px;width:23%;}
 .icon-head-help i{color:#127F9F;margin-bottom:16px;font-size:40px;}
 .hep2 .call-content span{color:#127F9F;font-weight:bold;font-size:13px;}
@@ -497,11 +497,17 @@ footer{background-color:#EDF8FF;padding:40px 0px;}
 .copy2{display:flex;align-items:center;gap:20px;}
 .copyright{background-color:#EDF8FF;padding-bottom:20px;}
 /*newcss popup */
-.flcul ul li{width:49%;}
+.flcul ul li{width:48%;}
 .flcul ul{display:flex;align-items:center;justify-content:left;flex-wrap:wrap;gap:10px;}
 .flex-plusul2{width:initial !important;}
 .tick>ul{display:flex;align-items:center;justify-content:space-between;gap:20px;}
 .modal-dialog{max-width:90vw;margin:auto;}
+
+    .modal-dialog {
+        max-width: 56% !important;
+        margin-right: auto;
+        margin-left: auto;
+    }
 .pritik{width:25%;margin-left:20px;}
 .pointer{cursor:pointer !important;}
 .z_inf{z-index:9999;}
