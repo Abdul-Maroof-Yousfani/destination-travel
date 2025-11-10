@@ -663,7 +663,7 @@ footer{padding:15px 0px;}
 .btn-group .select .button_select{font-size:11px;}
 .shop-check2{margin-left:-158px;margin-top:-88px;}
 .flightemissions{margin-top:-16px;text-align:center;width:100%;}
-.df-items.plane{flex-wrap:wrap;text-align:center;justify-content:center;}
+.df-items.plane{flex-wrap:wrap;text-align:center;justify-content:center !important;}
 .df-items.plane h1{margin-top:16px;}
 .text-center.idExpIn h3{font-size:12px !important;}
 /* booking */
@@ -737,7 +737,7 @@ footer{padding:15px 0px;}
 .btn-group .select .button_select{font-size:11px;}
 .shop-check2{margin-left:-158px;margin-top:-88px;}
 .flightemissions{margin-top:-16px;text-align:center;width:100%;}
-.df-items.plane{flex-wrap:wrap;text-align:center;justify-content:center;}
+.df-items.plane{flex-wrap:wrap;text-align:center;justify-content:center !important;}
 .df-items.plane h1{margin-top:16px;}
 .text-center.idExpIn h3{font-size:12px !important;}
 /* booking */
