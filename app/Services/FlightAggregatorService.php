@@ -69,6 +69,8 @@ class FlightAggregatorService
         // $outboundFlights = $outboundFlights->sortBy('price')->values();
         // $inboundFlights = $inboundFlights->sortBy('price')->values();
         $outboundFlights = $outboundFlights->sortBy(function ($flight) {
+            return (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0) > 0;
+        })->sortBy(function ($flight) {
             return (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0);
         })->values();
 

@@ -108,7 +108,7 @@
                 <!-- Adults -->
                 <div class="dropdown">
                     <div class="dropdown-toggle" id="dropdownToggle1">
-                    <span><i class="fa-solid fa-person-walking-luggage"></i> 1 Adult</span>
+                    <span class="passengerDetails"><i class="fa-solid fa-person-walking-luggage"></i> 1 Adult</span>
                     <!-- <i class="fa-solid fa-chevron-down"></i> -->
                     </div>
                     <div class="dropdown-menu" id="dropdownMenu1">
@@ -200,7 +200,7 @@
                         <input class="p-2 border-0 modern-calendar" type="date" id="departure" name="departure"> -->
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
-                            <input id="depart" name="departure" type="text" class="form-control" placeholder="Departure Date">
+                            <input id="departure" name="departure" type="text" class="form-control" placeholder="Departure Date">
                         </div>
                     </div>
                 </li>
@@ -210,7 +210,7 @@
                         <input class="p-2 border-0 modern-calendar" type="date" id="returnDate"> -->
                         <div class="input-group">
                             <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
-                            <input id="return" name="return" type="text" class="form-control" placeholder="Return Date">
+                            <input id="returnDate" name="return" type="text" class="form-control" placeholder="Return Date">
                         </div>
                     </div>  
                 </li>
@@ -963,12 +963,12 @@ $(document).ready(function () {
 /* ==========================
    FLATPICKR INITIALIZATION
 ========================== */
-const returnPicker = flatpickr("#return", {
+const returnPicker = flatpickr("#returnDate", {
   dateFormat: "d M Y",
   minDate: "today"
 });
 
-flatpickr("#depart", {
+flatpickr("#departure", {
   dateFormat: "d M Y",
   minDate: "today",
   onChange: function(selectedDates) {
@@ -1179,8 +1179,10 @@ $(document).ready(function () {
     let cabinClass = $('input[name="cabinClass"]:checked').val();
     let from = $('#from').val();
     let destination = $('#to').val();
-    let departureDate = $("#departure").val();
-    let returnDateVal = $("#returnDate").val();
+    let departureDate = formatDateToISO($("#departure").val());
+    let returnDateVal = formatDateToISO($("#returnDate").val());
+    // console.log(from, destination, departureDate, returnDateVal);
+    // return
 
     if (!from || !destination || !departureDate) {
       alert("Please fill all required fields.");
@@ -1195,6 +1197,23 @@ $(document).ready(function () {
   setupAirportSelect('#from');
   setupAirportSelect('#to');
 });
+
+function formatDateToISO(dateStr) {
+    // Parse the date string
+    const date = new Date(dateStr);
+    
+    // Check if date is valid
+    if (isNaN(date)) return null;
+
+    // Get components
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // months are 0-based
+    const day = date.getDate().toString().padStart(2, '0');
+
+    // Return in YYYY-MM-DD format
+    return `${year}-${month}-${day}`;
+}
+
 </script>
 
 
