@@ -102,7 +102,7 @@ class EmiratesService
         $origin = $data['arr'];
         $destination = $data['dest'];
         $departureDate = $data['dep'];
-        $returnDate = $data['return'];
+        $returnDate = $data['return'] ?? null;
         $cabinClass = $data['cabinClass'] ?? 'Y';
         $currCode = $data['currCode'] ?? 'PKR';
         session([

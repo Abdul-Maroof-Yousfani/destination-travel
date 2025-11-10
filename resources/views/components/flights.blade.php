@@ -76,7 +76,7 @@
                                 <div class="flight-duration">{{ $flight['duration'] ?? '' }}</div>
                                 <div><h2><strong>{{ $flightArr['time'] ?? '' }}</strong></h2></div>
                             </div>
-                            <div class="my-3 flight-names-dec">
+                            <div class="my-3 flight-names-dec text-center">
                                 <p>
 
                                     {{ $flightDep['airport'] }} ({{ $flightDep['code'] }}) -

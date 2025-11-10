@@ -1072,25 +1072,52 @@ function setInitialAirportValue(selector, code) {
 $(document).ready(function () {
   const getURLParam = (param) => new URLSearchParams(window.location.search).get(param) || "";
 
-  let departure = $("#departure");
-  let returnDate = $("#returnDate");
-
-  let today = new Date().toISOString().split('T')[0];
-  departure.attr("min", today);
-
-  departure.val(getURLParam("dep"));
-  returnDate.val(getURLParam("return"));
-
-  returnDate.attr("min", departure.val() || today);
-
-  departure.on("change", function () {
-    let selectedDeparture = $(this).val();
-    returnDate.attr("min", selectedDeparture);
-
-    if (returnDate.val() < selectedDeparture) {
-      returnDate.val("");
+   const departurePicker = flatpickr("#departure", {
+    dateFormat: "d M Y",
+    minDate: "today",
+    onChange: function(selectedDates) {
+      if (selectedDates.length > 0) {
+        returnPicker.set('minDate', selectedDates[0]);
+      }
     }
   });
+
+  const returnPicker = flatpickr("#returnDate", {
+    dateFormat: "d M Y",
+    minDate: "today"
+  });
+
+  // Helper to parse ISO to Flatpickr format
+  function setPickerFromISO(picker, isoDate) {
+    if (!isoDate) return;
+    const date = new Date(isoDate);
+    if (!isNaN(date)) {
+      picker.setDate(date, true); // true triggers onChange
+    }
+  }
+
+  // Set dates from URL params
+  setPickerFromISO(departurePicker, getURLParam("dep"));
+  setPickerFromISO(returnPicker, getURLParam("return"));
+//   let departure = $("#departure");
+//   let returnDate = $("#returnDate");
+
+//   let today = new Date().toISOString().split('T')[0];
+//   departure.attr("min", today);
+
+//   departure.val(getURLParam("dep"));
+//   returnDate.val(getURLParam("return"));
+
+//   returnDate.attr("min", departure.val() || today);
+
+//   departure.on("change", function () {
+//     let selectedDeparture = $(this).val();
+//     returnDate.attr("min", selectedDeparture);
+
+//     if (returnDate.val() < selectedDeparture) {
+//       returnDate.val("");
+//     }
+//   });
 
   setInitialAirportValue('#from', getURLParam("arr"));
   setInitialAirportValue('#to', getURLParam("dest"));
@@ -1180,8 +1207,9 @@ $(document).ready(function () {
     let from = $('#from').val();
     let destination = $('#to').val();
     let departureDate = formatDateToISO($("#departure").val());
-    let returnDateVal = formatDateToISO($("#returnDate").val());
-    // console.log(from, destination, departureDate, returnDateVal);
+    let returnRaw = $("#returnDate").val();
+    let returnDateVal = returnRaw && returnRaw !== "null" ? formatDateToISO(returnRaw) : null;
+    console.log(from, destination, departureDate, returnDateVal);
     // return
 
     if (!from || !destination || !departureDate) {
@@ -1191,7 +1219,11 @@ $(document).ready(function () {
 
     if (!validatePassengerCounts()) return;
 
-    window.location.href = `/flights?arr=${from}&dest=${destination}&dep=${departureDate}&return=${returnDateVal}&cabinClass=${cabinClass}&adt=${adults}&chd=${children}&inf=${infants}`;
+    let url = `/flights?arr=${from}&dest=${destination}&dep=${departureDate}`;
+    if (returnDateVal) url += `&return=${returnDateVal}`;
+    url += `&cabinClass=${cabinClass}&adt=${adults}&chd=${children}&inf=${infants}`;
+
+    window.location.href = url;
   });
 
   setupAirportSelect('#from');
@@ -1199,6 +1231,7 @@ $(document).ready(function () {
 });
 
 function formatDateToISO(dateStr) {
+    if (!dateStr) return null;
     // Parse the date string
     const date = new Date(dateStr);
     
@@ -1213,7 +1246,17 @@ function formatDateToISO(dateStr) {
     // Return in YYYY-MM-DD format
     return `${year}-${month}-${day}`;
 }
-
+function formatISOToReadable(dateStr) {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    if (isNaN(date)) return null;
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+}
 </script>
 
 

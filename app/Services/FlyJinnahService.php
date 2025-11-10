@@ -183,7 +183,7 @@ class FlyJinnahService
         $origin = $data['arr'];
         $destination = $data['dest'];
         $departureDate = $data['dep'];
-        $returnDate = $data['return'];
+        $returnDate = $data['return'] ?? null;
         $cabinClass = $data['cabinClass'] ?? 'Y';
         $adt = $data['adt'];
         $chd = $data['chd'] ?? null;
