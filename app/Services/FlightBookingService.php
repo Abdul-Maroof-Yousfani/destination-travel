@@ -852,7 +852,6 @@ class FlightBookingService
             throw $e;
         }
     }
-
     public function updateBookingFieldsPia(array $response, int $bookingId): Booking // Fetch API
     {
         $order = $response['order'] ?? [];
@@ -860,7 +859,7 @@ class FlightBookingService
         $isOneWay = count($journeys) === 1;
         $booking = Booking::findOrFail($bookingId);
 
-        $ticketTimeLimit = $response['paymentLimit'] ?? $booking->ticket_limit; // Using paymentLimit for both
+        $ticketTimeLimit = $response['paymentLimit'] ?? $booking->ticket_limit;
         $paymentTimeLimit = $response['paymentLimit'] ?? $booking->payment_limit;
 
         try {
@@ -872,7 +871,7 @@ class FlightBookingService
                 'ticket_limit'      => Carbon::parse($ticketTimeLimit),
                 'payment_limit'     => Carbon::parse($paymentTimeLimit),
                 'airline_id'        => $order['ownerCode'] ?? null,
-                'airline'           => $order['ownerCode'] ?? null,
+                'airline'           => 'PIA',
                 'transaction_id'    => $response['transaction_id'] ?? $booking->transaction_id,
                 'price_code'        => data_get($response, 'passengers.0.fare_details.fare_price_type.price.currency', $booking->price_code),
                 'price'             => data_get($response, 'totalPrice', $booking->price),
@@ -894,7 +893,6 @@ class FlightBookingService
             throw $e;
         }
     }
-
     public function issueTicketsPia(array $data, int $bookingId): Booking
     {
         $booking = Booking::findOrFail($bookingId);

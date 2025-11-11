@@ -57,6 +57,8 @@ return [
         'password' => env('PIA_API_PASSWORD'),
         'email' => env('PIA_API_EMAIL'),
         'name' => env('PIA_API_NAME'),
+        'doc_type' => env('PIA_API_DOC_TYPE'),
+        'inv_no' => env('PIA_API_INV_NO'),
     ],
 
     'emirates_api' => [

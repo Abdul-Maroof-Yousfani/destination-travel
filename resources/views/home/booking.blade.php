@@ -322,111 +322,6 @@
                                  </div>
                               </div>
                               <x-flight-and-price-ticket :flightData="$data" :totalFare="$totalFare" :tax="$tax" />
-                              {{-- <div class="steps">
-                                 <h4>Your Booking</h4>
-                                 <div class="sugge-tab sugge-tab-tickes">
-                                    <div class="flex1">
-                                       <div class="emri w-25">
-                                          <img src="/assets/images/{{ $data['logo'] ?? '' }}" alt="Flight logo">
-                                       </div>   
-                                       <div class="der-time der-time-setps">
-                                          <ul>
-                                             @if (isset($data) && !empty($data))
-                                                @if ($isEmirate)
-                                                   <li><h2 class="timeIn12Hr">{{$data['flightDetails']['segments'][0]['flights']['Departure']['Time']['value'] ?? ''}}</h2></li>
-                                                   <li><div class="stays"><p>{{$data['flightDetails']['segments'][0]['flights']['duration'] ?? ''}}</p></div></li>
-                                                   <li><div class="tims"><h2 class="timeIn12Hr">{{$data['flightDetails']['segments'][0]['flights']['Arrival']['Time']['value'] ?? ''}}</h2></div></li>
-                                                @elseif ($isFlyJinnah)
-                                                   <li><h2>{{$data['departureFlight']['departureTime'] ?? ''}}</h2></li>
-                                                   <li><div class="stays"><p>{{$data['departureFlight']['timeDifference'] ?? ''}}</p></div></li>
-                                                   <li><div class="tims"><h2>{{$data['departureFlight']['arrivalTime'] ?? ''}}</h2></div></li>
-                                                @endif
-                                             @endif
-                                          </ul>
-                                          <div class="citys">
-                                             <div class="cit">
-                                                <ul>
-                                                   @if (isset($data) && !empty($data))
-                                                      @if ($isEmirate)
-                                                         <li><p>{{$data['flightDetails']['segments'][0]['flights']['Departure']['AirportName']['value'] ?? ''}}</p></li>
-                                                         <li><p>-</p></li>
-                                                         <li><p>{{$data['flightDetails']['segments'][0]['flights']['flightDetails']['isConnected'] ? '1 Stop' : 'Nonstop' }}</p></li>
-                                                         <li><p>-</p></li>
-                                                         <li><p>{{$data['flightDetails']['segments'][0]['flights']['Arrival']['AirportName']['value'] ?? ''}}</p></li>
-                                                      @elseif ($isFlyJinnah)
-                                                         <li><p>{{$data['departureFlight']['originCode'] ?? ''}}</p></li>
-                                                         <li><p>-</p></li>
-                                                         <li><p>{{ $data['departureFlight']['isConnected'] ? '1 Stop' : 'Nonstop' }}</p></li>
-                                                         <li><p>-</p></li>
-                                                         <li><p>{{$data['departureFlight']['destinationCode'] ?? ''}}</p></li>
-                                                      @endif
-                                                   @endif
-                                                </ul>
-                                             </div>
-                                          </div>
-                                       </div>
-                                    </div>
-                                 </div>
-                                 @if (isset($data) && !empty($data))
-                                    @if ($isEmirate)
-                                       @if(isset($data['flightDetails']['segments'][1]['flights']) && count($data['flightDetails']['segments'][1]['flights']) > 0)
-                                          <div class="sugge-tab sugge-tab-tickes mt-2">
-                                             <div class="flex1">
-                                                <div class="emri w-25">
-                                                   <img src="/assets/images/{{ $data['logo'] ?? '' }}" alt="Flight logo">
-                                                </div>   
-                                                <div class="der-time der-time-setps">
-                                                   <ul>
-                                                      <li><h2 class="timeIn12Hr">{{$data['flightDetails']['segments'][1]['flights']['Departure']['Time']['value'] ?? ''}}</h2></li>
-                                                      <li><div class="stays"><p>{{$data['flightDetails']['segments'][1]['flights']['duration'] ?? ''}}</p></div></li>
-                                                      <li><div class="tims"><h2 class="timeIn12Hr">{{$data['flightDetails']['segments'][1]['flights']['Arrival']['Time']['value'] ?? ''}}</h2></div></li>
-                                                   </ul>
-                                                   <div class="citys">
-                                                      <div class="cit">
-                                                         <ul>
-                                                            <li><p>{{$data['flightDetails']['segments'][1]['flights']['Departure']['AirportName']['value'] ?? ''}}</p></li>
-                                                            <li><p>-</p></li>
-                                                            <li><p>{{$data['flightDetails']['segments'][1]['flights']['flightDetails']['isConnected'] ? '1 Stop' : 'Nonstop' }}</p></li>
-                                                            <li><p>-</p></li>
-                                                            <li><p>{{$data['flightDetails']['segments'][1]['flights']['Arrival']['AirportName']['value'] ?? ''}}</p></li>
-                                                         </ul>
-                                                      </div>
-                                                   </div>
-                                                </div>
-                                             </div>
-                                          </div>
-                                       @endif
-                                    @elseif ($isFlyJinnah)
-                                       @if (!empty($data['returnFlight']) && !empty($data['segments'][1]))
-                                          <div class="sugge-tab sugge-tab-tickes mt-2">
-                                             <div class="flex1">
-                                                <div class="emri w-25">
-                                                   <img src="/assets/images/{{ $data['logo'] ?? '' }}" alt="Fly Jinnah logo">
-                                                </div>   
-                                                <div class="der-time der-time-setps">
-                                                   <ul>
-                                                      <li><h2>{{$data['returnFlight']['departureTime']}}</h2></li>
-                                                      <li><div class="stays"><p>{{$data['returnFlight']['timeDifference']}}</p></div></li>
-                                                      <li><div class="tims"><h2>{{$data['returnFlight']['arrivalTime']}}</h2></div></li>
-                                                   </ul>
-                                                   <div class="citys">
-                                                      <div class="cit">
-                                                         <ul>
-                                                            <li><p>{{$data['returnFlight']['originCode']}}</p></li>
-                                                            <li><p>-</p></li>
-                                                            <li><p>{{ $data['returnFlight']['isConnected'] ? '1 Stop' : 'Nonstop' }}</p></li>
-                                                            <li><p>-</p></li>
-                                                            <li><p>{{$data['returnFlight']['destinationCode']}}</p></li>
-                                                         </ul>
-                                                      </div>
-                                                   </div>
-                                                </div>
-                                             </div>
-                                          </div>
-                                       @endif
-                                    @endif
-                                 @endif
-                              </div> --}}
                               <div class="steps">
                                  <h4>Traveler(s)</h4>
                                  <div class="contactDetails"></div>
@@ -573,21 +468,24 @@
 
          passengers.push(passenger);
       });
-
+      let selectedCity = $('#userCity option:selected');
       let userData = {
+         title: $('input[name="user_title"]:checked').val(),
          fullName: ($('#userFullName').val() || "").trim(),
          email: ($('#userEmail').val() || "").trim(),
          phoneCode: ($('#userPhoneCode').val() || "").trim(),
-         phone: ($('#userPhone').val() || "").trim()
+         phone: ($('#userPhone').val() || "").trim(),
+         city: (selectedCity.text() || "").trim()
       };
 
-      if (!userData.fullName || !userData.email || !userData.phoneCode || !userData.phone) {
+      if (!userData.fullName || !userData.email || !userData.phoneCode || !userData.phone || !userData.city) {
          hasError = true;
          if (!firstErrorField) {
             if (!userData.fullName) firstErrorField = $('#userFullName');
             else if (!userData.email) firstErrorField = $('#userEmail');
             else if (!userData.phoneCode) firstErrorField = $('#userPhoneCode');
             else if (!userData.phone) firstErrorField = $('#userPhone');
+            else if (!userData.city) firstErrorField = $('#userCity');
          }
       }
       if (hasError) {
@@ -681,6 +579,7 @@
             url: "{{ route('verify.client') }}",
             data: {
                email: $('#userEmail').val(),
+               phone: $('#userPhone').val(),
                _token: "{{ csrf_token() }}"
             },
             beforeSend: () => _loader('show'),
@@ -773,6 +672,22 @@
    $(document).ready(function () {
       showOnHoldBooking();
    });
+   const getUserDetails = () => {
+      let selectedCity = $('#userCity option:selected');
+      let cityText = (selectedCity.text() || "").trim();
+      let cityValue = (selectedCity.val() || "").trim();
+      return {
+            title: $('input[name="user_title"]:checked').val(),
+            userFullName: $('#userFullName').val(),
+            userEmail: $('#userEmail').val(),
+            userPhoneCode: $('#userPhoneCode').val(),
+            userPhone: $('#userPhone').val(),
+            acceptOffers: $('#acceptOffers').is(':checked'),
+            cityCode: cityValue,
+            city: cityText,
+            country: selectedCity.data('country') || ''
+         }
+   }
 
    // Skip directly to ticket page (final screen) ////////////////////////ALLLLLLLLLLLLIIIIIIIIIIIIIIIIIIIIII::::::::::::::)))))))))))))
    // showTicketPage();
@@ -984,13 +899,7 @@
          // }
          // showOnHoldBooking();
          function bookingAjax(current_fs, next_fs, firstBtn) {
-            let user = {
-               userFullName: $('#userFullName').val(),
-               userEmail: $('#userEmail').val(),
-               userPhoneCode: $('#userPhoneCode').val(),
-               userPhone: $('#userPhone').val(),
-               acceptOffers: $('#acceptOffers').is(':checked'),
-            }
+            let user = getUserDetails();
             $.ajax({
                type: "POST",
                url: "{{route('bookFlight')}}",
@@ -1866,13 +1775,7 @@
             let orderId = null;
             // showOnHoldBooking();
             function bookingAjax(current_fs, next_fs, firstBtn) {
-               let user = {
-                  userFullName: $('#userFullName').val(),
-                  userEmail: $('#userEmail').val(),
-                  userPhoneCode: $('#userPhoneCode').val(),
-                  userPhone: $('#userPhone').val(),
-                  acceptOffers: $('#acceptOffers').is(':checked'),
-               }
+               let user = getUserDetails();
                $.ajax({
                   type: "POST",
                   url: "{{route('bookFlight')}}",
@@ -2270,13 +2173,7 @@
          };
          
          function bookingAjax(current_fs, next_fs, firstBtn) {
-            let user = {
-               userFullName: $('#userFullName').val(),
-               userEmail: $('#userEmail').val(),
-               userPhoneCode: $('#userPhoneCode').val(),
-               userPhone: $('#userPhone').val(),
-               acceptOffers: $('#acceptOffers').is(':checked'),
-            }
+            let user = getUserDetails();
             // console.log(passengers, user, data)
             // return
             $.ajax({

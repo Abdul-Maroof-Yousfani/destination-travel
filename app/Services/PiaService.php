@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use SimpleXMLElement;
 use GuzzleHttp\Client;
 use App\Services\HelperService;
+use App\Helpers\HelperFunctions;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use GuzzleHttp\Exception\RequestException;
@@ -56,7 +57,6 @@ class PiaService
                     file_put_contents($this->logPathBooking, "{$endpoint} Request:\n{$formattedRequest}\n\n\n", FILE_APPEND);
                 }
             }
-            // if ($this->regenerateLogs) file_put_contents($this->logPath, "{$endpoint} Request:\n" . (string) $xmlBody . "\n\n\n", FILE_APPEND);
 
             $response = $this->helperService->postXml($this->url, $this->getSoapHeaders($endpoint), $xmlBody);
 
@@ -381,9 +381,8 @@ class PiaService
     {
         $orderId = $data['orderId'] ?? '';
         $ownerCode = $data['ownerCode'] ?? 'PK';
-        $amount = $data['amount'] ?? '';
+        $amount = number_format(($data['amount'] ?? 0), 2, '.', '');
         $code = $data['code'] ?? '';
-        $ticketNmbr = $data['ticketNmbr'] ?? 4000012043;
 
         if(!$amount || !$orderId) {
             return ['error' => 'DATA_MISSING', 'message' => 'data is missing for change order please refetch details'];
@@ -412,12 +411,12 @@ class PiaService
                                 <Amount CurCode="{$code}">{$amount}</Amount>
                                 <PaymentMethod>
                                     <AccountableDoc>
-                                        <DocType>MCO</DocType>
-                                        <TicketID>{$ticketNmbr}</TicketID>
+                                        <DocType>{$this->config['doc_type']}</DocType>
+                                        <TicketID>{$this->config['inv_no']}</TicketID>
                                     </AccountableDoc>
                                 </PaymentMethod>
                                 <PaymentRefID>PaymentInfo1</PaymentRefID>
-                                <TypeCode>MCO</TypeCode>
+                                <TypeCode>{$this->config['doc_type']}</TypeCode>
                             </PaymentProcessingDetails>
                         </PaymentFunctions>
                     </Request>
@@ -429,6 +428,7 @@ class PiaService
         // dd($xmlRequest);
 
         $response = $this->sendRequest('doOrderChange', $xmlRequest, true);
+        // dd($response);
 
         if (!$response || isset($response['error'])) {
             \Log::error('OrderChange request failed', ['response' => $response]);
@@ -494,6 +494,49 @@ class PiaService
             return $response;
         }
         return $response;
+    }
+    public function doTicketPreview($data) // TicketPreview
+    {
+        // $orderId = '800Q5P';
+        $orderId = $data['orderId'] ?? '';
+        $ownerCode = $data['owner'] ?? 'PK';
+        $priceCode = $data['price_code'] ?? 'PKR';
+
+        if(!$orderId) return ['error' => 'DATA_MISSING', 'message' => 'data is missing for change order please refetch details'];
+        $xmlRequest = <<<XML
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:iata="http://www.iata.org/IATA/2015/00/2020.1/IATA_OrderChangeRQ">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <IATA_OrderChangeRQ xmlns="http://www.iata.org/IATA/2015/00/2020.1/IATA_OrderChangeRQ" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="xmldsig-core-schema.xsd">
+                    {$this->getPartyBlock()}
+                    <PayloadAttributes>
+                        <PrimaryLangID>EN</PrimaryLangID>
+                    </PayloadAttributes>
+                    <Request>
+                        <Order>
+                            <OrderID>{$orderId}</OrderID>
+                            <OwnerCode>{$ownerCode}</OwnerCode>
+                        </Order>
+                        <OrderChangeParameters>
+                            <CurParameter>
+                                <CurCode>{$priceCode}</CurCode>
+                            </CurParameter>
+                        </OrderChangeParameters>
+                    </Request>
+                </IATA_OrderChangeRQ>
+            </soapenv:Body>
+        </soapenv:Envelope>
+        XML;
+        // dd($xmlRequest);
+
+        $response = $this->sendRequest('doTicketPreview', $xmlRequest, true);
+        // dd($response);
+
+        if (!$response || isset($response['error'])) {
+            \Log::error('OrderChange request failed', ['response' => $response]);
+            return $response;
+        }
+        return $this->parseOrderViewResponse($response);
     }
 
 
@@ -601,9 +644,9 @@ class PiaService
                     $paxJourneyRefIDs[] = $journeyPriceClass['PaxJourneyRefID'];
                 }
                 $flightKey = $paxJourneyRefIDs;
-
+                $totalAmount = (float)($offer['TotalPrice']['TotalAmount'] ?? 0);
                 // dd($offer, $offerItemDetails, $offer['JourneyOverview'], $offer['JourneyOverview']);
-                $bundles[] = [
+                $bundles[] = $totalAmount > 0 ? [
                     'offerID' => (string)$offer['OfferID'],
                     'flightKey' => $flightKey,
                     'ownerCode' => (string)$offer['OwnerCode'],
@@ -630,7 +673,7 @@ class PiaService
                         'id' => $offer['JourneyOverview']['PriceClassRefID'] ?? '--',
                         'priceClass' => (array)($offer['JourneyOverview']['JourneyPriceClass'] ?? []),
                     ],
-                ];
+                ] : null;
             }
         }
         // Normalize PaxSegment to an array of segments
@@ -776,12 +819,10 @@ class PiaService
         $result['bundles'] = $bundles;
         $result['transactionId'] = (string)($response['PayloadAttributes']['EchoTokenText'] ?? null);
 
-        return $result;
+        return count($bundles) > 1 ? $result : null;
     }
     public function parseOrderViewResponse($response)
     {
-        // $response = json_decode($response, true);
-        // dd($response['Response']['DataLists']);
         $result = [
             'transaction_id' => null,
             'paymentLimit' => null,
@@ -794,9 +835,6 @@ class PiaService
             'tickets' => [],
             'totalPrice' => null,
         ];
-        // if ($this->regenerateLogs)
-        //     file_put_contents($this->logPath, "CUSTOM:\n" . json_encode($response, JSON_PRETTY_PRINT) . "\n\n\n\n\n\n", FILE_APPEND);
-
         // dd($response);
         $responseData = $response['Response'];
         $dataLists = $responseData['DataLists'];
@@ -813,7 +851,7 @@ class PiaService
                 'creationDate' => $order['CreationDateTime'],
                 'ownerCode' => $order['OwnerCode'],
                 'ownerType' => $order['OwnerTypeCode'],
-                'statusCode' => $order['StatusCode'],
+                'statusCode' => $order['StatusCode'] ?? null,
             ];
             $result['totalPrice'] = isset($order['TotalPrice']['TotalAmount'])
                 ? (string)$order['TotalPrice']['TotalAmount']
@@ -984,15 +1022,14 @@ class PiaService
 
         // Parse TicketList (if available)
         if (isset($responseData['TicketDocInfo'])) {
-            $tickets = isset($responseData['TicketDocInfo'][0])
-                ? $responseData['TicketDocInfo']
-                : [$responseData['TicketDocInfo']];
-
+            $tickets = HelperFunctions::normalizeToArray($responseData['TicketDocInfo'] ?? []);
             foreach ($tickets as $ticket) {
                 $result['tickets'][] = [
+                    'statusCode' => $ticket['Ticket']['Coupon']['CouponStatusCode'] ?? '',
                     'pax_id' => $ticket['PaxRefID'] ?? '',
                     'ticketNumber' => $ticket['Ticket']['TicketNumber'] ?? '',
                     'bookingId' => $ticket['BookingRef']['BookingID'] ?? '',
+                    'paymentInfoRefID' => $ticket['PaymentInfoRefID'] ?? '',
                 ];
             }
         }
@@ -1039,29 +1076,70 @@ class PiaService
                 // Map ticket to passenger
                 foreach ($result['tickets'] as $ticket) {
                     if ($ticket['pax_id'] === $paxData['pax_id']) {
-                        $paxData['ticket'] = [
-                            'ticketNumber' => $ticket['ticketNumber'],
-                            'bookingId' => $ticket['bookingId'],
-                        ];
+                        $paxData['ticket'] = $ticket;
                     }
                 }
 
                 // Map fare details from OrderItem
                 if (isset($responseData['Order']['OrderItem'])) {
-                    $orderItems = is_array($responseData['Order']['OrderItem'])
-                        ? $responseData['Order']['OrderItem']
-                        : [$responseData['Order']['OrderItem']];
-
+                    $orderItems = HelperFunctions::normalizeToArray($responseData['Order']['OrderItem'] ?? []);
                     foreach ($orderItems as $item) {
-                        if (isset($item['FareDetail']['PaxRefID']) && (string)$item['FareDetail']['PaxRefID'] === $paxData['pax_id']) {
-                            $fareDetail = $item['FareDetail'];
-                            $fareComponents = is_array($fareDetail['FareComponent'])
-                                ? $fareDetail['FareComponent']
-                                : [$fareDetail['FareComponent']];
-
+                        $fareDetail = $item['FareDetail'] ?? $item ?? null;
+                        $farePaxId = $fareDetail['PaxRefID'] ?? $item['PaxRefID'] ?? null;
+                        if ((string)$farePaxId === (string)$paxData['pax_id']) {
+                            $fareComponents = [];
+                            if (isset($fareDetail['FareComponent'])) {
+                                $fareComponents = HelperFunctions::normalizeToArray($fareDetail['FareComponent'] ?? []);
+                            }
+                            // dd($farePaxId, $paxData['pax_id'], $item, $fareComponents, $fareDetail);
+                            $price = $fareDetail['FarePriceType']['Price'] ?? [];
+                            // $fareComponents = is_array($fareDetail['FareComponent'])
+                            //     ? $fareDetail['FareComponent']
+                            //     : [$fareDetail['FareComponent']];
                             $paxData['fare_details'] = [
                                 'pricing_code' => (string)($fareDetail['FareCalculationInfo']['PricingCodeText'] ?? ''),
-                                'fare_components' => array_map(function ($component) {
+                                // 'fare_components' => array_map(function ($component) {
+                                //     return [
+                                //         'cabin_type' => [
+                                //             'code' => (string)($component['CabinType']['CabinTypeCode'] ?? ''),
+                                //             'name' => (string)($component['CabinType']['CabinTypeName'] ?? ''),
+                                //         ],
+                                //         'fare_basis_city_pair' => (string)($component['FareBasisCityPairText'] ?? ''),
+                                //         'fare_basis_code' => (string)($component['FareBasisCode'] ?? ''),
+                                //         'fare_type_code' => (string)($component['FareTypeCode'] ?? ''),
+                                //         'pax_segment_ref_id' => (string)($component['PaxSegmentRefID'] ?? ''),
+                                //         'rbd_code' => (string)($component['RBD']['RBD_Code'] ?? ''),
+                                //     ];
+                                // }, $fareComponents),
+                                'fare_price_type' => [
+                                    'code' => (string)($fareDetail['FarePriceType']['FarePriceTypeCode'] ?? ''),
+                                    'price' => [
+                                        'base_amount' => (float)($price['BaseAmount'] ?? 0),
+                                        'equiv_amount' => (float)($price['EquivAmount'] ?? 0),
+                                        'currency' => (string)($price['TotalAmount']['CurCode'] ?? 'PKR'),
+                                        'discount' => (float)($price['Discount']['DiscountAmount'] ?? 0),
+                                        'fee' => (float)($price['Fee']['Amount'] ?? 0),
+                                        'surcharge' => (float)($price['Surcharge']['TotalAmount'] ?? 0),
+                                        'taxes' => array_map(function ($tax) {
+                                            return [
+                                                'amount' => (float)($tax['Amount'] ?? 0),
+                                                'tax_code' => (string)($tax['TaxCode'] ?? ''),
+                                                'refund_ind' => (string)($tax['RefundInd'] ?? 'false'),
+                                            ];
+                                        }, $price['TaxSummary']['Tax'] ?? []),
+                                        'total_tax_amount' => (float)($price['TaxSummary']['TotalTaxAmount'] ?? 0),
+                                        'total_amount' => (float)($price['TotalAmount'] ?? 0),
+                                    ],
+                                ],
+
+                                'order_item_id' => (string)($item['OrderItemID'] ?? ''),
+                                'owner_code' => (string)($item['OwnerCode'] ?? ''),
+                                'payment_time_limit' => (string)($item['PaymentTimeLimitDateTime'] ?? ''),
+                            ];
+                            if (isset($fareDetail['FareComponent'])) {
+                                $fareComponents = HelperFunctions::normalizeToArray($fareDetail['FareComponent'] ?? []);
+
+                                $paxData['fare_details']['fare_components'] = array_map(function ($component) {
                                     return [
                                         'cabin_type' => [
                                             'code' => (string)($component['CabinType']['CabinTypeCode'] ?? ''),
@@ -1073,31 +1151,8 @@ class PiaService
                                         'pax_segment_ref_id' => (string)($component['PaxSegmentRefID'] ?? ''),
                                         'rbd_code' => (string)($component['RBD']['RBD_Code'] ?? ''),
                                     ];
-                                }, $fareComponents),
-                                'fare_price_type' => [
-                                    'code' => (string)($fareDetail['FarePriceType']['FarePriceTypeCode'] ?? ''),
-                                    'price' => [
-                                        'base_amount' => (float)($fareDetail['FarePriceType']['Price']['BaseAmount'] ?? 0),
-                                        'equiv_amount' => (float)($fareDetail['FarePriceType']['Price']['EquivAmount'] ?? 0),
-                                        'total_amount' => (float)($fareDetail['FarePriceType']['Price']['TotalAmount'] ?? 0),
-                                        'currency' => (string)($fareDetail['FarePriceType']['Price']['TotalAmount']['CurCode'] ?? 'PKR'),
-                                        'discount' => (float)($fareDetail['FarePriceType']['Price']['Discount']['DiscountAmount'] ?? 0),
-                                        'fee' => (float)($fareDetail['FarePriceType']['Price']['Fee']['Amount'] ?? 0),
-                                        'surcharge' => (float)($fareDetail['FarePriceType']['Price']['Surcharge']['TotalAmount'] ?? 0),
-                                        'taxes' => array_map(function ($tax) {
-                                            return [
-                                                'amount' => (float)($tax['Amount'] ?? 0),
-                                                'tax_code' => (string)($tax['TaxCode'] ?? ''),
-                                                'refund_ind' => (string)($tax['RefundInd'] ?? 'false'),
-                                            ];
-                                        }, $fareDetail['FarePriceType']['Price']['TaxSummary']['Tax'] ?? []),
-                                        'total_tax_amount' => (float)($fareDetail['FarePriceType']['Price']['TaxSummary']['TotalTaxAmount'] ?? 0),
-                                    ],
-                                ],
-                                'order_item_id' => (string)($item['OrderItemID'] ?? ''),
-                                'owner_code' => (string)($item['OwnerCode'] ?? ''),
-                                'payment_time_limit' => (string)($item['PaymentTimeLimitDateTime'] ?? ''),
-                            ];
+                                }, $fareComponents);
+                            }
                         }
                     }
                 }
@@ -1366,6 +1421,7 @@ class PiaService
             ? (string)$datedOperatingLeg['AircraftCode']
             : null;
     }
+
     // private function getBaggageDetailsByServiceDefOC($serviceDefId, $response)
     // {
     //     dd($serviceDefId, $response);

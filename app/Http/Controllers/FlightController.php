@@ -354,32 +354,6 @@ class FlightController extends Controller
             'data' => $baggageXml
         ], 200);
     }
-    // public function getFinalPrice(Request $request) // USELESS
-    // {
-    //     // dd($request->all());
-    //     $data = [
-    //         'data' => $request->data ?? null,
-    //         'meals' => $request->meals ?? null,
-    //         'baggages' => $request->baggages ?? null,
-    //         'seats' => $request->seats ?? null
-    //     ];
-    //     $finalPrice = $this->flyJinnahService->finalPrice($data);
-    //     // dd($finalPrice);
-    //     $errorMessage = $finalPrice['Body']['OTA_AirPriceRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($finalPrice['error'] ?? null);
-    //     if ($errorMessage) {
-    //         $filteredMessage = strtok($errorMessage, '[');
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => $filteredMessage
-    //         ], 400);
-    //     }
-    //     $totalFarePrice = $finalPrice['Body']['OTA_AirPriceRS']['PricedItineraries']['PricedItinerary']['AirItineraryPricingInfo']['ItinTotalFare'] ?? '';
-    //     // dd($totalFarePrice);
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'data' => $totalFarePrice
-    //     ], 200);
-    // }
     public function payment(Request $request)
     {
         $now = now()->format('d M Y h:i A');
@@ -538,7 +512,7 @@ class FlightController extends Controller
                 // You can decide to not update booking at all in this case
                 return response()->json([
                     'status'   => 'error',
-                    'message'  => 'Fetched latest order details. Could not find a valid total price in the response.',
+                    'message'  => $orderRetrieve['message'] ?? 'Fetched latest order details. Could not find a valid total price in the response.',
                     'note'     => 'Price comparison skipped due to missing/invalid amounts in GetReservationbyPNR response.',
                     'data'     => $orderRetrieve,
                 ], 400);
@@ -568,6 +542,42 @@ class FlightController extends Controller
                     'jsessionId'    => $orderRetrieve['jsessionId'],
                 ],
             ]);
+        } else if($airline === 'pia') {
+            $orderRetrieve = $this->piaService->doTicketPreview(['orderId' => $booking->order_id, 'owner' => $booking->order_owner, 'price_code' => $booking->price_code]);
+            // dd($orderRetrieve);
+            if (!empty($orderRetrieve['error'])) {
+                return response()->json(['status'  => 'error', 'message' => $orderRetrieve['message'], 'details' => $orderRetrieve['error'] ?? null], 400);
+            }
+            $skipComparison = $orderRetrieve['totalPrice'] <= 0;
+
+            if ($skipComparison) {
+                return response()->json([
+                    'status'   => 'error',
+                    'message'  => 'Fetched latest order details. Could not find a valid total price in the response.',
+                    'note'     => 'Price comparison skipped due to missing/invalid amounts in GetReservationbyPNR response.',
+                    'data'     => $orderRetrieve,
+                ], 400);
+            }
+            $comparison = $this->generatePriceComparisonFJ(
+                (float) $booking->price,
+                $booking->price_code,
+                (float) $orderRetrieve['totalPrice'],
+                'PKR'
+            );
+            $updatedBooking = app(FlightBookingService::class)->updateBookingFieldsPia($orderRetrieve, $booking->id);
+            return response()->json([
+                'status'      => 'success',
+                'message'     => 'Fetched latest order details.',
+                'comparison'  => $comparison,
+                'booking_old' => [
+                    'price'      => (float) $booking->price,
+                    'price_code' => $booking->price_code,
+                ],
+                'booking_new' => [
+                    'price'      => (float) $updatedBooking->price,
+                    'price_code' => $updatedBooking->price_code,
+                ]
+            ]);
         }
         return response()->json(['status' => 'error', 'message' => 'Airline Missing!.'], 401);
     }
@@ -584,7 +594,7 @@ class FlightController extends Controller
         if ($booking->client_id !== (int)$validatedData['clientId']) return response()->json(['status' => 'error', 'message' => 'Client does not match this booking.'], 403);
         // dd($booking);
         // ✅ Check if payment exists
-        if (!$booking->payment) return response()->json(['status' => 'error', 'message' => 'No payment found for this booking.'], 400);
+        // if (!$booking->payment) return response()->json(['status' => 'error', 'message' => 'No payment found for this booking.'], 400);
 
         $airline = strtolower($booking->airline);
         $now = now()->format('d M Y h:i A');
@@ -684,37 +694,38 @@ class FlightController extends Controller
                 'amount' => $booking->price,
                 'code' => $booking->price_code,
                 'orderId' => $booking->order_id,
+                'ownerCode' => $booking->order_owner,
             ]);
             // dd($orderChange);
-            // $alreadyTicketedMsg = str_contains(strtolower($orderChange['message'] ?? ''), 'already paid');
-            // if ($alreadyTicketedMsg) return response()->json(['status' => 'error', 'message' => 'This flight was already ticketed.'], 409);
-            // $errorMessage = $orderChange['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($orderChange['error'] ?? null);
-            // if ($errorMessage) {
-            //     $details = $orderChange['Body'] ?? [];
-            //     $alreadyTicketed = collect($errorMessage)->contains(function ($errorMessage) {
-            //         return str_contains(strtolower($errorMessage), 'already paid');
-            //     });
-            //     if (!$alreadyTicketed) {
-            //         BookingLog::create([
-            //             'booking_id' => $booking->id,
-            //             'notes' => "Error found on approve tickets on {$now}",
-            //         ]);
-            //         $booking->update(['status' => Booking::STATUS_ERROR]);
-            //         ErrorLog::create([
-            //             'client_id' => $booking->client_id,
-            //             'booking_id' => $booking->id,
-            //             'error_type' => 'ticketing',
-            //             'error_message' => json_encode($errorMessage),
-            //             'details' => json_encode($details),
-            //         ]);
-            //     };
-            //     return response()->json([
-            //         'status' => 'error',
-            //         'message' => $alreadyTicketed ? 'This flight was already ticketed.' : 'Flight booking failed.',
-            //         'code' => $alreadyTicketed ? 409 : 400,
-            //         'details' => $errorMessage,
-            //     ], $alreadyTicketed ? 409 : 400);
-            // }
+            $alreadyTicketedMsg = str_contains(strtolower($orderChange['message'] ?? ''), 'already');
+            if ($alreadyTicketedMsg) return response()->json(['status' => 'error', 'message' => 'This flight was already ticketed.'], 409);
+            $errorMessage = $orderChange['error'] ?? null;
+            if ($errorMessage) {
+                $details = $orderChange['message'] ?? [];
+                $alreadyTicketed = collect($errorMessage)->contains(function ($errorMessage) {
+                    return str_contains(strtolower($errorMessage), 'already');
+                });
+                if (!$alreadyTicketed) {
+                    BookingLog::create([
+                        'booking_id' => $booking->id,
+                        'notes' => "Error found on approve tickets on {$now}",
+                    ]);
+                    $booking->update(['status' => Booking::STATUS_ERROR]);
+                    ErrorLog::create([
+                        'client_id' => $booking->client_id,
+                        'booking_id' => $booking->id,
+                        'error_type' => 'ticketing',
+                        'error_message' => json_encode($errorMessage),
+                        'details' => json_encode($details),
+                    ]);
+                };
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $alreadyTicketed ? 'This flight was already ticketed.' : 'Flight booking failed.',
+                    'code' => $alreadyTicketed ? 409 : 400,
+                    'details' => $errorMessage,
+                ], $alreadyTicketed ? 409 : 400);
+            }
             $updatedBooking = app(FlightBookingService::class)->issueTicketsPia($orderChange, $booking->id);
             // dd($updatedBooking);
             BookingLog::create(['booking_id' => $booking->id, 'notes' => "Ticket issued on {$now}"]);
@@ -835,19 +846,21 @@ class FlightController extends Controller
     public function verifyClient(Request $request)
     {
         $request->validate([
-            'email' => 'required|email'
+            'email' => 'required|email',
+            'phone' => 'required|numeric',
         ]);
         $user = auth()->guard('client')->user();
-        if ($user) {
-            if ($user->email === $request->email) {
-                return response()->json(['message' => 'Logged in user', 'status' => 'success']);
-            }
+        if ($user && $user->email === $request->email) {
+            return response()->json([
+                'message' => 'Logged in user',
+                'status'  => 'success'
+            ]);
         }
-        $client = Client::where('email', $request->email)->first();
+        $client = Client::where('email', $request->email)->orWhere('phone', $request->phone)->first();
         if ($client) {
-            return response()->json(['message' => 'Email is already exist please login', 'status' => 'warning'], 400);
+            return response()->json(['message' => 'Email or phone already exists, please login', 'status'  => 'warning'], 400);
         } else {
-            return response()->json(['message' => 'Email is new', 'status' => 'success']);
+            return response()->json(['message' => 'Email and phone are new', 'status' => 'success']);
         }
     }
 

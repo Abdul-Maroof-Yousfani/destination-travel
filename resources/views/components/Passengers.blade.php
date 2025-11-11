@@ -6,6 +6,25 @@
 <div class="contact">
    <h2>Contact Details</h2>
    <div class="row">
+      <div class="col-lg-6">
+         <div class="form-group">
+            <label for="gendertitle">Select Title</label>
+            <div class="inline-flex">
+               <label for="title_mr_user" class="borlook d-flex p-3">
+                  <input class="hidden-radio" type="radio" id="title_mr_user" value="Mr" name="user_title" checked/>
+                  <span class="ml-2">Mr</span>
+               </label>
+               <label for="title_mrs_user" class="borlook d-flex p-3">
+                  <input class="hidden-radio" type="radio" id="title_mrs_user" value="Mrs" name="user_title" />
+                  <span class="ml-2">Mrs</span>
+               </label>
+               <label for="title_ms_user" class="borlook d-flex p-3">
+                  <input class="hidden-radio" type="radio" id="title_ms_user" value="Ms" name="user_title" />
+                  <span class="ml-2">Ms</span>
+               </label>
+            </div>
+         </div>
+      </div>
       <div class="col-md-12 col-lg-6">
          <div class="form-group">
             <label for="userFullName">Full name</label>
@@ -22,6 +41,116 @@
       </div>
       <div class="col-md-12 col-lg-6">
          <div class="form-group">
+            <label for="userCity">City</label>
+            <select class="form-control" aria-describedby="helpId" id="userCity" name="userCity">
+               <optgroup label="Pakistan">
+                  <option value="21" data-country="Pakistan">Karachi</option>
+                  <option value="22" data-country="Pakistan">Hyderabad</option>
+                  <option value="24" data-country="Pakistan">Sukkur</option>
+                  <option value="25" data-country="Pakistan">Larkana</option>
+                  <option value="41" data-country="Pakistan">Multan</option>
+                  <option value="42" data-country="Pakistan">Lahore</option>
+                  <option value="43" data-country="Pakistan">Bahawalpur</option>
+                  <option value="44" data-country="Pakistan">Gujranwala</option>
+                  <option value="45" data-country="Pakistan">Sialkot</option>
+                  <option value="46" data-country="Pakistan">Faisalabad</option>
+                  <option value="51" data-country="Pakistan">Islamabad/Rawalpindi</option>
+                  <option value="52" data-country="Pakistan">Gujrat</option>
+                  <option value="53" data-country="Pakistan">Jhelum</option>
+                  <option value="54" data-country="Pakistan">Sargodha</option>
+                  <option value="55" data-country="Pakistan">Mianwali</option>
+                  <option value="61" data-country="Pakistan">Peshawar</option>
+                  <option value="62" data-country="Pakistan">Mardan</option>
+                  <option value="63" data-country="Pakistan">Swat</option>
+                  <option value="64" data-country="Pakistan">Abbottabad</option>
+                  <option value="65" data-country="Pakistan">Bannu</option>
+                  <option value="71" data-country="Pakistan">Quetta</option>
+                  <option value="72" data-country="Pakistan">Khuzdar</option>
+                  <option value="74" data-country="Pakistan">Gwadar</option>
+                  <option value="75" data-country="Pakistan">Sibi</option>
+                  <option value="81" data-country="Pakistan">Dera Ghazi Khan</option>
+                  <option value="82" data-country="Pakistan">Rahim Yar Khan</option>
+                  <option value="83" data-country="Pakistan">DG Khan</option>
+                  <option value="91" data-country="Pakistan">Gilgit</option>
+                  <option value="92" data-country="Pakistan">Skardu</option>
+                  <option value="93" data-country="Pakistan">Chitral</option>
+                  <option value="94" data-country="Pakistan">Hunza</option>
+                  <option value="95" data-country="Pakistan">Muzaffarabad</option>
+                  <option value="96" data-country="Pakistan">Mirpur</option>
+               </optgroup>
+
+               <optgroup label="India">
+                  <option value="101" data-country="India">New Delhi</option>
+                  <option value="102" data-country="India">Mumbai</option>
+                  <option value="103" data-country="India">Kolkata</option>
+                  <option value="104" data-country="India">Chennai</option>
+                  <option value="105" data-country="India">Pune</option>
+                  <option value="106" data-country="India">Hyderabad</option>
+                  <option value="107" data-country="India">Ahmedabad</option>
+                  <option value="108" data-country="India">Bengaluru</option>
+               </optgroup>
+
+               <optgroup label="China">
+                  <option value="201" data-country="China">Shanghai</option>
+                  <option value="202" data-country="China">Tianjin</option>
+                  <option value="203" data-country="China">Chongqing</option>
+                  <option value="204" data-country="China">Shenyang</option>
+                  <option value="205" data-country="China">Nanjing</option>
+                  <option value="206" data-country="China">Wuhan</option>
+                  <option value="207" data-country="China">Chengdu</option>
+                  <option value="208" data-country="China">Xi’an</option>
+                  <option value="209" data-country="China">Guangzhou</option>
+               </optgroup>
+
+               <optgroup label="Egypt">
+                  <option value="301" data-country="Egypt">Cairo/Giza/Qalyubia</option>
+                  <option value="302" data-country="Egypt">Alexandria</option>
+                  <option value="303" data-country="Egypt">Arish</option>
+                  <option value="304" data-country="Egypt">Asyut</option>
+               </optgroup>
+
+               <optgroup label="United States">
+                  <option value="401" data-country="United States">Washington DC</option>
+                  <option value="402" data-country="United States">New York City (Manhattan)</option>
+                  <option value="403" data-country="United States">Los Angeles</option>
+                  <option value="404" data-country="United States">Miami (Florida)</option>
+               </optgroup>
+
+               <optgroup label="Europe">
+                  <option value="501" data-country="Greece">Athens</option>
+                  <option value="502" data-country="Netherlands">Amsterdam</option>
+                  <option value="503" data-country="Belgium">Brussels</option>
+                  <option value="504" data-country="France">Paris</option>
+                  <option value="505" data-country="Spain">Madrid</option>
+                  <option value="506" data-country="Italy">Rome</option>
+                  <option value="507" data-country="Germany">Berlin</option>
+                  <option value="508" data-country="United Kingdom">London</option>
+               </optgroup>
+
+               <optgroup label="Australia & New Zealand">
+                  <option value="601" data-country="Australia">Canberra/Sydney</option>
+                  <option value="602" data-country="Australia">Brisbane/Gold Coast</option>
+                  <option value="603" data-country="New Zealand">Auckland</option>
+               </optgroup>
+
+               <optgroup label="Others">
+                  <option value="701" data-country="Brazil">São Paulo</option>
+                  <option value="702" data-country="Canada">Toronto</option>
+                  <option value="703" data-country="Canada">Vancouver</option>
+                  <option value="704" data-country="South Africa">Cape Town</option>
+               </optgroup>
+            </select>
+         </div>
+      </div>
+      {{-- <div class="col-md-12 col-lg-6">
+         <div class="form-group">
+            <label for="userCity">City</label>
+            <input type="text" name="userCity" id="userCity" class="form-control" required placeholder="Enter your City" aria-describedby="helpId" value="{{ $user->city ?? '' }}">
+            <small id="helpId" class="text-muted">e.g. Karachi</small>
+         </div>
+      </div> --}}
+      <div class="col-md-12 col-lg-6">
+         <div class="form-group">
             <label for="userPhoneCode">Phone Code</label>
             <input type="text" max="4" name="userPhoneCode" id="userPhoneCode" class="form-control" required placeholder="Enter your phone code" maxlength="5" aria-describedby="helpId" value="{{ $user->phone_code ?? '' }}">
             <small id="helpId" class="text-muted">e.g. 92</small>
@@ -34,7 +163,7 @@
             <small id="helpId" class="text-muted">e.g. 3320234557</small>
          </div>
       </div>
-   </div>           
+   </div>
    <div class="form-check cont-check">
       <input class="form-check-input" type="checkbox" id="acceptOffers" {{ isset($user) && $user->accept_notification ? 'checked' : '' }} >
       <label class="form-check-label" for="acceptOffers">
@@ -101,172 +230,168 @@
                               </div>
                            </div>
                         </div>
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                         <label for="{{ $i }}_name">Given Name</label>
-                         <div class="infos">
-                            <input type="text" class="form-control form-control-info" aria-describedby="helpId" name="{{ $key }}_name[]" id="{{ $i }}_name" required>
-                            <div class="tooltip-container">
-                               <i class="fa-solid fa-circle-info"></i>
-                               <div class="tooltip-content">
-                                  <h2>Given Name</h2>
-                                  <p>Enter as highlighted</p>
-                                  @if ($flightData['isLocal'])
-                                    <img src="{{ asset('assets/images/passenger/cnic-name.png') }}" alt="Tooltip Image">
-                                  @else
-                                    <img src="{{ asset('assets/images/passenger/passport-vctor2.jpg') }}" alt="Tooltip Image">
-                                  @endif
-                               </div>
-                            </div>
-                         </div>
-                         <small id="helpId" class="text-muted">Enter given name as per passport to avoid boarding issues.</small>
-                         </div>
-                      </div>
-                   </div>
-                   <div class="row">
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                         <label for="{{ $i }}_surname">Surname</label>
-                            <div class="infos">
-                               <input type="text" name="{{ $key }}_surname[]" id="{{ $i }}_surname" class="form-control form-control-info" aria-describedby="helpId" required>
-                               {{-- <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i> --}}
+                        <div class="col-md-12 col-lg-6">
+                           <div class="form-group">
+                           <label for="{{ $i }}_name">Given Name</label>
+                           <div class="infos">
+                              <input type="text" class="form-control form-control-info" aria-describedby="helpId" name="{{ $key }}_name[]" id="{{ $i }}_name" required>
                               <div class="tooltip-container">
-                                 <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i>
+                                 <i class="fa-solid fa-circle-info"></i>
                                  <div class="tooltip-content">
-                                    <h2>Surname</h2>
+                                    <h2>Given Name</h2>
                                     <p>Enter as highlighted</p>
-                                  @if ($flightData['isLocal'])
-                                    <img src="{{ asset('assets/images/passenger/cnic-name.png') }}" alt="Tooltip Image">
-                                  @else
-                                    <img src="{{ asset('assets/images/passenger/passport-vctor.jpg') }}" alt="Tooltip Image">
-                                  @endif
+                                    @if ($flightData['isLocal'])
+                                       <img src="{{ asset('assets/images/passenger/cnic-name.png') }}" alt="Tooltip Image">
+                                    @else
+                                       <img src="{{ asset('assets/images/passenger/passport-vctor2.jpg') }}" alt="Tooltip Image">
+                                    @endif
                                  </div>
                               </div>
-                            </div>
-                            <small id="helpId" class="text-muted">Enter surname as per passport to avoid boarding issues.</small>
-                         </div>
-                      </div>
-                      <div class="col-md-12 col-lg-6">
-                         <div class="form-group">
-                            <label for="{{ $i }}_dob">Date of Birth</label>
-                            <input class="form-control" id="{{ $i }}_dob" type="date" name="{{ $key }}_dob[]" required>
-                         </div>
-                      </div>
-                   </div>
-                   <div class="row">
-                      <div class="col-md-12 col-lg-12">
-                         <div class="form-group">
-                            <label for="{{ $i }}_nationality">Nationality</label>
-                            <select class="form-control" aria-describedby="helpId" id="{{ $i }}_nationality" name="{{ $key }}_nationality[]">
-                               {{-- data-code = country code --}}
-                               <option disabled>Select one</option>
-                               <option selected value="PK" data-code="+92">Pakistani</option>
-                               <option value="AF" data-code="+93">Afghan</option>
-                               <option value="AL" data-code="+355">Albanian</option>
-                               <option value="DZ" data-code="+213">Algerian</option>
-                               <option value="US" data-code="+1">American</option>
-                               <option value="AD" data-code="+376">Andorran</option>
-                               <option value="AO" data-code="+244">Angolan</option>
-                               <option value="AG" data-code="+1-268">Antiguans</option>
-                               <option value="AR" data-code="+54">Argentinean</option>
-                               <option value="AM" data-code="+374">Armenian</option>
-                               <option value="AU" data-code="+61">Australian</option>
-                               <option value="AT" data-code="+43">Austrian</option>
-                               <option value="AZ" data-code="+994">Azerbaijani</option>
-                               <option value="BS" data-code="+1-242">Bahamian</option>
-                               <option value="BH" data-code="+973">Bahraini</option>
-                               <option value="BD" data-code="+880">Bangladeshi</option>
-                               <option value="BB" data-code="+1-246">Barbadian</option>
-                               <option value="BW" data-code="+267">Batswana</option>
-                               <option value="BY" data-code="+375">Belarusian</option>
-                               <option value="BE" data-code="+32">Belgian</option>
-                               <option value="BZ" data-code="+501">Belizean</option>
-                               <option value="BJ" data-code="+229">Beninese</option>
-                               <option value="BT" data-code="+975">Bhutanese</option>
-                               <option value="BO" data-code="+591">Bolivian</option>
-                               <option value="BA" data-code="+387">Bosnian</option>
-                               <option value="BR" data-code="+55">Brazilian</option>
-                               <option value="GB" data-code="+44">British</option>
-                               <option value="BN" data-code="+673">Bruneian</option>
-                               <option value="BG" data-code="+359">Bulgarian</option>
-                               <option value="BF" data-code="+226">Burkinabe</option>
-                               <option value="MM" data-code="+95">Burmese</option>
-                               <option value="BI" data-code="+257">Burundian</option>
-                               <option value="KH" data-code="+855">Cambodian</option>
-                               <option value="CM" data-code="+237">Cameroonian</option>
-                               <option value="CA" data-code="+1">Canadian</option>
-                               <option value="CV" data-code="+238">Cape Verdean</option>
-                               <option value="CF" data-code="+236">Central African</option>
-                               <option value="TD" data-code="+235">Chadian</option>
-                               <option value="CL" data-code="+56">Chilean</option>
-                               <option value="CN" data-code="+86">Chinese</option>
-                               <option value="CO" data-code="+57">Colombian</option>
-                               <option value="KM" data-code="+269">Comoran</option>
-                               <option value="CG" data-code="+242">Congolese</option>
-                               <option value="CR" data-code="+506">Costa Rican</option>
-                               <option value="HR" data-code="+385">Croatian</option>
-                               <option value="CU" data-code="+53">Cuban</option>
-                               <option value="CY" data-code="+357">Cypriot</option>
-                               <option value="CZ" data-code="+420">Czech</option>
-                               <option value="DK" data-code="+45">Danish</option>
-                               <option value="DJ" data-code="+253">Djiboutian</option>
-                               <option value="DO" data-code="+1-809">Dominican</option>
-                               <option value="NL" data-code="+31">Dutch</option>
-                               <option value="EC" data-code="+593">Ecuadorean</option>
-                               <option value="EG" data-code="+20">Egyptian</option>
-                               <option value="AE" data-code="+971">Emirati</option>
-                               <option value="ER" data-code="+291">Eritrean</option>
-                               <option value="EE" data-code="+372">Estonian</option>
-                               <option value="ET" data-code="+251">Ethiopian</option>
-                               <option value="FJ" data-code="+679">Fijian</option>
-                               <option value="FI" data-code="+358">Finnish</option>
-                               <option value="FR" data-code="+33">French</option>
-                               <option value="DE" data-code="+49">German</option>
-                               <option value="GH" data-code="+233">Ghanaian</option>
-                               <option value="GR" data-code="+30">Greek</option>
-                               <option value="GT" data-code="+502">Guatemalan</option>
-                               <option value="HT" data-code="+509">Haitian</option>
-                               <option value="HN" data-code="+504">Honduran</option>
-                               <option value="HU" data-code="+36">Hungarian</option>
-                               <option value="IS" data-code="+354">Icelander</option>
-                               <option value="IN" data-code="+91">Indian</option>
-                               <option value="ID" data-code="+62">Indonesian</option>
-                               <option value="IR" data-code="+98">Iranian</option>
-                               <option value="IQ" data-code="+964">Iraqi</option>
-                               <option value="IE" data-code="+353">Irish</option>
-                               <option value="IL" data-code="+972">Israeli</option>
-                               <option value="IT" data-code="+39">Italian</option>
-                               <option value="JM" data-code="+1-876">Jamaican</option>
-                               <option value="JP" data-code="+81">Japanese</option>
-                               <option value="JO" data-code="+962">Jordanian</option>
-                               <option value="KZ" data-code="+7">Kazakhstani</option>
-                               <option value="KE" data-code="+254">Kenyan</option>
-                               <option value="KW" data-code="+965">Kuwaiti</option>
-                               <option value="KG" data-code="+996">Kyrgyz</option>
-                               <option value="LA" data-code="+856">Laotian</option>
-                               <option value="LV" data-code="+371">Latvian</option>
-                               <option value="LB" data-code="+961">Lebanese</option>
-                               <option value="LR" data-code="+231">Liberian</option>
-                               <option value="LY" data-code="+218">Libyan</option>
-                               <option value="LT" data-code="+370">Lithuanian</option>
-                               <option value="LU" data-code="+352">Luxembourger</option>
-                               <option value="MY" data-code="+60">Malaysian</option>
-                               <option value="MV" data-code="+960">Maldivian</option>
-                               <option value="ML" data-code="+223">Malian</option>
-                               <option value="MT" data-code="+356">Maltese</option>
-                               <option value="MX" data-code="+52">Mexican</option>
-                               <option value="MA" data-code="+212">Moroccan</option>
-                               <option value="NP" data-code="+977">Nepalese</option>
-                               <option value="NZ" data-code="+64">New Zealander</option>
-                               <option value="NG" data-code="+234">Nigerian</option>
-                               <option value="NO" data-code="+47">Norwegian</option>
-                               <option value="OM" data-code="+968">Omani</option>
-                               <option value="PK" data-code="+92">Pakistani</option>
-                               <option value="PH" data-code="+63">Filipino</option>
-                            </select>
-                         </div>
-                      </div>
-                   </div>
+                           </div>
+                           <small id="helpId" class="text-muted">Enter given name as per passport to avoid boarding issues.</small>
+                           </div>
+                        </div>
+                        <div class="col-md-12 col-lg-6">
+                           <div class="form-group">
+                           <label for="{{ $i }}_surname">Surname</label>
+                              <div class="infos">
+                                 <input type="text" name="{{ $key }}_surname[]" id="{{ $i }}_surname" class="form-control form-control-info" aria-describedby="helpId" required>
+                                 {{-- <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i> --}}
+                                 <div class="tooltip-container">
+                                    <i class="fa-solid fa-circle-info" data-toggle="tooltip" data-placement="right" title="Surname"></i>
+                                    <div class="tooltip-content">
+                                       <h2>Surname</h2>
+                                       <p>Enter as highlighted</p>
+                                    @if ($flightData['isLocal'])
+                                       <img src="{{ asset('assets/images/passenger/cnic-name.png') }}" alt="Tooltip Image">
+                                    @else
+                                       <img src="{{ asset('assets/images/passenger/passport-vctor.jpg') }}" alt="Tooltip Image">
+                                    @endif
+                                    </div>
+                                 </div>
+                              </div>
+                              <small id="helpId" class="text-muted">Enter surname as per passport to avoid boarding issues.</small>
+                           </div>
+                        </div>
+                        <div class="col-md-12 col-lg-6">
+                           <div class="form-group">
+                              <label for="{{ $i }}_dob">Date of Birth</label>
+                              <input class="form-control" id="{{ $i }}_dob" type="date" name="{{ $key }}_dob[]" required>
+                           </div>
+                        </div>
+                        <div class="col-md-12 col-lg-6">
+                           <div class="form-group">
+                              <label for="{{ $i }}_nationality">Nationality</label>
+                              <select class="form-control" aria-describedby="helpId" id="{{ $i }}_nationality" name="{{ $key }}_nationality[]">
+                                 {{-- data-code = country code --}}
+                                 <option disabled>Select one</option>
+                                 <option selected value="PK" data-code="+92">Pakistani</option>
+                                 <option value="AF" data-code="+93">Afghan</option>
+                                 <option value="AL" data-code="+355">Albanian</option>
+                                 <option value="DZ" data-code="+213">Algerian</option>
+                                 <option value="US" data-code="+1">American</option>
+                                 <option value="AD" data-code="+376">Andorran</option>
+                                 <option value="AO" data-code="+244">Angolan</option>
+                                 <option value="AG" data-code="+1-268">Antiguans</option>
+                                 <option value="AR" data-code="+54">Argentinean</option>
+                                 <option value="AM" data-code="+374">Armenian</option>
+                                 <option value="AU" data-code="+61">Australian</option>
+                                 <option value="AT" data-code="+43">Austrian</option>
+                                 <option value="AZ" data-code="+994">Azerbaijani</option>
+                                 <option value="BS" data-code="+1-242">Bahamian</option>
+                                 <option value="BH" data-code="+973">Bahraini</option>
+                                 <option value="BD" data-code="+880">Bangladeshi</option>
+                                 <option value="BB" data-code="+1-246">Barbadian</option>
+                                 <option value="BW" data-code="+267">Batswana</option>
+                                 <option value="BY" data-code="+375">Belarusian</option>
+                                 <option value="BE" data-code="+32">Belgian</option>
+                                 <option value="BZ" data-code="+501">Belizean</option>
+                                 <option value="BJ" data-code="+229">Beninese</option>
+                                 <option value="BT" data-code="+975">Bhutanese</option>
+                                 <option value="BO" data-code="+591">Bolivian</option>
+                                 <option value="BA" data-code="+387">Bosnian</option>
+                                 <option value="BR" data-code="+55">Brazilian</option>
+                                 <option value="GB" data-code="+44">British</option>
+                                 <option value="BN" data-code="+673">Bruneian</option>
+                                 <option value="BG" data-code="+359">Bulgarian</option>
+                                 <option value="BF" data-code="+226">Burkinabe</option>
+                                 <option value="MM" data-code="+95">Burmese</option>
+                                 <option value="BI" data-code="+257">Burundian</option>
+                                 <option value="KH" data-code="+855">Cambodian</option>
+                                 <option value="CM" data-code="+237">Cameroonian</option>
+                                 <option value="CA" data-code="+1">Canadian</option>
+                                 <option value="CV" data-code="+238">Cape Verdean</option>
+                                 <option value="CF" data-code="+236">Central African</option>
+                                 <option value="TD" data-code="+235">Chadian</option>
+                                 <option value="CL" data-code="+56">Chilean</option>
+                                 <option value="CN" data-code="+86">Chinese</option>
+                                 <option value="CO" data-code="+57">Colombian</option>
+                                 <option value="KM" data-code="+269">Comoran</option>
+                                 <option value="CG" data-code="+242">Congolese</option>
+                                 <option value="CR" data-code="+506">Costa Rican</option>
+                                 <option value="HR" data-code="+385">Croatian</option>
+                                 <option value="CU" data-code="+53">Cuban</option>
+                                 <option value="CY" data-code="+357">Cypriot</option>
+                                 <option value="CZ" data-code="+420">Czech</option>
+                                 <option value="DK" data-code="+45">Danish</option>
+                                 <option value="DJ" data-code="+253">Djiboutian</option>
+                                 <option value="DO" data-code="+1-809">Dominican</option>
+                                 <option value="NL" data-code="+31">Dutch</option>
+                                 <option value="EC" data-code="+593">Ecuadorean</option>
+                                 <option value="EG" data-code="+20">Egyptian</option>
+                                 <option value="AE" data-code="+971">Emirati</option>
+                                 <option value="ER" data-code="+291">Eritrean</option>
+                                 <option value="EE" data-code="+372">Estonian</option>
+                                 <option value="ET" data-code="+251">Ethiopian</option>
+                                 <option value="FJ" data-code="+679">Fijian</option>
+                                 <option value="FI" data-code="+358">Finnish</option>
+                                 <option value="FR" data-code="+33">French</option>
+                                 <option value="DE" data-code="+49">German</option>
+                                 <option value="GH" data-code="+233">Ghanaian</option>
+                                 <option value="GR" data-code="+30">Greek</option>
+                                 <option value="GT" data-code="+502">Guatemalan</option>
+                                 <option value="HT" data-code="+509">Haitian</option>
+                                 <option value="HN" data-code="+504">Honduran</option>
+                                 <option value="HU" data-code="+36">Hungarian</option>
+                                 <option value="IS" data-code="+354">Icelander</option>
+                                 <option value="IN" data-code="+91">Indian</option>
+                                 <option value="ID" data-code="+62">Indonesian</option>
+                                 <option value="IR" data-code="+98">Iranian</option>
+                                 <option value="IQ" data-code="+964">Iraqi</option>
+                                 <option value="IE" data-code="+353">Irish</option>
+                                 <option value="IL" data-code="+972">Israeli</option>
+                                 <option value="IT" data-code="+39">Italian</option>
+                                 <option value="JM" data-code="+1-876">Jamaican</option>
+                                 <option value="JP" data-code="+81">Japanese</option>
+                                 <option value="JO" data-code="+962">Jordanian</option>
+                                 <option value="KZ" data-code="+7">Kazakhstani</option>
+                                 <option value="KE" data-code="+254">Kenyan</option>
+                                 <option value="KW" data-code="+965">Kuwaiti</option>
+                                 <option value="KG" data-code="+996">Kyrgyz</option>
+                                 <option value="LA" data-code="+856">Laotian</option>
+                                 <option value="LV" data-code="+371">Latvian</option>
+                                 <option value="LB" data-code="+961">Lebanese</option>
+                                 <option value="LR" data-code="+231">Liberian</option>
+                                 <option value="LY" data-code="+218">Libyan</option>
+                                 <option value="LT" data-code="+370">Lithuanian</option>
+                                 <option value="LU" data-code="+352">Luxembourger</option>
+                                 <option value="MY" data-code="+60">Malaysian</option>
+                                 <option value="MV" data-code="+960">Maldivian</option>
+                                 <option value="ML" data-code="+223">Malian</option>
+                                 <option value="MT" data-code="+356">Maltese</option>
+                                 <option value="MX" data-code="+52">Mexican</option>
+                                 <option value="MA" data-code="+212">Moroccan</option>
+                                 <option value="NP" data-code="+977">Nepalese</option>
+                                 <option value="NZ" data-code="+64">New Zealander</option>
+                                 <option value="NG" data-code="+234">Nigerian</option>
+                                 <option value="NO" data-code="+47">Norwegian</option>
+                                 <option value="OM" data-code="+968">Omani</option>
+                                 <option value="PK" data-code="+92">Pakistani</option>
+                                 <option value="PH" data-code="+63">Filipino</option>
+                              </select>
+                           </div>
+                        </div>
+                     </div>
                    @if ($key !== 'inf')
                      <div class="row">
                         <div class="col-md-12 col-lg-6">
@@ -292,7 +417,7 @@
                         <div class="col-md-12 col-lg-6">
                            <div class="form-group">
                               <label for="{{ $i }}_passportexp">@if ($flightData['isLocal']) Cnic @else Passport @endif Expiry</label>
-                              <input class="form-control" id="{{ $i }}_passportexp" type="date" name="{{ $key }}_passportexp[]" required>
+                              <input class="form-control" id="{{ $i }}_passportexp" type="date" name="{{ $key }}_passportexp[]" required value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}">
                               <small id="helpId" class="text-muted">Please ensure is currently valid</small>
                            </div>
                         </div>

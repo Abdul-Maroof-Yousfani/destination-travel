@@ -933,27 +933,32 @@ class FlyJinnahService
         if ($returnFlight) {
             $flightSegmentsXml .= $this->addFlightSegments(2, $returnFlight, $segments);
         }
-        // $loggedInUser = '
-        // <ns1:ContactInfo>
-        //     <ns1:PersonName>
-        //         <ns1:Title>'.$user['userTitle'].'</ns1:Title>
-        //         <ns1:FirstName>'.$user['userFirstName'].'</ns1:FirstName>
-        //         <ns1:LastName>'.$user['userLastName'].'</ns1:LastName>
-        //     </ns1:PersonName>
-        //     <ns1:Telephone>
-        //         <ns1:PhoneNumber>'.$user['userPhone'].'</ns1:PhoneNumber>
-        //         <ns1:CountryCode>'.$user['userPhoneCode'].'</ns1:CountryCode>
-        //         <ns1:AreaCode>'.$user['userAreaCode'].'</ns1:AreaCode>
-        //     </ns1:Telephone>
-        //     <ns1:Email>'.$user['userEmail'].'</ns1:Email>
-        //     <ns1:Address>
-        //         <ns1:CountryName>
-        //             <ns1:CountryName>'.$user['country'].'</ns1:CountryName>
-        //             <ns1:CountryCode>'.$user['countryCode'].'</ns1:CountryCode>
-        //         </ns1:CountryName>
-        //         <ns1:CityName>'.$user['userCity'].'</ns1:CityName>
-        //     </ns1:Address>
-        // </ns1:ContactInfo>';
+        $userFullName = $user['userFullName'] ?? '';
+
+        $parts = strpos($userFullName, ' ') !== false 
+            ? explode(' ', $userFullName, 2)
+            : [$userFullName];
+        $loggedInUser = '
+        <ns1:ContactInfo>
+            <ns1:PersonName>
+                <ns1:Title>'.($user['title'] ?? 'Mr').'</ns1:Title>
+                <ns1:FirstName>'.($parts[0] ?? '').'</ns1:FirstName>
+                <ns1:LastName>'.($parts[1] ?? $parts[0] ?? '').'</ns1:LastName>
+            </ns1:PersonName>
+            <ns1:Telephone>
+                <ns1:PhoneNumber>'.($user['userPhone'] ?? '').'</ns1:PhoneNumber>
+                <ns1:CountryCode>'.($user['userPhoneCode'] ?? '').'</ns1:CountryCode>
+                <ns1:AreaCode>'.($user['cityCode'] ?? '').'</ns1:AreaCode>
+            </ns1:Telephone>
+            <ns1:Email>'.($user['userEmail'] ?? '').'</ns1:Email>
+            <ns1:Address>
+                <ns1:CountryName>
+                    <ns1:CountryName>'.($user['country'] ?? '').'</ns1:CountryName>
+                    <ns1:CountryCode>'.($user['userPhoneCode'] ?? '').'</ns1:CountryCode>
+                </ns1:CountryName>
+                <ns1:CityName>'.($user['city'] ?? '').'</ns1:CityName>
+            </ns1:Address>
+        </ns1:ContactInfo>';
         $xmlBody = '<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                 '.$this->XMLHeader.'
@@ -974,7 +979,9 @@ class FlyJinnahService
                             ' . $passengerXml . '
                         </ns2:TravelerInfo>
                     </ns2:OTA_AirBookRQ>
-                    <ns1:AAAirBookRQExt></ns1:AAAirBookRQExt>
+                    <ns1:AAAirBookRQExt>
+                        ' . $loggedInUser . '
+                    </ns1:AAAirBookRQExt>
                 </soap:Body>
             </soap:Envelope>
         ';
@@ -1068,8 +1075,6 @@ class FlyJinnahService
                 </soap:Body>
             </soap:Envelope>
         ';
-        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
-        // dd($xmlBody);
         try {
             $response = $this->sendRequest('OrderChange', $xmlBody, true);
 
@@ -1077,27 +1082,6 @@ class FlyJinnahService
                 \Log::error('OrderChangeRQ request failed', ['response' => $response]);
                 return ['error' => 'Flight booking request failed Flyjinnah (OrderChangeRQ).', 'details' => $response];
             }
-            // $response = Http::withHeaders([
-            //     'Content-Type' => 'text/xml; charset=utf-8',
-            //     'SOAPAction' => 'modifyReservation',
-            //     'Cookie' => $jsessionId,
-            // ])
-            // ->withOptions([
-            //     'verify' => false,
-            //     'cookies' => $cookieJar,
-            // ])
-            // ->withBody($xmlBody, 'text/xml')
-            // ->post($soapUrl);
-            // // dd($response->body());
-            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "OrderChangeRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-            // // \Log::info('SOAP XML Booking Request:', ['xml' => $xmlBody]);
-            // if (!$response->successful()) {
-            //     \Log::error('Flight booking request failed', [
-            //         'status' => $response->status(),
-            //         'response' => $response->body()
-            //     ]);
-            //     return ['error' => 'Flight booking request failed.', 'details' => $response->body()];
-            // }
             $jsonResponse = $this->helperService->XMLtoJSON($response);
             if ($jsonResponse['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($jsonResponse['error'] ?? null)) {
                 return $jsonResponse;
@@ -1143,8 +1127,6 @@ class FlyJinnahService
                 </soap:Body>
             </soap:Envelope>
         ';
-        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "getReservationbyPNRRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
-        // dd($xmlBody);
         try {
             $response = $this->sendRequest('GetReservationbyPNR', $xmlBody);
 
@@ -1152,26 +1134,6 @@ class FlyJinnahService
                 \Log::error('GetReservationbyPNRRQ request failed', ['response' => $response]);
                 return ['error' => 'Flight booking request failed Flyjinnah (GetReservationbyPNRRQ).', 'details' => $response];
             }
-            // $response = Http::withHeaders([
-            //     'Content-Type' => 'text/xml; charset=utf-8',
-            //     'SOAPAction' => 'getReservationbyPNR',
-            // ])
-            // ->withOptions([
-            //     'verify' => false,
-            //     'cookies' => $cookieJar,
-            // ])
-            // ->withBody($xmlBody, 'text/xml')
-            // ->post($soapUrl);
-            // // dd($response->body());
-            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "getReservationbyPNRRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-            // // \Log::info('SOAP XML Booking Request:', ['xml' => $xmlBody]);
-            // if (!$response->successful()) {
-            //     \Log::error('Flight booking request failed', [
-            //         'status' => $response->status(),
-            //         'response' => $response->body()
-            //     ]);
-            //     return ['error' => 'Flight booking request failed.', 'details' => $response->body()];
-            // }
             $setCookieHeader = $response->header('Set-Cookie');
             $jsessionId = null;
             if (preg_match('/JSESSIONID=([^;]+)/', $setCookieHeader, $matches)) $jsessionId = $matches[0];
