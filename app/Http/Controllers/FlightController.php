@@ -42,7 +42,7 @@ class FlightController extends Controller
     ) {}
     public function search(Request $request, FlightAggregatorService $aggregator)
     {
-        // try {
+        try {
             $tax = config('variables.flyjinnah_api.tax') ?? 0;
             $validatedData = $request->validate([
                 'arr' => 'required|string',
@@ -116,10 +116,10 @@ class FlightController extends Controller
                 // 'pia' => $piaFlights,
             ]);
     
-        // } catch (\Exception $e) {
-        //     \Log::error('Flight search failed: ' . $e->getMessage());
-        //     return back()->with('error', 'An error occurred while searching for flights. Please try again.');
-        // }
+        } catch (\Exception $e) {
+            \Log::error('Flight search failed: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while searching for flights. Please try again.');
+        }
     }
     public function getBundles(Request $request) // skip in emirates
     {
@@ -594,7 +594,7 @@ class FlightController extends Controller
         if ($booking->client_id !== (int)$validatedData['clientId']) return response()->json(['status' => 'error', 'message' => 'Client does not match this booking.'], 403);
         // dd($booking);
         // ✅ Check if payment exists
-        // if (!$booking->payment) return response()->json(['status' => 'error', 'message' => 'No payment found for this booking.'], 400);
+        if (!$booking->payment) return response()->json(['status' => 'error', 'message' => 'No payment found for this booking.'], 400);
 
         $airline = strtolower($booking->airline);
         $now = now()->format('d M Y h:i A');
