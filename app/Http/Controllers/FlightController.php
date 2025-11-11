@@ -56,28 +56,7 @@ class FlightController extends Controller
             ]);
             session(['cabinClass' => $validatedData['cabinClass']]);
             $flights = $aggregator->searchAllFlights($validatedData);
-            // dd($flights);
-
             if ($request->ajax()) return response()->json($flights);
-
-            // return view('flights.index', compact('flights'));
-            // dd($validatedData);
-            // $validatedData = $request->only(['arr', 'dest', 'dep', 'return', 'cabinClass','adt', 'chd', 'inf']);
-
-            // $piaFlights = null;
-            // $piaFlights = $this->piaService->searchFlights($validatedData);
-            // echo json_encode($piaFlights, JSON_PRETTY_PRINT);
-            // dd($piaFlights);
-            // $flyjinnahFlights = null;
-            // $flyjinnahFlights = $this->flyJinnahService->searchFlights($validatedData);
-            // dd($flyjinnahFlights);
-            // $emirateFlights = null;
-            // $emirateFlights = $this->emiratesService->searchFlights($validatedData);
-            // dd($emirateFlights);
-
-            // if ($flights['error']) {
-            //     return back()->with('error', $flights['error']);
-            // }
             $paxCount = [
                 'adt' => $validatedData['adt'] ?? 1,
                 'chd' => $validatedData['chd'] ?? 0,
@@ -111,9 +90,6 @@ class FlightController extends Controller
                 'paxCount' => $paxCount,
                 'isRoundTrip' => isset($validatedData['return']) ? true : false,
                 'data' => $data,
-                // 'data' => $flyjinnahFlights,
-                // 'emirates' => $emirateFlights,
-                // 'pia' => $piaFlights,
             ]);
     
         } catch (\Exception $e) {

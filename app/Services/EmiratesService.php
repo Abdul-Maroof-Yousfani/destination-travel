@@ -166,8 +166,6 @@ class EmiratesService
                             ' . $paxXml . '
                         </DataLists>
                     </AirShoppingRQ>';
-        // dd($this->getSoapEnvelope($body));
-        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRQ Request:\n" . (string) $this->getSoapEnvelope($body) . "\n", FILE_APPEND);}
         try {
             $data = $this->sendRequest('AirShoppingRQ', $this->getSoapEnvelope($body));
 
@@ -177,26 +175,6 @@ class EmiratesService
             }
 
             $airShoppingRS = $data['AirShoppingRS'];
-            // $response = $this->helperService->postXml($this->url, $this->getSoapHeaders('AirShoppingRQ'), $this->getSoapEnvelope($body));
-            // dd($response->body());
-            // if (!$response->successful()) {
-            //     \Log::error('Flight details request failed Emirates', [
-            //         'status' => $response->status(),
-            //         'response' => $response->body()
-            //     ]);
-            //     return ['error' => 'Flight search request failed Emirates.', 'details' => $response->body()];
-            // }
-
-            // $responseXml = $response->body();
-            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "AirShoppingRS Response:\n" . (string) $responseXml . "\n\n\n\n\n\n", FILE_APPEND);}
-            // $data = $this->helperService->XMLtoJSONEmirate($responseXml);
-            // dd($data);
-            // $airShoppingRS = $data['AirShoppingRS'];
-
-            // if(isset($airShoppingRS['Errors']) || $data['error']){
-            //     return ['error' => 'Flight search failed.', 'details' => $airShoppingRS['Errors']['Error']];
-            // }
-
             $flightData = [
                 'offers' => $airShoppingRS['OffersGroup']['AirlineOffers']['Offer'] ?? '',
                 'passengers' => $airShoppingRS['DataLists']['PassengerList']['Passenger'] ?? '',
