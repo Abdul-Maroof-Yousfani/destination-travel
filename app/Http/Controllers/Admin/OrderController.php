@@ -15,6 +15,7 @@ class OrderController extends Controller
      *
      * @return \Illuminate\View\View
      */
+    // ------------------------------------------------ BOOKING ------------------------------------------------
     public function list()
     {
         return view('admin.orders.list');
@@ -33,7 +34,7 @@ class OrderController extends Controller
         }
 
         if ($request->order_ref) {
-            $query->where('order_id', 'like', '%' . $request->order_id . '%');
+            $query->where('order_id', 'like', '%' . $request->order_ref . '%');
         }
 
         if ($request->pnr) {
@@ -93,6 +94,25 @@ class OrderController extends Controller
         // dd($agents, $booking);
         return view('admin.orders.manage', compact('agents', 'booking'));
     }
+    public function update(Request $request, Booking $booking)
+    {
+        // dd($request->all());
+        $validated = $request->validate([
+            'status' => 'nullable|string',
+            'order_id' => 'required|string',
+        ]);
+
+        $booking->update($validated);
+
+        return back()->with(['message' => 'Booking updated successfully.', 'status' => 'success']);
+    }
+    public function destroy(Booking $booking)
+    {
+        $booking->delete();
+
+        return redirect()->route('admin.orders.index')->with(['message' => 'Booking deleted successfully.', 'status' => 'success']);
+    }
+    // ------------------------------------------------ LOGS ------------------------------------------------
     public function logStore(Request $request)
     {
         $request->validate([
@@ -126,7 +146,7 @@ class OrderController extends Controller
             'logs' => $logs
         ]);
     }
-
+    // ------------------------------------------------ PAYMENT ------------------------------------------------
     public function paymentStore(Request $request)
     {
         // dd($request->all());
@@ -149,7 +169,6 @@ class OrderController extends Controller
 
         return back()->with(['message' => 'Payment added successfully.', 'status' => 'success']);
     }
-
     public function paymentUpdate(Request $request, Payment $payment)
     {
         // dd($request->all());

@@ -14,18 +14,18 @@ class RolePermissionSeeder extends Seeder
         $agent = Role::firstOrCreate(['name' => 'agent']);
 
         $permissions = [
+            'booking actions',
             'delete bookings',
-            
             'manage all bookings',
+            'cancel booking',
+            'manage bookings',
+            'view bookings',
             'manage users',
             'view global analytics',
-            'cancel booking',
             'view dashboard',
-            'manage bookings',
             'manage agents',
             'manage setting',
             'manage roles',
-            'view bookings',
             'manage payment',
             'issue tickets',
             'manage airports',

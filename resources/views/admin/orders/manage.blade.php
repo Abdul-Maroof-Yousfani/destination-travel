@@ -308,6 +308,9 @@
         <div class="d-block d-md-flex justify-content-between">
             <a href="{{ route('admin.orders.index') }}" class="btn btn_secondary_outline d-flex align-items-center mb-3"><i class='bx bx-chevron-left'></i> Back to Order Management</a>
             <div class="btn-group d-block">
+                @can('booking actions')
+                    <button class="btn btn_secondary_outline" data-bs-toggle="modal" data-bs-target="#adminActions">Admin Actions</button>
+                @endcan
                 <button class="btn btn_secondary_outline" data-bs-toggle="modal" data-bs-target="#fareRulesModal">Show Fare Rules</button>
                 <button class="btn btn_{{ $booking->client->status ? 'success' : 'danger' }}_outline">{{ $booking->client->status ? 'Regular User' : 'Guest User' }}</button>
                 <button class="btn btn_{{ $booking->status === 'issued' ? 'success' : 'danger' }}">Ticket {{ strtoupper($booking->status) }}</button>
@@ -367,6 +370,45 @@
                 @endif
 
             </div>
+            <!-- Manage Admin Details -->
+            @can('booking actions')
+                <x-modal id="adminActions" title="Update Booking Fields" size="modal-lg">
+                    <form id="update-booking-{{ $booking->id }}" method="POST" action="{{ route('admin.orders.booking.update', $booking) }}">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-body">
+                            <div class="row p-4 g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label">Update Status</label>
+                                    <select class="form-select" name="status">
+                                        @foreach ($booking->getStatuses() as $status)
+                                            <option value="{{ $status }}" {{ $status === $booking->status ? 'selected' : '' }}>{{ $status }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Update Booking PNR</label>
+                                    <input name="order_id" type="text" class="form-control" value="{{ $booking->order_id }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer w-100 d-flex justify-content-between">
+                            @can('delete bookings')
+                                <button type="button" class="btn btn-danger delete-booking-btn" data-id="{{ $booking->id }}">
+                                    Delete Booking
+                                </button>
+                            @endcan
+                            <button type="submit" class="btn btn_primary">Update</button>
+                        </div>
+                    </form>
+                    @can('delete bookings')
+                        <form id="delete-booking-{{ $booking->id }}" method="POST" action="{{ route('admin.orders.booking.destroy', $booking) }}" class="d-none">
+                            @csrf
+                            @method('DELETE')
+                        </form>
+                    @endcan
+                </x-modal>
+            @endcan
             <!-- Detailed Overview Modal -->
             <x-modal id="detailedOverviewModal" title="Detailed Overview" size="modal-lg">
                 <x-admin.show-xml-data :booking="$booking" />
@@ -374,111 +416,112 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </x-slot>
             </x-modal>
-            <x-modal id="fareRulesModal" title="Fare Rules" size="modal-lg"><div class="modal-body">
-                @forelse ($booking->bookingItems as $item)
-                    <div class="border p-2 mb-3 rounded">
-                        <h4><strong>Passenger:</strong> {{ $item->passenger_code }}<br></h4>
-                        @php
-                            $services = json_decode($item->services, true);
-                            $taxes = json_decode($item->taxes, true);
-                            $totalTax = null;
-                            if ($airline === 'flyjinnah' && is_array($taxes)) {
-                                $totalTax = array_sum(array_map(function($tax) {
-                                    return isset($tax['@attributes']['Amount']) ? (float) $tax['@attributes']['Amount'] : 0;
-                                }, $taxes));
-                            } elseif ($airline === 'pia' && is_array($taxes)) {
-                                $totalTax = array_sum(array_map(function($tax) {
-                                    return isset($tax['amount']) ? (float) $tax['amount'] : 0;
-                                }, $taxes));
-                            }
-                        @endphp
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Taxes</h6>
-                                @if ($taxes && is_array($taxes))
-                                    @if ($airline === 'emirates' && isset($taxes['tax']) && is_array($taxes['tax']))
-                                        <ul class="mb-0">
-                                            @foreach ($taxes['tax'] as $tax)
-                                                <li>
-                                                    <strong>{{ $tax['taxCode'] }}</strong>:
-                                                    {{ $tax['description'] ?: 'N/A' }}
-                                                    ({{ $tax['price']['amount'] }} {{ $tax['price']['code'] }})
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                        <div class="mt-2">
-                                            <strong>Base Amount:</strong> {{ $taxes['baseAmount']['amount'] }} {{ $taxes['baseAmount']['code'] }}<br>
-                                            <strong>Total Tax:</strong> {{ $taxes['total']['amount'] }} {{ $taxes['total']['code'] }}
-                                        </div>
-                                    @elseif ($airline === 'flyjinnah')
-                                        <ul class="mb-0">
-                                            @foreach ($taxes as $tax)
-                                                <li>
-                                                    <strong>{{ $tax['@attributes']['TaxCode'] }}</strong>:
-                                                    {{ $tax['@attributes']['TaxName'] }}
-                                                    ({{ $tax['@attributes']['Amount'] }} {{ $tax['@attributes']['CurrencyCode'] }})
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                        @if ($totalTax !== null)
+            <x-modal id="fareRulesModal" title="Fare Rules" size="modal-lg">
+                <div class="modal-body">
+                    @forelse ($booking->bookingItems as $item)
+                        <div class="border p-2 mb-3 rounded">
+                            <h4><strong>Passenger:</strong> {{ $item->passenger_code }}<br></h4>
+                            @php
+                                $services = json_decode($item->services, true);
+                                $taxes = json_decode($item->taxes, true);
+                                $totalTax = null;
+                                if ($airline === 'flyjinnah' && is_array($taxes)) {
+                                    $totalTax = array_sum(array_map(function($tax) {
+                                        return isset($tax['@attributes']['Amount']) ? (float) $tax['@attributes']['Amount'] : 0;
+                                    }, $taxes));
+                                } elseif ($airline === 'pia' && is_array($taxes)) {
+                                    $totalTax = array_sum(array_map(function($tax) {
+                                        return isset($tax['amount']) ? (float) $tax['amount'] : 0;
+                                    }, $taxes));
+                                }
+                            @endphp
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Taxes</h6>
+                                    @if ($taxes && is_array($taxes))
+                                        @if ($airline === 'emirates' && isset($taxes['tax']) && is_array($taxes['tax']))
+                                            <ul class="mb-0">
+                                                @foreach ($taxes['tax'] as $tax)
+                                                    <li>
+                                                        <strong>{{ $tax['taxCode'] }}</strong>:
+                                                        {{ $tax['description'] ?: 'N/A' }}
+                                                        ({{ $tax['price']['amount'] }} {{ $tax['price']['code'] }})
+                                                    </li>
+                                                @endforeach
+                                            </ul>
                                             <div class="mt-2">
-                                                <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }} {{ $item->price_code }}
+                                                <strong>Base Amount:</strong> {{ $taxes['baseAmount']['amount'] }} {{ $taxes['baseAmount']['code'] }}<br>
+                                                <strong>Total Tax:</strong> {{ $taxes['total']['amount'] }} {{ $taxes['total']['code'] }}
                                             </div>
-                                        @endif
-                                    @elseif ($airline === 'pia')
-                                        <ul class="mb-0">
-                                            @foreach ($taxes as $tax)
-                                                <li>
-                                                    <strong>{{ $tax['tax_code'] }}</strong>:
-                                                    {{ $tax['tax_code'] }} Tax
-                                                    ({{ $tax['amount'] }} {{ $item->price_code }})
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                        @if ($totalTax !== null)
-                                            <div class="mt-2">
-                                                <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }} {{ $item->price_code }}
-                                            </div>
+                                        @elseif ($airline === 'flyjinnah')
+                                            <ul class="mb-0">
+                                                @foreach ($taxes as $tax)
+                                                    <li>
+                                                        <strong>{{ $tax['@attributes']['TaxCode'] }}</strong>:
+                                                        {{ $tax['@attributes']['TaxName'] }}
+                                                        ({{ $tax['@attributes']['Amount'] }} {{ $tax['@attributes']['CurrencyCode'] }})
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                            @if ($totalTax !== null)
+                                                <div class="mt-2">
+                                                    <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }} {{ $item->price_code }}
+                                                </div>
+                                            @endif
+                                        @elseif ($airline === 'pia')
+                                            <ul class="mb-0">
+                                                @foreach ($taxes as $tax)
+                                                    <li>
+                                                        <strong>{{ $tax['tax_code'] }}</strong>:
+                                                        {{ $tax['tax_code'] }} Tax
+                                                        ({{ $tax['amount'] }} {{ $item->price_code }})
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                            @if ($totalTax !== null)
+                                                <div class="mt-2">
+                                                    <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }} {{ $item->price_code }}
+                                                </div>
+                                            @endif
+                                        @else
+                                            <p>Unsupported tax format for airline.</p>
                                         @endif
                                     @else
-                                        <p>Unsupported tax format for airline.</p>
+                                        <p>No taxes available.</p>
                                     @endif
-                                @else
-                                    <p>No taxes available.</p>
-                                @endif
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Services</h6>
+                                    @if ($services && is_array($services))
+                                        <ul class="mb-0">
+                                            @foreach ($services as $service)
+                                                @if ($airline === 'emirates' && !empty($service['details']['details']))
+                                                    <li>{{ $service['details']['details'] }}</li>
+                                                @elseif ($airline === 'flyjinnah')
+                                                    <li>{{ $service }}</li>
+                                                @elseif ($airline === 'pia')
+                                                    <li>
+                                                        {{ $service['service_definition_id'] ?: 'Flight Service' }}
+                                                        (Segments: {{ implode(', ', $service['segment_refs']) }})
+                                                    </li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <p>No services available.</p>
+                                    @endif
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <h6>Services</h6>
-                                @if ($services && is_array($services))
-                                    <ul class="mb-0">
-                                        @foreach ($services as $service)
-                                            @if ($airline === 'emirates' && !empty($service['details']['details']))
-                                                <li>{{ $service['details']['details'] }}</li>
-                                            @elseif ($airline === 'flyjinnah')
-                                                <li>{{ $service }}</li>
-                                            @elseif ($airline === 'pia')
-                                                <li>
-                                                    {{ $service['service_definition_id'] ?: 'Flight Service' }}
-                                                    (Segments: {{ implode(', ', $service['segment_refs']) }})
-                                                </li>
-                                            @endif
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <p>No services available.</p>
-                                @endif
-                            </div>
+                            @if ($airline === 'flyjinnah')
+                                <div class="mt-2">
+                                    <strong>Total Price:</strong> {{ number_format($item->price, 2) }} {{ $item->price_code }}
+                                </div>
+                            @endif
                         </div>
-                        @if ($airline === 'flyjinnah')
-                            <div class="mt-2">
-                                <strong>Total Price:</strong> {{ number_format($item->price, 2) }} {{ $item->price_code }}
-                            </div>
-                        @endif
-                    </div>
-                @empty
-                    <p>No booking items found.</p>
-                @endforelse
-            </div>
+                    @empty
+                        <p>No booking items found.</p>
+                    @endforelse
+                </div>
                 <x-slot name="footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </x-slot>
@@ -489,14 +532,14 @@
                     
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary issueTicketBtn" data-booking-id="{{ $booking->id }}" data-client-id="{{ $booking->client_id }}">Approve & Issue Tickets</button>
+                    <button type="button" class="btn btn_primary issueTicketBtn" data-booking-id="{{ $booking->id }}" data-client-id="{{ $booking->client_id }}">Approve & Issue Tickets</button>
                 </div>
             </x-modal>
         </div>
         {{-- Order Ref --}}
         <div class="card box">
             <div class="row">
-                <div class="col-md-4 py-2"><strong>Order Ref:</strong> {{ $booking->order_id }}</div>
+                <div class="col-md-4 py-2"><strong>Order Ref:</strong> {{ $booking->id }}</div>
                 <div class="col-md-4 py-2"><strong>Web Ref:</strong> {{ $booking->transaction_id }}</div>
                 <div class="col-md-4 py-2"><strong>Order Status:</strong> <span class="badge bg-{{ $booking->status === 'issued' ? 'success' : 'danger' }}">TICKET{{ strtoupper($booking->status) }}</span></div>
             </div>
@@ -555,7 +598,7 @@
                         <th>Type</th>
                         <th>Nationality</th>
                         <th>Passport Number / NIC</th>
-                        <th>Passport Expiry</th>
+                        <th>Expiry</th>
                         <th>Airline PNR</th>
                         <th>GDS PNR</th>
                         <th>Ticket Number</th>
@@ -697,7 +740,7 @@
                                     <button type="button" class="btn btn-danger delete-payment-btn" data-id="{{ $payment->id }}">
                                         Delete
                                     </button>
-                                    <button type="submit" class="btn btn-primary">Update</button>
+                                    <button type="submit" class="btn btn_primary">Update</button>
                                 </div>
                             </form>
 
@@ -726,7 +769,7 @@
                         <x-admin.payment-form />
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Add Payment</button>
+                        <button type="submit" class="btn btn_primary">Add Payment</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </form>
@@ -915,7 +958,7 @@
                         }
                     },
                     error: function (xhr) {
-                        _alert('Error fetching booking details', 'error');
+                        _alert(xhr.responseJSON.message || 'Error fetching booking details', 'error');
                     }
                 });
             }
@@ -982,6 +1025,14 @@
                 });
             } else {
                 $("#cacelOrderDetailsModal").modal('hide');
+            }
+        });
+        $('.delete-booking-btn').on('click', async function (e) {
+            e.preventDefault();
+            const id = $(this).data('id');
+            const ok = await _confirm('Are you sure you want to delete this booking?', true, 'warning', 'Yes, delete');
+            if (ok) {
+                document.getElementById('delete-booking-' + id).submit();
             }
         });
     });
