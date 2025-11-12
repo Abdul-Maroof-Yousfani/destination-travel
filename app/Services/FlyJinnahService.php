@@ -941,7 +941,7 @@ class FlyJinnahService
         $loggedInUser = '
         <ns1:ContactInfo>
             <ns1:PersonName>
-                <ns1:Title>'.($user['title'] ?? 'Mr').'</ns1:Title>
+                <ns1:Title>'. ucwords(strtoupper($user['title'] ?? 'MR')) .'</ns1:Title>
                 <ns1:FirstName>'.($parts[0] ?? '').'</ns1:FirstName>
                 <ns1:LastName>'.($parts[1] ?? $parts[0] ?? '').'</ns1:LastName>
             </ns1:PersonName>

@@ -76,7 +76,7 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody><tr><td colspan="4" class="text-center text-muted">Loading...</td></tr></tbody>
+                        <tbody><tr><td colspan="5" class="text-center text-muted">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
