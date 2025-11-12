@@ -42,8 +42,8 @@ class FlightBookingService
             $timeLimits = $bundle['timeLimits'] ?? [];
             $passengers = [];
             foreach ($responsePassengers as $passenger) {
-                $apiName = strtolower(preg_replace('/\s+/', '', $passenger['givenName']));
-                $dob = $passenger['birthdate'];
+                $apiName = isset($passenger['givenName']) ? strtolower(preg_replace('/\s+/', '', $passenger['givenName'])) : null;
+                $dob = $passenger['birthdate'] ?? null;
                 $existingPassenger = Passenger::get()
                     ->filter(function ($p) use ($apiName, $dob) {
                         $dbName = strtolower(preg_replace('/\s+/', '', $p->given_name));
@@ -55,7 +55,18 @@ class FlightBookingService
                         'passenger_reference' => $passenger['id'],
                         'type' => $passenger['type'],
                     ]);
-                    $passengers[] = $existingPassenger;
+                    $passengers[] = [
+                        'id'                 => $existingPassenger->id,
+                        'title'              => $existingPassenger->title ?? '',
+                        'given_name'         => $existingPassenger->given_name ?? '',
+                        'surname'            => $existingPassenger->surname ?? '',
+                        'dob'                => $existingPassenger->dob ? $existingPassenger->dob->toDateString() : null,
+                        'nationality'        => $existingPassenger->nationality ?? '',
+                        'passport_no'        => $existingPassenger->passport_no ?? '',
+                        'passport_exp'       => $existingPassenger->passport_exp ? $existingPassenger->passport_exp->toDateString() : null,
+                        'type'               => $existingPassenger->type ?? '',
+                        'passenger_reference'=> $existingPassenger->passenger_reference ?? '',
+                    ];
                 }
             }
 
@@ -355,7 +366,18 @@ class FlightBookingService
                         'passenger_reference' => $passenger['TravelerRefNumber']['@attributes']['RPH'] ?? null,
                         'type' => $passenger['@attributes']['PassengerTypeCode'] ?? null,
                     ]);
-                    $passengers[] = $existingPassenger;
+                    $passengers[] = [
+                        'id'                 => $existingPassenger->id,
+                        'title'              => $existingPassenger->title ?? '',
+                        'given_name'         => $existingPassenger->given_name ?? '',
+                        'surname'            => $existingPassenger->surname ?? '',
+                        'dob'                => $existingPassenger->dob ? $existingPassenger->dob->toDateString() : null,
+                        'nationality'        => $existingPassenger->nationality ?? '',
+                        'passport_no'        => $existingPassenger->passport_no ?? '',
+                        'passport_exp'       => $existingPassenger->passport_exp ? $existingPassenger->passport_exp->toDateString() : null,
+                        'type'               => $existingPassenger->type ?? '',
+                        'passenger_reference'=> $existingPassenger->passenger_reference ?? '',
+                    ];
                 }
             }
 
@@ -702,7 +724,18 @@ class FlightBookingService
                         'passenger_reference' => $passenger['pax_id'],
                         'type' => $passenger['ptc'] === 'CHD' ? 'CNN' : $passenger['ptc'], // Map CHD to CNN for consistency
                     ]);
-                    $dbPassengers[] = $existingPassenger;
+                    $dbPassengers[] = [
+                        'id'                 => $existingPassenger->id,
+                        'title'              => $existingPassenger->title ?? '',
+                        'given_name'         => $existingPassenger->given_name ?? '',
+                        'surname'            => $existingPassenger->surname ?? '',
+                        'dob'                => $existingPassenger->dob ? $existingPassenger->dob->toDateString() : null,
+                        'nationality'        => $existingPassenger->nationality ?? '',
+                        'passport_no'        => $existingPassenger->passport_no ?? '',
+                        'passport_exp'       => $existingPassenger->passport_exp ? $existingPassenger->passport_exp->toDateString() : null,
+                        'type'               => $existingPassenger->type ?? '',
+                        'passenger_reference'=> $existingPassenger->passenger_reference ?? '',
+                    ];
                 }
             }
 
