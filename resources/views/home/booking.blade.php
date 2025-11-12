@@ -417,6 +417,7 @@
    let orderId;
    let current = 1, steps = $("fieldset").length;
    let tax = @json($tax);
+   let flightType = @json($data['isLocal']);
    function setProgressBar(step) {
       $(".progress-bar").css("width", (100 / steps * step) + "%");
    }
@@ -677,6 +678,7 @@
       let cityText = (selectedCity.text() || "").trim();
       let cityValue = (selectedCity.val() || "").trim();
       return {
+            domestic: flightType ? 1 : 0,
             title: $('input[name="user_title"]:checked').val(),
             userFullName: $('#userFullName').val(),
             userEmail: $('#userEmail').val(),

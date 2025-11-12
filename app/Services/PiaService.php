@@ -250,6 +250,7 @@ class PiaService
                 <EmailAddressText>{$user['userEmail']}</EmailAddressText>
             </EmailAddress>
             <Phone>
+                <AreaCodeNumber>{$user['cityCode']}</AreaCodeNumber>
                 <CountryDialingCode>{$user['userPhoneCode']}</CountryDialingCode>
                 <PhoneNumber>{$user['userPhone']}</PhoneNumber>
             </Phone>
@@ -301,6 +302,7 @@ class PiaService
             $individualID = "IND-{$paxType}" . ($index + 1);
             $gender = (isset($pax['title']) && (strtolower($pax['title']) === 'mr' || strtolower($pax['title']) === 'm')) ? 'M' : 'F';
             $contactRef = "Contact-" . ($index + 1);
+            $docTypeCode = $user['domestic'] ? 'NATIONAL_ID' : 'PASSPORT';
 
             $paxRefForThis = $paxID;
             if ($paxType === 'INF') {
@@ -317,6 +319,10 @@ class PiaService
                     <Birthdate>{$pax['dob']}</Birthdate>
                     <CitizenshipCountryCode>{$pax['nationality']}</CitizenshipCountryCode>
                     <ContactInfoRefID>{$contactRef}</ContactInfoRefID>
+                    <IdentityDoc>
+                        <IdentityDocID>{$pax['passportNumber']}</IdentityDocID>
+                        <IdentityDocTypeCode>{$docTypeCode}</IdentityDocTypeCode>
+                    </IdentityDoc>
                     <Individual>
                         <GenderCode>{$gender}</GenderCode>
                         <GivenName>{$pax['name']}</GivenName>
@@ -364,7 +370,7 @@ class PiaService
         </soapenv:Envelope>
         XML;
 
-        // dd($xmlRequest);
+        dd($xmlRequest);
 
         // ✅ Send request to API
         $response = $this->sendRequest('doOrderCreate', $xmlRequest, true);
