@@ -44,100 +44,100 @@
             <label for="userCity">City</label>
             <select class="form-control" aria-describedby="helpId" id="userCity" name="userCity">
                <optgroup label="Pakistan">
-                  <option value="21" data-country="Pakistan">Karachi</option>
-                  <option value="22" data-country="Pakistan">Hyderabad</option>
-                  <option value="24" data-country="Pakistan">Sukkur</option>
-                  <option value="25" data-country="Pakistan">Larkana</option>
-                  <option value="41" data-country="Pakistan">Multan</option>
-                  <option value="42" data-country="Pakistan">Lahore</option>
-                  <option value="43" data-country="Pakistan">Bahawalpur</option>
-                  <option value="44" data-country="Pakistan">Gujranwala</option>
-                  <option value="45" data-country="Pakistan">Sialkot</option>
-                  <option value="46" data-country="Pakistan">Faisalabad</option>
-                  <option value="51" data-country="Pakistan">Islamabad/Rawalpindi</option>
-                  <option value="52" data-country="Pakistan">Gujrat</option>
-                  <option value="53" data-country="Pakistan">Jhelum</option>
-                  <option value="54" data-country="Pakistan">Sargodha</option>
-                  <option value="55" data-country="Pakistan">Mianwali</option>
-                  <option value="61" data-country="Pakistan">Peshawar</option>
-                  <option value="62" data-country="Pakistan">Mardan</option>
-                  <option value="63" data-country="Pakistan">Swat</option>
-                  <option value="64" data-country="Pakistan">Abbottabad</option>
-                  <option value="65" data-country="Pakistan">Bannu</option>
-                  <option value="71" data-country="Pakistan">Quetta</option>
-                  <option value="72" data-country="Pakistan">Khuzdar</option>
-                  <option value="74" data-country="Pakistan">Gwadar</option>
-                  <option value="75" data-country="Pakistan">Sibi</option>
-                  <option value="81" data-country="Pakistan">Dera Ghazi Khan</option>
-                  <option value="82" data-country="Pakistan">Rahim Yar Khan</option>
-                  <option value="83" data-country="Pakistan">DG Khan</option>
-                  <option value="91" data-country="Pakistan">Gilgit</option>
-                  <option value="92" data-country="Pakistan">Skardu</option>
-                  <option value="93" data-country="Pakistan">Chitral</option>
-                  <option value="94" data-country="Pakistan">Hunza</option>
-                  <option value="95" data-country="Pakistan">Muzaffarabad</option>
-                  <option value="96" data-country="Pakistan">Mirpur</option>
+                  <option value="21" data-country="Pakistan" data-country-code="PK">Karachi</option>
+                  <option value="22" data-country="Pakistan" data-country-code="PK">Hyderabad</option>
+                  <option value="24" data-country="Pakistan" data-country-code="PK">Sukkur</option>
+                  <option value="25" data-country="Pakistan" data-country-code="PK">Larkana</option>
+                  <option value="41" data-country="Pakistan" data-country-code="PK">Multan</option>
+                  <option value="42" data-country="Pakistan" data-country-code="PK">Lahore</option>
+                  <option value="43" data-country="Pakistan" data-country-code="PK">Bahawalpur</option>
+                  <option value="44" data-country="Pakistan" data-country-code="PK">Gujranwala</option>
+                  <option value="45" data-country="Pakistan" data-country-code="PK">Sialkot</option>
+                  <option value="46" data-country="Pakistan" data-country-code="PK">Faisalabad</option>
+                  <option value="51" data-country="Pakistan" data-country-code="PK">Islamabad/Rawalpindi</option>
+                  <option value="52" data-country="Pakistan" data-country-code="PK">Gujrat</option>
+                  <option value="53" data-country="Pakistan" data-country-code="PK">Jhelum</option>
+                  <option value="54" data-country="Pakistan" data-country-code="PK">Sargodha</option>
+                  <option value="55" data-country="Pakistan" data-country-code="PK">Mianwali</option>
+                  <option value="61" data-country="Pakistan" data-country-code="PK">Peshawar</option>
+                  <option value="62" data-country="Pakistan" data-country-code="PK">Mardan</option>
+                  <option value="63" data-country="Pakistan" data-country-code="PK">Swat</option>
+                  <option value="64" data-country="Pakistan" data-country-code="PK">Abbottabad</option>
+                  <option value="65" data-country="Pakistan" data-country-code="PK">Bannu</option>
+                  <option value="71" data-country="Pakistan" data-country-code="PK">Quetta</option>
+                  <option value="72" data-country="Pakistan" data-country-code="PK">Khuzdar</option>
+                  <option value="74" data-country="Pakistan" data-country-code="PK">Gwadar</option>
+                  <option value="75" data-country="Pakistan" data-country-code="PK">Sibi</option>
+                  <option value="81" data-country="Pakistan" data-country-code="PK">Dera Ghazi Khan</option>
+                  <option value="82" data-country="Pakistan" data-country-code="PK">Rahim Yar Khan</option>
+                  <option value="83" data-country="Pakistan" data-country-code="PK">DG Khan</option>
+                  <option value="91" data-country="Pakistan" data-country-code="PK">Gilgit</option>
+                  <option value="92" data-country="Pakistan" data-country-code="PK">Skardu</option>
+                  <option value="93" data-country="Pakistan" data-country-code="PK">Chitral</option>
+                  <option value="94" data-country="Pakistan" data-country-code="PK">Hunza</option>
+                  <option value="95" data-country="Pakistan" data-country-code="PK">Muzaffarabad</option>
+                  <option value="96" data-country="Pakistan" data-country-code="PK">Mirpur</option>
                </optgroup>
 
                <optgroup label="India">
-                  <option value="101" data-country="India">New Delhi</option>
-                  <option value="102" data-country="India">Mumbai</option>
-                  <option value="103" data-country="India">Kolkata</option>
-                  <option value="104" data-country="India">Chennai</option>
-                  <option value="105" data-country="India">Pune</option>
-                  <option value="106" data-country="India">Hyderabad</option>
-                  <option value="107" data-country="India">Ahmedabad</option>
-                  <option value="108" data-country="India">Bengaluru</option>
+                  <option value="101" data-country="India" data-country-code="IN">New Delhi</option>
+                  <option value="102" data-country="India" data-country-code="IN">Mumbai</option>
+                  <option value="103" data-country="India" data-country-code="IN">Kolkata</option>
+                  <option value="104" data-country="India" data-country-code="IN">Chennai</option>
+                  <option value="105" data-country="India" data-country-code="IN">Pune</option>
+                  <option value="106" data-country="India" data-country-code="IN">Hyderabad</option>
+                  <option value="107" data-country="India" data-country-code="IN">Ahmedabad</option>
+                  <option value="108" data-country="India" data-country-code="IN">Bengaluru</option>
                </optgroup>
 
                <optgroup label="China">
-                  <option value="201" data-country="China">Shanghai</option>
-                  <option value="202" data-country="China">Tianjin</option>
-                  <option value="203" data-country="China">Chongqing</option>
-                  <option value="204" data-country="China">Shenyang</option>
-                  <option value="205" data-country="China">Nanjing</option>
-                  <option value="206" data-country="China">Wuhan</option>
-                  <option value="207" data-country="China">Chengdu</option>
-                  <option value="208" data-country="China">Xi’an</option>
-                  <option value="209" data-country="China">Guangzhou</option>
+                  <option value="201" data-country="China" data-country-code="CN">Shanghai</option>
+                  <option value="202" data-country="China" data-country-code="CN">Tianjin</option>
+                  <option value="203" data-country="China" data-country-code="CN">Chongqing</option>
+                  <option value="204" data-country="China" data-country-code="CN">Shenyang</option>
+                  <option value="205" data-country="China" data-country-code="CN">Nanjing</option>
+                  <option value="206" data-country="China" data-country-code="CN">Wuhan</option>
+                  <option value="207" data-country="China" data-country-code="CN">Chengdu</option>
+                  <option value="208" data-country="China" data-country-code="CN">Xi’an</option>
+                  <option value="209" data-country="China" data-country-code="CN">Guangzhou</option>
                </optgroup>
 
                <optgroup label="Egypt">
-                  <option value="301" data-country="Egypt">Cairo/Giza/Qalyubia</option>
-                  <option value="302" data-country="Egypt">Alexandria</option>
-                  <option value="303" data-country="Egypt">Arish</option>
-                  <option value="304" data-country="Egypt">Asyut</option>
+                  <option value="301" data-country="Egypt" data-country-code="EG">Cairo/Giza/Qalyubia</option>
+                  <option value="302" data-country="Egypt" data-country-code="EG">Alexandria</option>
+                  <option value="303" data-country="Egypt" data-country-code="EG">Arish</option>
+                  <option value="304" data-country="Egypt" data-country-code="EG">Asyut</option>
                </optgroup>
 
                <optgroup label="United States">
-                  <option value="401" data-country="United States">Washington DC</option>
-                  <option value="402" data-country="United States">New York City (Manhattan)</option>
-                  <option value="403" data-country="United States">Los Angeles</option>
-                  <option value="404" data-country="United States">Miami (Florida)</option>
+                  <option value="401" data-country="United States" data-country-code="US">Washington DC</option>
+                  <option value="402" data-country="United States" data-country-code="US">New York City (Manhattan)</option>
+                  <option value="403" data-country="United States" data-country-code="US">Los Angeles</option>
+                  <option value="404" data-country="United States" data-country-code="US">Miami (Florida)</option>
                </optgroup>
 
                <optgroup label="Europe">
-                  <option value="501" data-country="Greece">Athens</option>
-                  <option value="502" data-country="Netherlands">Amsterdam</option>
-                  <option value="503" data-country="Belgium">Brussels</option>
-                  <option value="504" data-country="France">Paris</option>
-                  <option value="505" data-country="Spain">Madrid</option>
-                  <option value="506" data-country="Italy">Rome</option>
-                  <option value="507" data-country="Germany">Berlin</option>
-                  <option value="508" data-country="United Kingdom">London</option>
+                  <option value="501" data-country="Greece" data-country-code="GR">Athens</option>
+                  <option value="502" data-country="Netherlands" data-country-code="NL">Amsterdam</option>
+                  <option value="503" data-country="Belgium" data-country-code="BE">Brussels</option>
+                  <option value="504" data-country="France" data-country-code="FR">Paris</option>
+                  <option value="505" data-country="Spain" data-country-code="ES">Madrid</option>
+                  <option value="506" data-country="Italy" data-country-code="IT">Rome</option>
+                  <option value="507" data-country="Germany" data-country-code="DE">Berlin</option>
+                  <option value="508" data-country="United Kingdom" data-country-code="GB">London</option>
                </optgroup>
 
                <optgroup label="Australia & New Zealand">
-                  <option value="601" data-country="Australia">Canberra/Sydney</option>
-                  <option value="602" data-country="Australia">Brisbane/Gold Coast</option>
-                  <option value="603" data-country="New Zealand">Auckland</option>
+                  <option value="601" data-country="Australia" data-country-code="AU">Canberra/Sydney</option>
+                  <option value="602" data-country="Australia" data-country-code="AU">Brisbane/Gold Coast</option>
+                  <option value="603" data-country="New Zealand" data-country-code="NZ">Auckland</option>
                </optgroup>
 
                <optgroup label="Others">
-                  <option value="701" data-country="Brazil">São Paulo</option>
-                  <option value="702" data-country="Canada">Toronto</option>
-                  <option value="703" data-country="Canada">Vancouver</option>
-                  <option value="704" data-country="South Africa">Cape Town</option>
+                  <option value="701" data-country="Brazil" data-country-code="BR">São Paulo</option>
+                  <option value="702" data-country="Canada" data-country-code="CA">Toronto</option>
+                  <option value="703" data-country="Canada" data-country-code="CA">Vancouver</option>
+                  <option value="704" data-country="South Africa" data-country-code="ZA">Cape Town</option>
                </optgroup>
             </select>
          </div>

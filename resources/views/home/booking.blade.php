@@ -685,7 +685,8 @@
             acceptOffers: $('#acceptOffers').is(':checked'),
             cityCode: cityValue,
             city: cityText,
-            country: selectedCity.data('country') || ''
+            country: selectedCity.data('country') || '',
+            countryCode: selectedCity.data('country-code') || '',
          }
    }
 

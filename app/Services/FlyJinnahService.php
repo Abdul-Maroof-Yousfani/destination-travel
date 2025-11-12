@@ -954,11 +954,12 @@ class FlyJinnahService
             <ns1:Address>
                 <ns1:CountryName>
                     <ns1:CountryName>'.($user['country'] ?? '').'</ns1:CountryName>
-                    <ns1:CountryCode>'.($user['userPhoneCode'] ?? '').'</ns1:CountryCode>
+                    <ns1:CountryCode>'.($user['countryCode'] ?? '').'</ns1:CountryCode>
                 </ns1:CountryName>
                 <ns1:CityName>'.($user['city'] ?? '').'</ns1:CityName>
             </ns1:Address>
         </ns1:ContactInfo>';
+        dd($loggedInUser);
         $xmlBody = '<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                 '.$this->XMLHeader.'
