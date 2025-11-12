@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Airport;
 use App\Services\PiaService;
 use App\Helpers\HelperFunctions;
 use App\Services\EmiratesService;
@@ -27,6 +28,19 @@ class FlightAggregatorService
     }
     public function searchAllFlights($params)
     {
+        $arrCode  = $params['arr'] ?? null;
+        $destCode = $params['dest'] ?? null;
+
+        $skipCarriers = [];
+        if ($arrCode && $destCode) {
+            $airports = Airport::whereIn('code', [$arrCode, $destCode])->pluck('is_local', 'code');
+            $arrIsLocal  = $airports[$arrCode] ?? null;
+            $destIsLocal = $airports[$destCode] ?? null;
+            if ($arrIsLocal === false || $destIsLocal === false) {
+                $skipCarriers = config('flight.skip_local', []);
+            }
+        }
+
         $outboundFlights = collect();
         $inboundFlights = collect();
         $allBundles = collect();
@@ -35,14 +49,19 @@ class FlightAggregatorService
 
         if(!empty($this->services)) {
            foreach ($this->services as $service) {
+                $carrier = strtolower($service->getCarrierName());
+                if (in_array($carrier, $skipCarriers, true)) {
+                    continue;
+                }
+
                 $rawFlights = $service->searchFlights($params);
                 $normalized = $this->normalizeFlights($rawFlights, $service->getCarrierName());
 
                 // Collect bundles
-                if ($service->getCarrierName() === 'pia') {
+                if ($carrier === 'pia') {
                     $allBundles = $allBundles->merge($normalized['bundles'] ?? []);
                 }
-                // elseif ($service->getCarrierName() === 'flyJinnah') {
+                // elseif ($carrier === 'flyJinnah') {
                 //     // Fetch bundles if needed (implement in FlyJinnahService)
                 //     $bundles = [];
                 //     $allBundles = $allBundles->merge($bundles);

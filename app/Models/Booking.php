@@ -191,7 +191,7 @@ class Booking extends Model
     {
         $tax = (float) ($this->tax ?? 0);
         $price = is_numeric($this->price) ? (float) $this->price : 0;
-        $totalPrice = $price + $tax;
+        $totalPrice = round($price + $tax, 2);
         $code = $this->price_code ?? 'Rs.';
         return $code . ' ' . number_format($totalPrice, 2);
     }
