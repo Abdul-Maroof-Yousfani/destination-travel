@@ -197,4 +197,30 @@ class OrderController extends Controller
 
         return back()->with(['message' => 'Payment deleted successfully.', 'status' => 'success']);
     }
+    // ------------------------------------------------ TICKET ------------------------------------------------
+    public function ticketStore(Request $request)
+    {
+        // dd($request->all());
+        $validated = $request->validate([
+            'booking_id' => 'required|exists:bookings,id',
+            'passenger_reference' => 'required|string',
+            'type' => 'nullable|string',
+            'ticket_number' => 'required|string',
+        ]);
+        $booking = Booking::find($validated['booking_id']);
+        if ($booking->status !== 'issued') {
+            return back()->with(['message' => 'Tickets can only be added to issued bookings.', 'status' => 'error']);
+        }
+        $booking->tickets()->create([
+            'airline' => $booking->airline,
+            'passenger_reference' => $validated['passenger_reference'],
+            'type' => $validated['type'],
+            'ticket_no' => $validated['ticket_number'],
+            'issue_date' => now(),
+            'ticket_details' => 'admin issued ticket',
+            'client_id' => $booking->client_id,
+            'booking_id' => $booking->id,
+        ]);
+        return back()->with(['message' => 'Ticket added successfully.', 'status' => 'success']);
+    }
 }

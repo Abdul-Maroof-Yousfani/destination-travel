@@ -589,7 +589,10 @@
         </div>
         {{-- Ticket Details --}}
         <div class="card box">
-            <div class="section-title">Ticket Details</div>
+            <div class="section-title">
+                Ticket Details
+                {{-- <button class="btn btn_secondary_outline m-1 float-end" data-bs-toggle="modal" data-bs-target="#addTickets" type="button">Add Tickets</button> --}}
+            </div>
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -634,7 +637,18 @@
                                     </span>
                                 </td>
                             @else
-                                <td colspan="3" class="text-center"><span class="text-danger">Not issued</span></td>
+                                @if ($booking->status === 'issued')
+                                <form action="{{ route('admin.orders.ticket.create') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+                                    <input type="hidden" name="passenger_reference" value="{{ $passenger['passenger_reference'] ?? '' }}">
+                                    <input type="hidden" name="type" value="{{ $passenger['type'] ?? '' }}">
+                                    <td><input name="ticket_number" type="text" class="form-control m-0 p-0 px-2" required></td>
+                                    <td colspan="2"><input type="submit" class="form-control m-0 p-0 px-2" value="Add ticket"></td>
+                                </form>
+                                @else
+                                    <td colspan="3" class="text-center"><span class="text-danger">Not issued</span></td>
+                                @endif
                             @endif
                         </tr>
                     @empty
@@ -644,6 +658,30 @@
                 </tbody>
             </table>
         </div>
+        {{-- <x-modal id="addTickets" title="Add Tickets" size="modal-lg">
+            <form method="POST" action="{{ route('admin.orders.payment.store') }}">
+                @csrf
+                <input type="hidden" name="booking_id" value="{{ $booking->id }}">
+                <input type="hidden" name="client_id" value="{{ $booking->client_id }}">
+                <input type="hidden" name="airline" value="{{ $booking->airline }}">
+                <div class="modal-body">
+                    <div class="row p-4 g-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Transaction ID</label>
+                            <input name="transaction_id" type="text" class="form-control" value="{{ old('transaction_id', $payment->transaction_id ?? '') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Transaction ID</label>
+                            <input name="transaction_id" type="text" class="form-control" value="{{ old('transaction_id', $payment->transaction_id ?? '') }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn_primary">Add Payment</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </x-modal> --}}
         {{-- Product Overview --}}
         <div class="card box">
             <div class="section-title">Product Overview</div>

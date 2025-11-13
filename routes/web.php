@@ -69,14 +69,16 @@ Route::middleware(['auth:web'])->prefix('admin')->name('admin.')->group(function
         Route::post('log/add', [OrderController::class, 'logStore'])->name('log.add');
         Route::get('booking/{booking}/logs', [OrderController::class, 'logHistory'])->name('booking.logs');
         Route::put('booking/{booking}/update', [OrderController::class, 'update'])->name('booking.update')->middleware('permission:booking actions');
-
+        
         Route::delete('{booking}', [OrderController::class, 'destroy'])->name('booking.destroy')->middleware('permission:delete bookings');
-
+        
         Route::middleware(['permission:manage payment'])->prefix('payment')->name('payment.')->group(function () {
             Route::post('store', [OrderController::class, 'paymentStore'])->name('store');
             Route::put('{payment}', [OrderController::class, 'paymentUpdate'])->name('update');
             Route::delete('{payment}', [OrderController::class, 'paymentDestroy'])->name('destroy');
         });
+
+        Route::post('ticket/create', [OrderController::class, 'ticketStore'])->name('ticket.create');
     });
 
     Route::middleware(['permission:manage agents'])->prefix('agents')->name('agents.')->group(function () {
