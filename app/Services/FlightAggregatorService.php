@@ -36,7 +36,7 @@ class FlightAggregatorService
             $airports = Airport::whereIn('code', [$arrCode, $destCode])->pluck('is_local', 'code');
             $arrIsLocal  = $airports[$arrCode] ?? null;
             $destIsLocal = $airports[$destCode] ?? null;
-            if ($arrIsLocal === false || $destIsLocal === false) {
+            if ($arrIsLocal === true && $destIsLocal === true) {
                 $skipCarriers = config('flight.skip_local', []);
             }
         }
