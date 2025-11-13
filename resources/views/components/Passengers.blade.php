@@ -11,15 +11,15 @@
             <label for="gendertitle">Select Title</label>
             <div class="inline-flex">
                <label for="title_mr_user" class="borlook d-flex p-3">
-                  <input class="hidden-radio" type="radio" id="title_mr_user" value="Mr" name="user_title" checked/>
+                  <input class="hidden-radio" type="radio" id="title_mr_user" value="MR" name="user_title" checked/>
                   <span class="ml-2">Mr</span>
                </label>
                <label for="title_mrs_user" class="borlook d-flex p-3">
-                  <input class="hidden-radio" type="radio" id="title_mrs_user" value="Mrs" name="user_title" />
+                  <input class="hidden-radio" type="radio" id="title_mrs_user" value="MRS" name="user_title" />
                   <span class="ml-2">Mrs</span>
                </label>
                <label for="title_ms_user" class="borlook d-flex p-3">
-                  <input class="hidden-radio" type="radio" id="title_ms_user" value="Ms" name="user_title" />
+                  <input class="hidden-radio" type="radio" id="title_ms_user" value="MS" name="user_title" />
                   <span class="ml-2">Ms</span>
                </label>
             </div>
