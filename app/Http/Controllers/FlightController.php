@@ -43,6 +43,10 @@ class FlightController extends Controller
     public function search(Request $request, FlightAggregatorService $aggregator)
     {
         try {
+            session([
+                'IdsExpireTimeFj' => null,
+                'IdsExpireTimeEmi' => null,
+            ]);
             $tax = config('variables.flyjinnah_api.tax') ?? 0;
             $validatedData = $request->validate([
                 'arr' => 'required|string',
