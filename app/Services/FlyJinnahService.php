@@ -189,11 +189,6 @@ class FlyJinnahService
         $chd = $data['chd'] ?? null;
         $inf = $data['inf'] ?? null;
         // dd($origin, $destination, $departureDate, $cabinClass, $returnDate, $adt, $chd, $inf);
-        session([
-            'JSESSIONID' => null,
-            'TransactionIdentifier' => null,
-            'IdsExpireTimeFj' => null,
-        ]);
         $username = $this->username;
         $agentCode = $this->agentCode;
         $token = $this->getToken();
@@ -346,34 +341,17 @@ class FlyJinnahService
         // dd($xmlBody);
         // if ($this->regenerateLogs) {file_put_contents($this->logPath, "GetBundlesRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         try {
+            session([
+                'JSESSIONID' => null,
+                'TransactionIdentifier' => null,
+                'IdsExpireTimeFj' => null,
+            ]);
             $response = $this->sendRequest('GetBundles', $xmlBody);
 
             if (!$response || isset($response['error'])) {
                 \Log::error('GetBundlesRQ request failed', ['response' => $response]);
                 return ['error' => 'Flight booking request failed Flyjinnah (GetBundlesRQ).', 'details' => $response];
             }
-            // $cookieJar = new CookieJar();
-            // $response = Http::withHeaders([6+
-            //     'Content-Type' => 'text/xml; charset=utf-8',
-            //     'SOAPAction' => '',
-            // ])
-            // ->withOptions([
-            //     'verify' => false,
-            //     'cookies' => $cookieJar
-            // ])
-            // ->withBody($xmlBody, 'text/xml')
-            // ->post($soapUrl);
-            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "GetBundlesRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-            // \Log::info('SOAP XML Request:', ['xml' => $xmlBody]);
-
-            // if (!$response->successful()) {
-            //     \Log::error('Flight details request failed', [
-            //         'status' => $response->status(),
-            //         'response' => $response->body()
-            //     ]);
-            //     return ['error' => 'Flight details request failed.', 'details' => $response->body()];
-            // }
-
             $setCookieHeader = $response->header('Set-Cookie');
             $jsessionId = null;
 
@@ -410,19 +388,21 @@ class FlyJinnahService
     }
     public function getBundlePrice($data)
     {
-        $soapUrl = $this->flight_details;
         $paxCount = $data['data']['paxCount'];
         $segments = $data['data']['segments'];
-        // $returnFlight = $data['data']['returnFlight'];
-        $firstFlightBundleId = $data['data']['firstFlightBundleId'];
-        $returnFlightBundleId = $data['data']['returnFlightBundleId'];
+        $firstFlightBundleId = $data['data']['firstFlightBundleId'] ?? null;
+        $returnFlightBundleId = $data['data']['returnFlightBundleId'] ?? null;
+
+        $firstFlightBundleId  = ($firstFlightBundleId === 'basic') ? null : $firstFlightBundleId;
+        $returnFlightBundleId = ($returnFlightBundleId === 'basic') ? null : $returnFlightBundleId;
+        // dd($firstFlightBundleId, $returnFlightBundleId);
         $returnFlight = $data['data']['returnFlight']['flightSegments'] ?? null;
         $departureFlight = $data['data']['departureFlight']['flightSegments'];
         $cookieJar = new CookieJar();
         $transactionIdentifier = session('TransactionIdentifier');
         if (!$transactionIdentifier) return ['error' => 'Transaction identifier not provided'];
-        $jsessionId = session('JSESSIONID');
-        if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
+        // $jsessionId = session('JSESSIONID');
+        // if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
         $flightSegmentsXml = '';
         if ($departureFlight) {
             $flightSegmentsXml .= $this->addFlightSegments(1, $departureFlight);
@@ -435,11 +415,15 @@ class FlyJinnahService
         $inf = $paxCount['inf'] ?? 0;
 
         $directionInd = $returnFlight ? 'Return' : 'OneWay';
-        $bundleIds = '<ns1:OutBoundBunldedServiceId>'.$firstFlightBundleId.'</ns1:OutBoundBunldedServiceId>';
-        if($returnFlightBundleId) {
-            $bundleIds.= '
-                <ns1:InBoundBunldedServiceId>'.$returnFlightBundleId.'</ns1:InBoundBunldedServiceId>';
+        
+        $bundleIds = '';
+        if ($firstFlightBundleId) {
+            $bundleIds .= '<ns1:OutBoundBunldedServiceId>'.$firstFlightBundleId.'</ns1:OutBoundBunldedServiceId>';
         }
+        if ($returnFlightBundleId) {
+            $bundleIds .= '<ns1:InBoundBunldedServiceId>'.$returnFlightBundleId.'</ns1:InBoundBunldedServiceId>';
+        }
+        // dd($bundleIds);
         $xmlBody = '<?xml version="1.0" encoding="utf-8"?>
         <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -474,8 +458,6 @@ class FlyJinnahService
                 </ns1:OTA_AirPriceRQ>
             </soap:Body>
         </soap:Envelope>';
-        // dd($xmlBody);
-        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "BundlePriceRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         try {
             $response = $this->sendRequest('BundlePriceRS', $xmlBody);
 
@@ -484,27 +466,6 @@ class FlyJinnahService
                 return ['error' => 'Flight booking request failed Flyjinnah (GetBundlePriceRS).', 'details' => $response];
             }
             return $this->helperService->XMLtoJSON($response->body());
-            // $response = Http::withHeaders([
-            //     'Content-Type' => 'text/xml; charset=utf-8',
-            //     'SOAPAction' => '',
-            //     'Cookie' => $jsessionId,
-            // ])
-            // ->withOptions([
-            //     'verify' => false,
-            //     'cookies' => $cookieJar
-            // ])
-            // ->withBody($xmlBody, 'text/xml')
-            // ->post($soapUrl);
-            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "BundlePriceRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-
-            // if (!$response->successful()) {
-            //     \Log::error('Flight details request failed', [
-            //         'status' => $response->status(),
-            //         'response' => $response->body()
-            //     ]);
-            //     return ['error' => 'Flight details request failed.', 'details' => $response->body()];
-            // }
-            // return $this->helperService->XMLtoJSON($response->body());
 
         } catch (\Exception $e) {
             \Log::error('Exception in booking flight', ['message' => $e->getMessage()]);
@@ -518,8 +479,8 @@ class FlyJinnahService
         $cookieJar = new CookieJar();
         $transactionIdentifier = session('TransactionIdentifier');
         if (!$transactionIdentifier) return ['error' => 'Transaction identifier not provided'];
-        $jsessionId = session('JSESSIONID');
-        if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
+        // $jsessionId = session('JSESSIONID');
+        // if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
 
         // dd($segments, $transactionIdentifier, $jsessionId);
         $flightSegmentsXml = '';
@@ -546,7 +507,6 @@ class FlyJinnahService
             </soap:Envelope>
         ';
         // dd($xmlBody);
-        // if ($this->regenerateLogs) {file_put_contents($this->logPath, "SeatMapRQ Request:\n" . $xmlBody . "\n\n", FILE_APPEND);}
         try {
             $response = $this->sendRequest('SeatMap', $xmlBody);
 
@@ -554,27 +514,6 @@ class FlyJinnahService
                 \Log::error('SeatMapRQ request failed', ['response' => $response]);
                 return ['error' => 'Flight booking request failed Flyjinnah (SeatMapRQ).', 'details' => $response];
             }
-            // $response = Http::withHeaders([
-            //     'Content-Type' => 'text/xml; charset=utf-8',
-            //     'SOAPAction' => '',
-            //     'Cookie' => $jsessionId,
-            // ])
-            // ->withOptions([
-            //     'verify' => false,
-            //     'cookies' => $cookieJar,
-            // ])
-            // ->withBody($xmlBody, 'text/xml')
-            // ->post($soapUrl);
-            // if ($this->regenerateLogs) {file_put_contents($this->logPath, "SeatMapRS Response:\n" . (string) $response->body() . "\n\n\n\n", FILE_APPEND);}
-    
-            // // \Log::info('SOAP Seat XML Request:', ['xml' => $xmlBody]);
-            // if (!$response->successful()) {
-            //     \Log::error('Flight seat map request failed', [
-            //         'status' => $response->status(),
-            //         'response' => $response->body()
-            //     ]);
-            //     return ['error' => 'Flight seat map request failed.', 'details' => $response->body()];
-            // }
             return $this->helperService->XMLtoJSON($response->body());
         } catch (\Exception $e) {
             \Log::error('Exception in seat map flight', ['message' => $e->getMessage()]);
@@ -588,8 +527,8 @@ class FlyJinnahService
         $cookieJar = new CookieJar();
         $transactionIdentifier = session('TransactionIdentifier');
         if (!$transactionIdentifier) return ['error' => 'Transaction identifier not provided'];
-        $jsessionId = session('JSESSIONID');
-        if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
+        // $jsessionId = session('JSESSIONID');
+        // if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
 
         // dd($segments, $transactionIdentifier, $jsessionId);
         $flightSegmentsXml = '';
@@ -661,8 +600,8 @@ class FlyJinnahService
         $cookieJar = new CookieJar();
         $transactionIdentifier = session('TransactionIdentifier');
         if (!$transactionIdentifier) return ['error' => 'Transaction identifier not provided'];
-        $jsessionId = session('JSESSIONID');
-        if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
+        // $jsessionId = session('JSESSIONID');
+        // if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
 
         // dd($segments, $transactionIdentifier, $jsessionId);
         $flightSegmentsXml = '';
@@ -744,12 +683,15 @@ class FlyJinnahService
         $firstFlightBundleId = $data['data']['firstFlightBundleId'] ?? null;
         $returnFlightBundleId = $data['data']['returnFlightBundleId'] ?? null;
 
+        $firstFlightBundleId  = ($firstFlightBundleId === 'basic') ? null : $firstFlightBundleId;
+        $returnFlightBundleId = ($returnFlightBundleId === 'basic') ? null : $returnFlightBundleId;
+
         // dd($paxCount, $segments, $returnFlight, $departureFlight, $returnFlightData);
         $transactionIdentifier = session('TransactionIdentifier');
-        // dd(session());
         if (!$transactionIdentifier) return ['error' => 'Transaction identifier not provided'];
-        $jsessionId = session('JSESSIONID');
-        if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
+        // dd(session());
+        // $jsessionId = session('JSESSIONID');
+        // if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
 
         $baggageXml = $mealXml = $seatXml = '';
 
@@ -788,17 +730,23 @@ class FlyJinnahService
         if ($returnFlight) {
             $flightSegmentsXml .= $this->addFlightSegments(1, $returnFlight, $segments);
         }
-        $bundleIds = '<ns1:OutBoundBunldedServiceId>'.$firstFlightBundleId.'</ns1:OutBoundBunldedServiceId>';
-        if($returnFlightBundleId) {
-            $bundleIds.= '
-                <ns1:InBoundBunldedServiceId>'.$returnFlightBundleId.'</ns1:InBoundBunldedServiceId>';
+        $bundleIds = '';
+        if ($firstFlightBundleId) {
+            $bundleIds .= '<ns1:OutBoundBunldedServiceId>'.$firstFlightBundleId.'</ns1:OutBoundBunldedServiceId>';
         }
+        if ($returnFlightBundleId) {
+            $bundleIds .= '<ns1:InBoundBunldedServiceId>'.$returnFlightBundleId.'</ns1:InBoundBunldedServiceId>';
+        }
+
+        // $bundleIds = '<ns1:OutBoundBunldedServiceId>'.$firstFlightBundleId.'</ns1:OutBoundBunldedServiceId>';
+        // if($returnFlightBundleId) {
+        //     $bundleIds.= '
+        //         <ns1:InBoundBunldedServiceId>'.$returnFlightBundleId.'</ns1:InBoundBunldedServiceId>';
+        // }
         $bundleXml = '';
-        // if (empty($baggages) && empty($meals) && empty($seats)){
         $bundleXml = '<ns1:BundledServiceSelectionOptions>
                         ' . $bundleIds . '
                     </ns1:BundledServiceSelectionOptions>';
-        // }
         // $flightSegmentsXml = '';
         // foreach ($segments as $segment) {
         //     $flightSegmentsXml .= $this->addFlightSegments(1, $segment);
@@ -889,8 +837,8 @@ class FlyJinnahService
         $cookieJar = new CookieJar();
         $transactionIdentifier = session('TransactionIdentifier');
         if (!$transactionIdentifier) return ['error' => 'Transaction identifier not provided'];
-        $jsessionId = session('JSESSIONID');
-        if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
+        // $jsessionId = session('JSESSIONID');
+        // if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
         // dd($transactionIdentifier, $jsessionId);
         $passengerXml = '';
         $adultIndexes = [];
@@ -1482,6 +1430,7 @@ class FlyJinnahService
     {
         // Action null tha :)
         $jsessionId = session('JSESSIONID', '');
+        // dd($jsessionId);
         return [
             'Content-Type' => 'text/xml; charset=utf-8',
             'SOAPAction' => $action,

@@ -101,8 +101,13 @@ class FlightController extends Controller
             return back()->with('error', 'An error occurred while searching for flights. Please try again.');
         }
     }
-    public function getBundles(Request $request) // skip in emirates
+    public function getBundles(Request $request)
     {
+        // return response()->json(
+        //     $this->flyJinnahService->getFlightDetails($request->only([
+        //         'paxCount', 'firstFlight', 'connectedFlight', 'isReturn'
+        //     ])), 200
+        // );
         return response()->json(
             $this->flyJinnahService->getFlightDetails($request->only([
                 'paxCount', 'firstFlight', 'returnFlight', 

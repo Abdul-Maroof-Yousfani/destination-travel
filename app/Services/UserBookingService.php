@@ -22,10 +22,15 @@ class UserBookingService
         try {
             $password = Str::random(8);
 
-            $name = $userData['userFullName'] ?? '-';
-            $email = $userData['userEmail'] ?? null;
+            $title  = ucwords(strtoupper($userData['title'] ?? 'MR'));
+            $name   = $userData['userFullName'] ?? '-';
+            $email  = $userData['userEmail'] ?? null;
             $phoneCode = $userData['userPhoneCode'] ?? '-';
             $phone = $userData['userPhone'] ?? '-';
+            $country_code = $userData['countryCode'] ?? '-';
+            $country_name = $userData['country'] ?? '-';
+            $city_code = $userData['cityCode'] ?? '-';
+            $city = $userData['city'] ?? '-';
             $acceptOffers = isset($userData['acceptOffers']) ? (bool) $userData['acceptOffers'] : false;
 
             if (!$email) {
@@ -36,14 +41,20 @@ class UserBookingService
 
             if ($user) {
                 $user->update([
+                    'title' => $title,
                     'name' => $name,
                     'phone_code' => $phoneCode,
                     'phone' => $phone,
                     'accept_notification' => $acceptOffers,
                     'ip' => request()->ip(),
+                    'country_code' => $country_code,
+                    'country_name' => $country_name,
+                    'city_code' => $city_code,
+                    'city' => $city,
                 ]);
             } else {
                 $user = Client::create([
+                    'title' => $title,
                     'name' => $name,
                     'email' => $email,
                     'phone_code' => $phoneCode,
@@ -52,6 +63,10 @@ class UserBookingService
                     'password' => Hash::make($password),
                     'original_password' => $password,
                     'ip' => request()->ip(),
+                    'country_code' => $country_code,
+                    'country_name' => $country_name,
+                    'city_code' => $city_code,
+                    'city' => $city,
                 ]);
             }
 

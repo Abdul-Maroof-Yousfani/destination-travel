@@ -16,6 +16,7 @@ class Client extends Authenticatable
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'title',
         'name',
         'phone_code',
         'phone',
@@ -27,6 +28,10 @@ class Client extends Authenticatable
         'is_active',
         'accept_notification',
         'ip',
+        'country_code',
+        'country_name',
+        'city_code',
+        'city',
     ];
 
     protected $casts = [
