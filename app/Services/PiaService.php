@@ -302,7 +302,7 @@ class PiaService
             $individualID = "IND-{$paxType}" . ($index + 1);
             $gender = (isset($pax['title']) && (strtolower($pax['title']) === 'mr' || strtolower($pax['title']) === 'm')) ? 'M' : 'F';
             $contactRef = "Contact-" . ($index + 1);
-            $docTypeCode = $user['domestic'] ? 'NATIONAL_ID' : 'PASSPORT';
+            $docTypeCode = $user['domestic'] ? 'NATIONAL_ID' : 'PASSPORT_ID';
 
             $paxRefForThis = $paxID;
             if ($paxType === 'INF') {
@@ -314,15 +314,22 @@ class PiaService
                 }
                 $infCounter++;
             }
+            $identityDocXML = '';
+            if ($paxType !== 'INF') {
+                $passportNumber = htmlspecialchars($pax['passportNumber'] ?? '');
+                $identityDocXML = <<<XML
+                    <IdentityDoc>
+                        <IdentityDocID>{$passportNumber}</IdentityDocID>
+                        <IdentityDocTypeCode>{$docTypeCode}</IdentityDocTypeCode>
+                    </IdentityDoc>
+                XML;
+            }
             $paxListXML .= <<<XML
                 <Pax>
                     <Birthdate>{$pax['dob']}</Birthdate>
                     <CitizenshipCountryCode>{$pax['nationality']}</CitizenshipCountryCode>
                     <ContactInfoRefID>{$contactRef}</ContactInfoRefID>
-                    <IdentityDoc>
-                        <IdentityDocID>{$pax['passportNumber']}</IdentityDocID>
-                        <IdentityDocTypeCode>{$docTypeCode}</IdentityDocTypeCode>
-                    </IdentityDoc>
+                    {$identityDocXML}
                     <Individual>
                         <GenderCode>{$gender}</GenderCode>
                         <GivenName>{$pax['name']}</GivenName>
@@ -370,7 +377,7 @@ class PiaService
         </soapenv:Envelope>
         XML;
 
-        dd($xmlRequest);
+        // dd($xmlRequest);
 
         // ✅ Send request to API
         $response = $this->sendRequest('doOrderCreate', $xmlRequest, true);

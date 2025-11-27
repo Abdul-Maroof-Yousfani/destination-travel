@@ -19,7 +19,7 @@
                                 <img src="{{ $client->profile_path ? asset('storage/' . $client->profile_path) : asset('assets/images/default-avatar.jpg') }}" 
                                     alt="Profile" class="rounded-circle me-3" width="70" height="70">
                                 <div>
-                                    <h4 class="mb-0">{{ $client->name }}</h4>
+                                    <h4 class="mb-0">{{ $client->title ?? 'Mrs' }} {{ $client->name }}</h4>
                                     <small class="text-muted">{{ $client->email }}</small><br>
                                     <span class="badge bg-{{ $client->is_active ? 'success' : 'secondary' }}">
                                         {{ $client->is_active ? 'Active' : 'Inactive' }}
@@ -35,12 +35,24 @@
                                 <p>{{ $client->full_phone }}</p>
                             </div>
                             <div class="col-md-4">
+                                <h6>Email</h6>
+                                <p>{{ $client->email ?? 'N/A' }}</p>
+                            </div>
+                            <div class="col-md-4">
                                 <h6>IP Address</h6>
                                 <p>{{ $client->ip ?? 'N/A' }}</p>
                             </div>
                             <div class="col-md-4">
                                 <h6>Login Provider</h6>
                                 <p>{{ $client->login_provider ?? 'Manual' }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Country</h6>
+                                <p>{{ $client->country_name ?? 'N/A' }} ({{ $client->country_code ?? 'N/A' }})</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>City</h6>
+                                <p>{{ $client->city ?? 'N/A' }} ({{ $client->city_code ?? 'N/A' }})</p>
                             </div>
                         </div>
                     </div>

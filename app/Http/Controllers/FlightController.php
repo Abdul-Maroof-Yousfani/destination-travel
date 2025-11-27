@@ -403,7 +403,7 @@ class FlightController extends Controller
             $bookFlight = $this->piaService->bookFlight($data ?? null);
             // dd($bookFlight);
             if (!empty($bookFlight['error'])) {
-                return response()->json(['status'  => 'error', 'message' => $bookFlight['message'], 'details' => $bookFlight['error'] ?? null], 400);
+                return response()->json(['status'  => 'error', 'message' => $bookFlight['error'], 'details' => $bookFlight['message'] ?? null], 400);
             }
             $client = $this->bookingService->createUser($request->user);
             $passengers = $this->bookingService->createPassengers($request->passengers, $client->id);
