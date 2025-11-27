@@ -970,7 +970,7 @@ class FlyJinnahService
             return ['error' => 'Exception occurred while booking flight.'];
         }
     }
-    public function orderChange($data)
+    public function orderChange($data) // modifyReservation
     {
         if(empty($data) || !isset($data['orderId']) || !isset($data['amount']) || !isset($data['transactionId'])) return 'Some data is missing for order change';
         $orderId = $data['orderId'];
@@ -980,7 +980,7 @@ class FlyJinnahService
         $code = $data['code'] ?? 'PKR';
         $cookieJar = new CookieJar();
         $soapUrl = $this->flight_details;
-
+        session(['JSESSIONID' => $jsessionId]);
         // $jsessionId = session('JSESSIONID');
         // if (!$jsessionId) return ['error' => 'Jsession Id not provided'];
         // dd($orderId, $amount, $code, $cookieJar, $transactionId);
@@ -1025,11 +1025,11 @@ class FlyJinnahService
             </soap:Envelope>
         ';
         try {
-            $response = $this->sendRequest('OrderChange', $xmlBody, true);
+            $response = $this->sendRequest('modifyReservation', $xmlBody, true);
 
             if (!$response || isset($response['error'])) {
-                \Log::error('OrderChangeRQ request failed', ['response' => $response]);
-                return ['error' => 'Flight booking request failed Flyjinnah (OrderChangeRQ).', 'details' => $response];
+                \Log::error('modifyReservationRQ request failed', ['response' => $response]);
+                return ['error' => 'Flight booking request failed Flyjinnah (modifyReservationRQ).', 'details' => $response];
             }
             $jsonResponse = $this->helperService->XMLtoJSON($response);
             if ($jsonResponse['Body']['OTA_AirBookRS']['Errors']['Error']['@attributes']['ShortText'] ?? ($jsonResponse['error'] ?? null)) {
