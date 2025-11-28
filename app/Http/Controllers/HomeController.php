@@ -17,14 +17,22 @@ class HomeController extends Controller
 
         $query = Airport::query();
 
-        if ($search) {
-            $query->where('name', 'LIKE', '%' . $search . '%')
-                ->orWhere('code', 'LIKE', '%' . $search . '%');
-        } else {
+        if (!$search) {
             return response()->json(['results' => []]);
         }
 
-        $airports = $query->orderBy('name')->limit(20)->get();
+        $airports = Airport::query()
+            ->where(function ($q) use ($search) {
+                $q->where('code', 'LIKE', '%' . $search . '%')
+                ->orWhere('name', 'LIKE', '%' . $search . '%');
+            })
+            ->orderByRaw("CASE 
+                            WHEN code LIKE ? THEN 0 
+                            ELSE 1 
+                        END", ["%$search%"])
+            ->orderBy('name')
+            ->limit(20)
+            ->get();
 
         $results = $airports->map(function ($airport) {
             return [
