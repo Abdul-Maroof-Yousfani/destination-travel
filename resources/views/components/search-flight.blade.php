@@ -82,6 +82,22 @@
                     </li>
                 </ul>
             </div>
+            <div class="tab-links tab-links-mob">
+                <ul class="tab-product  wow fadeInRight">
+                    <li data-targetit="box-1" class="current">
+                    <a class="pointer" data-toggle="tab"><i class="fa-solid fa-plane-departure"></i></a>
+                    </li>
+                    <li data-targetit="box-2" >
+                    <a class="pointer" data-toggle="tab"><i class="fa-solid fa-globe"></i></a>
+                    </li>
+                    <li data-targetit="box-3" >
+                    <a class="pointer" data-toggle="tab"><i class="fa-solid fa-hotel"></i></a>
+                    </li>
+                    <li data-targetit="box-4" >
+                    <a class="pointer" data-toggle="tab"><i class="fa-solid fa-passport"></i></a>
+                    </li>
+                </ul>
+            </div>
         </div>
         <div class="col-md-12 col-lg-7">
             <div class="tab-head">
@@ -143,7 +159,7 @@
                 <!-- Economy -->
                 <div class="dropdown">
                     <div class="dropdown-toggle" id="dropdownToggle2">
-                    <span class="selected-country">Economy</span>
+                        <span class="selected-country">Economy</span>
                     </div>
                     <div class="dropdown-menu economy-menu" id="dropdownMenu2">
                     <div class="dropdown-item">
@@ -1146,10 +1162,18 @@ $(document).ready(function () {
   $("#flightChildren .count").text(children);
   $("#flightInfants .count").text(infants);
 
-  const updatePassengerSummary = () => {
+//   const updatePassengerSummary = () => {
+//     let totalPassengers = adults + children + infants;
+//     $(".passengerDetails").html(`<i class="fa-solid fa-person-walking-luggage"></i> ${totalPassengers} Passenger${totalPassengers > 1 ? "s" : ""}`);
+//   };
+
+const updatePassengerSummary = () => {
     let totalPassengers = adults + children + infants;
-    $(".passengerDetails").html(`<i class="fa-solid fa-person-walking-luggage"></i> ${totalPassengers} Passenger${totalPassengers > 1 ? "s" : ""}`);
-  };
+    $(".passengerDetails").html(`
+        <i class="fa-solid fa-person-walking-luggage"></i> 
+        ${totalPassengers} <span class="passenger-text">Passenger${totalPassengers > 1 ? "s" : ""}</span>
+    `);
+};
 
   const validatePassengerCounts = () => {
     let totalPassengers = adults + children + infants;

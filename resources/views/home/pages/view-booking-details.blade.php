@@ -52,156 +52,160 @@
 @endsection
 @section('content')
 {{-- @dd($booking) --}}
-<div class="row">
-    <div class="col-md-8">
-        <section class="view-bookings">
-            <div class="booking-container">
-                <div class="view-head">
-                    <h3>View Booking</h3>
-                </div>
-                <div class="back-ground">
-                    <!-- Header Section -->
-                    <div class="header">
-                        <div class="header-item">
-                            <h5>Order ID</h5>
-                            <p><strong>{{ $booking->order_id ?? '' }}</strong></p> 
-                        </div>
-                        <div class="header-item">
-                            <h5>Booking Date</h5>
-                            <p><strong>{{ $booking->created_at->format('D, d M Y, h:i A') ?? '' }}</strong></p>
-                        </div>
-                        <div class="header-payment">
-                            <h5>Payment Method</h5>
-                            <button class="btn btn-sm btn_secondary">Complete Payment</button>
-                        </div>
-                        <div class="header-pay">
-                            <p><small>
-                                @if($booking->status === 'issued' || $booking->status === 'cancel')
 
-                                @elseif($booking->status === 'expired' || !$booking->payment_limit || now()->greaterThan($booking->payment_limit))
-                                    Expired
-                                @else
-                                    Pay before (<span id="countdown"></span>)
-                                @endif
-                            </small></p>
-                            <div class="biniti"><i class="fa-solid fa-circle-info"></i> {{ strtoupper($booking->status ?? '') }}</div>
-                        </div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 col-lg-8">
+            <section class="view-bookings">
+                <div class="booking-container">
+                    <div class="view-head">
+                        <h3>View Booking</h3>
                     </div>
-                </div>
-            <div>
-        </section>
-        <section class="view-bookings2">
-            <div class="booking-container">
-                <div class="flight-head">
-                    <h3>Flights Selected</h3>
-                </div>
-                @forelse ($booking->flights as $key => $flight)
-                    <div class="flight-details">
-                        <div class="flight-box-depart">
-                            <div class="div">
-                                <h3>{{ $key === 0 ? 'Departure' : 'Return' }}</h3>
+                    <div class="back-ground">
+                        <!-- Header Section -->
+                        <div class="header">
+                            <div class="header-item">
+                                <h5>Order ID</h5>
+                                <p><strong>{{ $booking->order_id ?? '' }}</strong></p> 
                             </div>
-                            <div class="div">
-                                <h3>{{ $flight->departure_date->format('d M, Y') ?? '' }}</h3>
+                            <div class="header-item">
+                                <h5>Booking Date</h5>
+                                <p><strong>{{ $booking->created_at->format('D, d M Y, h:i A') ?? '' }}</strong></p>
                             </div>
-                        </div>
-                        <div class="back-ground">
-                            <!-- Flight Section -->
-                            <div class="flight-box">
-                                <div class="flight-info">
-                                    <img src="{{ asset('assets/images/logos/' . strtolower($booking->airline ?? '') . '.png') }}" alt="{{ $flight->airline ?? '' }} Logo" style="width:50px;height:auto;">
-                                    <br>
-                                    <h3>{{ $flight->airline ?? '' }}</h3>
-                                </div>
-                                <div class="flight-time">
-                                    <div class="times">
-                                        <h2>{{ $flight->departure_date->format('h:i A') ?? '' }}</h2>
-                                        <span>{{ $flight->duration ?? '' }}</span>
-                                        <h2>{{ $flight->arrival_date->format('h:i A') ?? '' }}</h2>
-                                    </div>
-                                    <div class="city">
-                                        <span> {{ $flight->departure_name ?? '' }} ({{ $flight->departure_code ?? '' }}) - {{ $flight->is_connected ? 'Connecting' : 'Nonstop' }} - {{ $flight->arrival_name ?? '' }} ({{ $flight->arrival_code ?? '' }})</span>
-                                    </div>
-                                </div>
-                                <div class="weight">
-                                    <span><i class="fa-solid fa-chair"></i> {{ $flight->cabin_name_with_code ?? '' }}</span>
-                                </div>
-                                <div class="flight-price">
-                                    <h3>Total Price</h3>
-                                    <p><strong> {{ $flight->price_with_code ?? '' }}</strong></p>
-                                </div>
+                            <div class="header-payment">
+                                <h5>Payment Method</h5>
+                                <button class="btn btn-sm btn_secondary">Complete Payment</button>
+                            </div>
+                            <div class="header-pay">
+                                <p><small>
+                                    @if($booking->status === 'issued' || $booking->status === 'cancel')
+    
+                                    @elseif($booking->status === 'expired' || !$booking->payment_limit || now()->greaterThan($booking->payment_limit))
+                                        Expired
+                                    @else
+                                        Pay before (<span id="countdown"></span>)
+                                    @endif
+                                </small></p>
+                                <div class="biniti"><i class="fa-solid fa-circle-info"></i> {{ strtoupper($booking->status ?? '') }}</div>
                             </div>
                         </div>
                     </div>
-                @empty
-                    <p>No flights found.</p>
-                @endforelse
-            </div>
-        </section>
-    </div>
-    <div class="col-md-4">
-        <section class="view-bookings3">
-            <div class="booking-container">
-                <div class="flight-box-depart">
+                <div>
+            </section>
+            <section class="view-bookings2">
+                <div class="booking-container">
                     <div class="flight-head">
-                         <h4>Price Summary</h4>
+                        <h3>Flights Selected</h3>
                     </div>
-                </div>
-                <div class="back-ground">
-                    <!-- Price Summary -->
-                    <div class="summary">
-                       @forelse ($booking->bookingItems as $item)
-                           <div class="summary-row">
-                               <span>{{ $booking->airline ?? '' }} Airline - {{ $item->passenger_code }}</span>
-                               <span>{{ $item->total_price ?? '' }}</span>
-                           </div>
-                       @empty
-                           
-                       @endforelse
-                        <div class="summary-row">
-                            <span>Tax</span>
-                            <span>{{ $booking->tax_code ?? 'PKR' }} {{ number_format($booking->tax ?? 0, 2) }}</span>
-                        </div>
-                        <div class="summary-row total">
-                            <span>Price you pay</span>
-                            <span>{{ $booking->total_tax_price ?? '' }}</span>
-                        </div>
-                    </div>
-                 </div>
-            </div>
-        </section>
-        <section class="view-bookings2">
-            <div class="booking-container">
-                <div class="flight-box-depart">
-                    <div class="flight-head">
-                         <h4>Travelers</h4>
-                    </div>
-                </div>
-                @php
-                    $passengers = is_string($booking->passenger_details) ? (json_decode($booking->passenger_details, true) ?? []) : $booking->passenger_details;
-                @endphp
-                <div class="back-ground">
-                    <!-- Traveler Info -->
-                    @forelse ($passengers as $passenger)
-                        <div class="travelers">
-                            <div class="travelers-row">
-                            <p><strong><i class="fa-solid fa-user"></i> {{ $passenger['title'] ?? 'MR' }}. {{ $passenger['given_name'] ?? '' }} {{ $passenger['surname'] ?? '' }}</strong></p>
+                    @forelse ($booking->flights as $key => $flight)
+                        <div class="flight-details">
+                            <div class="flight-box-depart">
+                                <div class="div">
+                                    <h3>{{ $key === 0 ? 'Departure' : 'Return' }}</h3>
+                                </div>
+                                <div class="div">
+                                    <h3>{{ $flight->departure_date->format('d M, Y') ?? '' }}</h3>
+                                </div>
                             </div>
-                            <div class="travelers-row total">
-                                <p><i class="fa fa-solid fa-mobile"></i> {{ $booking->client->full_phone ?? '' }}</p>
-                                <p><i class="fa-solid fa-envelope"></i> {{ $booking->client->email ?? '' }}</p>
+                            <div class="back-ground">
+                                <!-- Flight Section -->
+                                <div class="flight-box">
+                                    <div class="flight-info">
+                                        <img src="{{ asset('assets/images/logos/' . strtolower($booking->airline ?? '') . '.png') }}" alt="{{ $flight->airline ?? '' }} Logo" style="width:50px;height:auto;">
+                                        <br>
+                                        <h3>{{ $flight->airline ?? '' }}</h3>
+                                    </div>
+                                    <div class="flight-time">
+                                        <div class="times">
+                                            <h2>{{ $flight->departure_date->format('h:i A') ?? '' }}</h2>
+                                            <span>{{ $flight->duration ?? '' }}</span>
+                                            <h2>{{ $flight->arrival_date->format('h:i A') ?? '' }}</h2>
+                                        </div>
+                                        <div class="city">
+                                            <span> {{ $flight->departure_name ?? '' }} ({{ $flight->departure_code ?? '' }}) - {{ $flight->is_connected ? 'Connecting' : 'Nonstop' }} - {{ $flight->arrival_name ?? '' }} ({{ $flight->arrival_code ?? '' }})</span>
+                                        </div>
+                                    </div>
+                                    <div class="weight">
+                                        <span><i class="fa-solid fa-chair"></i> {{ $flight->cabin_name_with_code ?? '' }}</span>
+                                    </div>
+                                    <div class="flight-price">
+                                        <h3>Total Price</h3>
+                                        <p><strong> {{ $flight->price_with_code ?? '' }}</strong></p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @empty
-                        <p>No travelers found.</p>
+                        <p>No flights found.</p>
                     @endforelse
-                </div>  
-                <div class="complated">
-                    <button class="btn btn-sm btn_secondary">Complete Payment</button>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
+        <div class="col-md-12 col-lg-4">
+            <section class="view-bookings3">
+                <div class="booking-container">
+                    <div class="flight-box-depart">
+                        <div class="flight-head">
+                             <h4>Price Summary</h4>
+                        </div>
+                    </div>
+                    <div class="back-ground">
+                        <!-- Price Summary -->
+                        <div class="summary">
+                           @forelse ($booking->bookingItems as $item)
+                               <div class="summary-row">
+                                   <span>{{ $booking->airline ?? '' }} Airline - {{ $item->passenger_code }}</span>
+                                   <span>{{ $item->total_price ?? '' }}</span>
+                               </div>
+                           @empty
+                               
+                           @endforelse
+                            <div class="summary-row">
+                                <span>Tax</span>
+                                <span>{{ $booking->tax_code ?? 'PKR' }} {{ number_format($booking->tax ?? 0, 2) }}</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Price you pay</span>
+                                <span>{{ $booking->total_tax_price ?? '' }}</span>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+            </section>
+            <section class="view-bookings2">
+                <div class="booking-container">
+                    <div class="flight-box-depart">
+                        <div class="flight-head">
+                             <h4>Travelers</h4>
+                        </div>
+                    </div>
+                    @php
+                        $passengers = is_string($booking->passenger_details) ? (json_decode($booking->passenger_details, true) ?? []) : $booking->passenger_details;
+                    @endphp
+                    <div class="back-ground">
+                        <!-- Traveler Info -->
+                        @forelse ($passengers as $passenger)
+                            <div class="travelers">
+                                <div class="travelers-row">
+                                <p><strong><i class="fa-solid fa-user"></i> {{ $passenger['title'] ?? 'MR' }}. {{ $passenger['given_name'] ?? '' }} {{ $passenger['surname'] ?? '' }}</strong></p>
+                                </div>
+                                <div class="travelers-row total">
+                                    <p><i class="fa fa-solid fa-mobile"></i> {{ $booking->client->full_phone ?? '' }}</p>
+                                    <p><i class="fa-solid fa-envelope"></i> {{ $booking->client->email ?? '' }}</p>
+                                </div>
+                            </div>
+                        @empty
+                            <p>No travelers found.</p>
+                        @endforelse
+                    </div>  
+                    <div class="complated">
+                        <button class="btn btn-sm btn_secondary">Complete Payment</button>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
+
 </div>
 @endsection
 @section('script')

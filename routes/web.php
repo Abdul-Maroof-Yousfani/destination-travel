@@ -21,6 +21,9 @@ Route::view('login', 'login')->name('login');
 Route::view('register', 'register')->name('register');
 Route::view('terms-and-conditions', 'home.pages.terms-and-conditions')->name('terms-and-conditions');
 Route::view('about-us', 'home.pages.about-us')->name('about-us');
+Route::get('profile', function () {
+    return view('home.layouts.profile');
+});
 Route::view('search-booking', 'home.pages.search-booking')->name('search.booking');
 Route::get('view-booking-details', [HomeController::class, 'viewBookingDetails'])->name('view.booking.details');
 Route::post('search-booking', [HomeController::class, 'searchBooking'])->name('search.booking.submit');

@@ -253,7 +253,7 @@
                                 <p class="small text-muted mt-2">Loading bundles...</p>
                             </div>
                             <!-- Nil Baggage -->
-                            {{-- <div class="card shadow-sm mx-2" style="min-width: 350px;">
+                            {{-- <div class="card shadow-sm mx-2">
                                 <div class="card-header bg-light fw-bold">
                                     <span class="">Basic</span>
                                 </div>
@@ -275,7 +275,7 @@
                             </div> --}}
 
                             <!-- Standard -->
-                            {{-- <div class="card shadow-sm mx-2" style="min-width: 250px;">
+                            {{-- <div class="card shadow-sm mx-2" >
                                 <div class="card-body">
                                     <h5 class="card-title">Standard</h5>
                                     <ul class="list-unstyled small">
@@ -295,7 +295,7 @@
                             </div>
 
                             <!-- Value -->
-                            <div class="card shadow-sm mx-2" style="min-width: 250px;">
+                            <div class="card shadow-sm mx-2">
                                 <div class="card-body">
                                     <h5 class="card-title">Value</h5>
                                     <ul class="list-unstyled small">
@@ -315,7 +315,7 @@
                             </div>
 
                             <!-- Premium -->
-                            <div class="card shadow-sm mx-2" style="min-width: 250px;">
+                            <div class="card shadow-sm mx-2">
                                 <div class="card-body">
                                     <h5 class="card-title">Premium</h5>
                                     <ul class="list-unstyled small">
@@ -553,7 +553,7 @@
                     const offerId = row.offerID?.OfferID ?? '';
 
                     return `
-                        <div class="card h-100 shadow-sm mx-2" style="min-width: 350px;">
+                        <div class="card h-100 shadow-sm mx-2">
                             <div class="card-header bg-light fw-bold">
                                 ${name}
                             </div>
@@ -757,7 +757,7 @@
             }
             setTimeout(() => {
                 const staticCard = `
-                    <div class="card shadow-sm mx-2" style="min-width: 350px;">
+                    <div class="card shadow-sm mx-2">
                         <div class="card-header bg-light fw-bold">
                             Basic
                         </div>
@@ -794,7 +794,7 @@
                             ? [] : (row.description || "").split("\n");
                         const descHTML = descArr.map(d => `<li>${d}</li>`).join("");
                         return `
-                            <div class="card shadow-sm mx-2" style="min-width: 350px;">
+                            <div class="card shadow-sm mx-2">
                                 <div class="card-header bg-light fw-bold">
                                     ${name}
                                 </div>
@@ -1506,7 +1506,7 @@
                 return `
                     <div class="card bundle-card shadow-sm mb-4 ${bundleIdx > 0 ? 'mt-4' : ''}" style="border-radius: 12px; overflow: hidden;">
                         <div class="card-header bg-info text-white p-3">
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-center head-plane-model">
                                 <h4 class="mb-0 fw-bold">✈️ PIA Bundle ${bundleIdx + 1} - ${bundle.parameters?.cabin_type || 'ECONOMY'}</h4>
                                 <span class="badge bg-light text-dark fs-6">${baggageSummary}</span>
                             </div>

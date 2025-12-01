@@ -61,6 +61,32 @@
                             <li><a href="#">Company</a></li>
                             <li><a href="#">Products</a></li>
                             <li><a href="#">Contact Us</a></li>
+                            <li><a href="{{ route('search.booking') }}"><i class="fa-solid fa-magnifying-glass"></i> Search Booking</a></li>
+                            <li><a href="tel:{{ config('variables.contact.phone') }}">
+                                    <div class="main-flex">
+                                        <div class="icon-head"><i class="fa-solid fa-phone"></i></div>
+                                        <div class="call-content"><span>Call 24/7 </span><br> <strong>{{ config('variables.contact.phone') }}</strong></div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li><a href="tel:+923232004690">
+                                    <div class="main-flex">
+                                        <div class="icon-head"><i class="fa-brands fa-whatsapp"></i></div>
+                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>+923232004690</strong></div>
+                                    </div>
+                                </a>
+                            </li>
+                            @auth('client')
+                                <li>
+                                    <a href="{{ route('login') }}"><i class="fa-regular fa-user"></i> Profile</a> &nbsp;
+                                    <a type="button" class="logoutBtn"><i class="fa fa-sign-out"></i> Logout</a>
+                                </li>
+                            @else
+                                <li>
+                                    <a href="{{ route('login') }}"><i class="fa-regular fa-user"></i> Sign In</a>
+                                </li>
+                            @endauth
+                          
                         </ul>
                     </div>
                     <div class="menuWrap2">
@@ -90,33 +116,6 @@
                                     <div class="dropdown-menu" id="dropdownMenu6"></div>
                                 </div>
                             </li> --}}
-                            @auth('client')
-                                <li>
-                                    <a href="{{ route('login') }}"><i class="fa-regular fa-user"></i> Profile</a> &nbsp;
-                                    <a type="button" class="logoutBtn"><i class="fa fa-sign-out"></i> Logout</a>
-                                </li>
-                            @else
-                                <li>
-                                    <a href="{{ route('login') }}"><i class="fa-regular fa-user"></i> Sign In</a>
-                                </li>
-                            @endauth
-                        </ul>
-                    </div>
-                    <div class="menuWrap2 menuWrap2-mobile">
-                        <ul class="menu2">
-                            <li><a href="{{ route('search.booking') }}"><i class="fa-solid fa-magnifying-glass"></i></a></li>
-                            <li><a href="tel:{{ config('variables.contact.phone') }}">
-                                    <div class="main-flex">
-                                        <div class="icon-head"><i class="fa-solid fa-phone"></i></div>
-                                    </div>
-                                </a>
-                            </li>
-                            <li><a href="tel:+923232004690">
-                                    <div class="main-flex">
-                                        <div class="icon-head"><i class="fa-brands fa-whatsapp"></i></div>
-                                    </div>
-                                </a>
-                            </li>
                             @auth('client')
                                 <li>
                                     <a href="{{ route('login') }}"><i class="fa-regular fa-user"></i> Profile</a> &nbsp;

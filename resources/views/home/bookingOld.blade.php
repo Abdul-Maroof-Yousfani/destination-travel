@@ -347,7 +347,7 @@
                                  </div>
                                  </div>
                                  <div class="book-flex">
-                                 <div class="emr w-25">
+                                 <div class="emr">
                                     <img src="/assets/images/Fly_Jinnah_logo.png" alt="Fly Jinnah logo">
                                  </div>
                                  </div>
@@ -571,7 +571,7 @@
                                  </div>
                                  </div>
                                  <div class="book-flex">
-                                 <div class="emr w-25">
+                                 <div class="emr">
                                     <img src="/assets/images/Fly_Jinnah_logo.png" alt="Fly Jinnah logo">
                                  </div>
                                  </div>
@@ -1924,7 +1924,7 @@
                         </div>
                      </div>
                      <div class="book-flex">
-                        <div class="emr w-25">
+                        <div class="emr ">
                            <img src="/assets/images/Fly_Jinnah_logo.png" alt="Fly Jinnah logo">
                         </div>
                      </div>
