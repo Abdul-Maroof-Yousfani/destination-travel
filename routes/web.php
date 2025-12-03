@@ -22,7 +22,7 @@ Route::view('register', 'register')->name('register');
 Route::view('terms-and-conditions', 'home.pages.terms-and-conditions')->name('terms-and-conditions');
 Route::view('about-us', 'home.pages.about-us')->name('about-us');
 Route::get('profile', function () {
-    return view('home.layouts.profile');
+    return view('home.pages.profile');
 });
 Route::view('search-booking', 'home.pages.search-booking')->name('search.booking');
 Route::get('view-booking-details', [HomeController::class, 'viewBookingDetails'])->name('view.booking.details');
