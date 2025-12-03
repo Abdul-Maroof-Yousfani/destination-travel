@@ -21,7 +21,8 @@ class FlightAggregatorService
         EmiratesService $emirate,
         FlyJinnahService $flyjinnah
     ) {
-        $this->services = [$pia, $emirate, $flyjinnah];
+        $this->services = [$emirate, $flyjinnah];
+        // $this->services = [$pia, $emirate, $flyjinnah];
         // $this->services = [$flyjinnah];
         // $this->services = [$emirate];
         // $this->services = [$pia];
