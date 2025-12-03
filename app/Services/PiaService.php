@@ -122,111 +122,126 @@ class PiaService
     }
     public function searchFlights($data) // AirShopping
     {
-        // Prepare segments
-        $segments = [
-            [
-                'origin' => $data['arr'],
-                'destination' => $data['dest'],
-                'departure_date' => $data['dep'],
-            ],
-        ];
-        // Add return segment if provided
-        if (!empty($data['return'])) {
-            $segments[] = [
-                'origin' => $data['dest'],
-                'destination' => $data['arr'],
-                'departure_date' => $data['return'],
+        try {
+
+            // Prepare segments
+            $segments = [
+                [
+                    'origin' => $data['arr'],
+                    'destination' => $data['dest'],
+                    'departure_date' => $data['dep'],
+                ],
+            ];
+            // Add return segment if provided
+            if (!empty($data['return'])) {
+                $segments[] = [
+                    'origin' => $data['dest'],
+                    'destination' => $data['arr'],
+                    'departure_date' => $data['return'],
+                ];
+            }
+            // Prepare passengers
+            $passengers = [];
+            for ($i = 0; $i < $data['adt']; $i++) {
+                $passengers[] = ['type' => 'ADT'];
+            }
+            for ($i = 0; $i < $data['chd']; $i++) {
+                $passengers[] = ['type' => 'CHD'];
+            }
+            for ($i = 0; $i < $data['inf']; $i++) {
+                $passengers[] = ['type' => 'INF'];
+            }
+            // Default parameters
+            $cabinType = $data['cabinClass'] ?? 'Y';
+            $currency = 'PKR';
+            $useCitySearch = true;
+
+            // Build Origin/Dest Criteria
+            $originDestCriteria = '';
+            foreach ($segments as $segment) {
+                $originDestCriteria .= <<<XML
+                <OriginDestCriteria>
+                    <DestArrivalCriteria>
+                        <IATA_LocationCode>{$segment['destination']}</IATA_LocationCode>
+                    </DestArrivalCriteria>
+                    <OriginDepCriteria>
+                        <Date>{$segment['departure_date']}</Date>
+                        <IATA_LocationCode>{$segment['origin']}</IATA_LocationCode>
+                    </OriginDepCriteria>
+                    <PreferredCabinType>
+                        <CabinTypeCode>{$cabinType}</CabinTypeCode>
+                    </PreferredCabinType>
+                </OriginDestCriteria>
+                XML;
+            }
+            $paxList = '';
+            $counter = 1;
+            foreach ($passengers as $pax) {
+                $paxList .= <<<XML
+                <Pax>
+                    <PaxID>SH{$counter}</PaxID>
+                    <PTC>{$pax['type']}</PTC>
+                </Pax>
+                XML;
+                $counter++;
+            }
+            $specialNeeds = $useCitySearch ? '<SpecialNeedsCriteria>USE_CITY_SEARCH</SpecialNeedsCriteria>' : '';
+            $xmlRequest = <<<XML
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.iata.org/IATA/2015/00/2020.1/IATA_AirShoppingRQ">
+                <soapenv:Header/>
+                <soapenv:Body>
+                    <IATA_AirShoppingRQ>
+                        <MessageDoc>
+                            <Name>NDC GATEWAY</Name>
+                            <RefVersionNumber>20.1</RefVersionNumber>
+                        </MessageDoc>
+                        {$this->getPartyBlock()}
+                        <Request>
+                            <FlightRequest>
+                                {$originDestCriteria}
+                            </FlightRequest>
+                            <Paxs>
+                                {$paxList}
+                            </Paxs>
+                            <ResponseParameters>
+                                <CurParameter>
+                                    <RequestedCurCode>{$currency}</RequestedCurCode>
+                                </CurParameter>
+                                <LangUsage>
+                                    <LangCode>EN</LangCode>
+                                </LangUsage>
+                            </ResponseParameters>
+                        </Request>
+                    </IATA_AirShoppingRQ>
+                </soapenv:Body>
+            </soapenv:Envelope>
+            XML;
+            // dd($xmlRequest);
+            $response = $this->sendRequest('doAirShopping', $xmlRequest);
+            if (!$response || isset($response['error'])) {
+                \Log::error('AirShopping request failed', ['response' => $response]);
+                return [
+                    'error' => 'Flight booking request failed PIA (AirShopping).',
+                    'details' => $response
+                ];
+            }
+            return $this->parseAirShoppingResponse($response);
+        }
+
+        catch (\Exception $e) {
+
+            \Log::error('AirShopping Exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'error' => 'An unexpected error occurred during AirShopping.',
+                'exception' => $e->getMessage()
             ];
         }
-        // Prepare passengers
-        $passengers = [];
-        for ($i = 0; $i < $data['adt']; $i++) {
-            $passengers[] = ['type' => 'ADT'];
-        }
-        for ($i = 0; $i < $data['chd']; $i++) {
-            $passengers[] = ['type' => 'CHD'];
-        }
-        for ($i = 0; $i < $data['inf']; $i++) {
-            $passengers[] = ['type' => 'INF'];
-        }
-        // Default parameters
-        $cabinType = $data['cabinClass'] ?? 'Y';
-        $currency = 'PKR'; // Default currency
-        $useCitySearch = true; // Enable city search as per document recommendation
-        $originDestCriteria = '';
-        foreach ($segments as $index => $segment) {
-            $originDestCriteria .= <<<XML
-            <OriginDestCriteria>
-                <DestArrivalCriteria>
-                    <IATA_LocationCode>{$segment['destination']}</IATA_LocationCode>
-                </DestArrivalCriteria>
-                <OriginDepCriteria>
-                    <Date>{$segment['departure_date']}</Date>
-                    <IATA_LocationCode>{$segment['origin']}</IATA_LocationCode>
-                </OriginDepCriteria>
-                <PreferredCabinType>
-                    <CabinTypeCode>{$cabinType}</CabinTypeCode>
-                </PreferredCabinType>
-            </OriginDestCriteria>
-            XML;
-        }
-        $paxList = '';
-        $counter = 1;
-        foreach ($passengers as $pax) {
-            $paxList .= <<<XML
-            <Pax>
-                <PaxID>SH{$counter}</PaxID>
-                <PTC>{$pax['type']}</PTC>
-            </Pax>
-            XML;
-            $counter++;
-        }
-        $specialNeeds = $useCitySearch ? '<SpecialNeedsCriteria>USE_CITY_SEARCH</SpecialNeedsCriteria>' : '';
-        $xmlRequest = <<<XML
-        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.iata.org/IATA/2015/00/2020.1/IATA_AirShoppingRQ">
-            <soapenv:Header/>
-            <soapenv:Body>
-                <IATA_AirShoppingRQ>
-                    <MessageDoc>
-                        <Name>NDC GATEWAY</Name>
-                        <RefVersionNumber>20.1</RefVersionNumber>
-                    </MessageDoc>
-                    {$this->getPartyBlock()}
-                    <Request>
-                        <FlightRequest>
-                            {$originDestCriteria}
-                        </FlightRequest>
-                        <Paxs>
-                            {$paxList}
-                        </Paxs>
-                        <ResponseParameters>
-                            <CurParameter>
-                                <RequestedCurCode>{$currency}</RequestedCurCode>
-                            </CurParameter>
-                            <LangUsage>
-                                <LangCode>EN</LangCode>
-                            </LangUsage>
-                        </ResponseParameters>
-                    </Request>
-                </IATA_AirShoppingRQ>
-            </soapenv:Body>
-        </soapenv:Envelope>
-        XML;
-        // dd($xmlRequest);
-        $response = $this->sendRequest('doAirShopping', $xmlRequest);
-        // \Log::info(['response' => $response]);
-        
-        if (!$response || isset($response['error'])) {
-            \Log::error('AirShopping request failed', ['response' => $response]);
-            return ['error' => 'Flight booking request failed PIA (AirShopping).', 'details' => $response];
-        }
-
-        // if (isset($orderViewRS['Errors'])) return ['error' => 'Flight booking failed.', 'details' => $orderViewRS['Errors']['Error']];
-        // dd($response);
-
-        // dd($this->parseAirShoppingResponse($response));
-        return $this->parseAirShoppingResponse($response);
     }
+
     public function bookFlight($data) // OrderCreate
     {
         $user = $data['user'] ?? [];
@@ -781,7 +796,9 @@ class PiaService
                     }
                 }
                 $paxJourneys = $response['Response']['DataLists']['PaxJourneyList']['PaxJourney'];
-                
+
+                $paxJourneys = $paxJourneys[0] ? $paxJourneys : [$paxJourneys];
+                // dd($paxJourneys);
                 $matchedJourneyId = null;
                 foreach ($paxJourneys as $journey) {
                     $segmentsRefId = $journey['PaxSegmentRefID'][0] ? $journey['PaxSegmentRefID'] : [$journey['PaxSegmentRefID']]; // normalize to array
