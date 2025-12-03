@@ -255,7 +255,7 @@ ul.m-silder button.slick-arrow:hover:after{color:#000000;background-color:#fffff
 .hep2 ul{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;}
 .hep2 ul li{width:100%;text-align:center;}
 .sho h5{font-size:18px;color:#000;font-weight:600;margin-bottom:10px;}
-.filter-dropdown-container{display:none;}
+.filter-dropdown-container{display:block !important;}
 .form-check-label{margin-bottom:0;font-size:14px;color:#000;font-weight:500;}
 label.form-check-label small{font-size:12px;}
 .fomcheck{margin-bottom:11px;}
@@ -291,6 +291,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;hei
 .multi-box ul li{width:50%;}
 .flightemissions{margin-top:30px;}
 .br-right{border-right:2px solid #D9D9D9;}
+.br-left{border-left:2px solid #D9D9D9;}
 .derp-calender h3{color:#127F9F;font-size:15px;font-weight:500;margin-bottom:5px;}
 .derp-calender p{font-size:10px;color:#595959;margin-bottom:10px;}
 .option .btn-option{margin:0 10px 10px 0;display:flex;background-color:transparent;border:1px solid #d9d9d9;font-size:13px;}
@@ -747,17 +748,38 @@ header .main-header ul.menu>li a{text-align:center !important;}
 .flight-price{font-size:16px !important;padding:12px 0px 12px 0px !important;border-left:1px solid #ddd !important;}
 .view-bookings2{padding:10px 0px 0px 0px !important;}
 .view-bookings3{padding:10px 0px 10px 0px !important;}
-.timesHeading h2{font-size:21px !important;}
+.timesHeading h2{font-size:19px !important;}
 .my-3.flight-names-dec p{font-size:11px !important;}
 .fare-scroll > .card{width:100% !important;}
 .bundle-section.my-4 h5{text-align:center;font-size:17px !important;}
 .back-edit-buttons{display:flex;justify-content:center;}
 .back-edit-buttons button{font-size:15px;padding:8px 5px;font-weight:500;}
 .tag{font-size:8px;}
+.flight-selection{padding:0px!important;margin-bottom:20px!important;}
+.step-text{font-size:13px!important;}
+.step-number{font-size:12px!important;width:35px!important;height:21px!important;line-height:21px!important;}
+.tab-content{text-align:center!important;}
+.tab{padding:12px 8px!important;font-size:10px!important;}
+.nonstop-btn{padding:7px 10px!important;font-size:10px!important;}
+.filter-btn{font-size:10px!important;}
+.flight-wrapper{margin-bottom:0px!important;}
+.flight-top-bar{padding:14px 5px!important;}
+.right-actions{gap:4px!important;}
+.filter-dropdown.p-3{right:0!important;left:-260px!important;}
 }
 @media (max-width:425px){.menu-Bar{float:right;margin-top:30px;}
 .voucher h2{font-size:14px;margin-bottom:20px;}
-.tag{font-size:8px;}
+.tab-content{text-align:center!important;}
+.tab{padding:12px 8px!important;font-size:10px!important;}
+.nonstop-btn{padding:7px 10px!important;font-size:10px!important;}
+.filter-btn{font-size:10px!important;}
+.flight-wrapper{margin-bottom:0px!important;}
+.flight-top-bar{padding:14px 5px!important;}
+.right-actions{gap:4px!important;}
+.filter-dropdown.p-3{right:0!important;left:-260px!important;}
+.flight-selection{padding:0px!important;margin-bottom:20px!important;}
+.step-text{font-size:13px!important;}
+.step-number{font-size:12px!important;width:35px!important;height:21px!important;line-height:21px!important;}
 .back-edit-buttons{display:flex;justify-content:center;}
 .back-edit-buttons button{font-size:15px;padding:8px 5px;font-weight:500;}
 .fare-scroll > .card{width:100% !important;}
@@ -768,7 +790,7 @@ header .main-header ul.menu>li a{text-align:center !important;}
 .flight-price{font-size:16px;padding:12px 0px 12px 0px;border-left:1px solid #ddd !important;}
 .weight{margin-top:20px !important;}
 .times h2{font-size:21px !important;}
-.timesHeading h2{font-size:21px !important;}
+.timesHeading h2{font-size:19px !important;}
 .my-3.flight-names-dec p{font-size:11px !important;}
 .flight-info{margin-bottom:20px;}
 .bokkings-bar{margin-top:20px;}
