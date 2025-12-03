@@ -784,7 +784,7 @@ class PiaService
                 
                 $matchedJourneyId = null;
                 foreach ($paxJourneys as $journey) {
-                    $segmentsRefId = (array) $journey['PaxSegmentRefID']; // normalize to array
+                    $segmentsRefId = $journey['PaxSegmentRefID'][0] ? $journey['PaxSegmentRefID'] : [$journey['PaxSegmentRefID']]; // normalize to array
                     if (count($segmentsRefId) === count($keys) && !array_diff($segmentsRefId, $keys)) {
                         $matchedJourneyId = $journey['PaxJourneyID'];
                         break;
