@@ -97,17 +97,17 @@
     {{-- @dd($flightData) --}}
     @forelse ($flightData['flights'] as $key => $segments)
         @php
-            $departure = $key === 0 ? $flightData['departure'] : $flightData['arrival'];
-            $arrival = $key === 0 ? $flightData['arrival'] : $flightData['departure'];
+            // $departure = $key === 0 ? $flightData['departure'] : $flightData['arrival'];
+            // $arrival = $key === 0 ? $flightData['arrival'] : $flightData['departure'];
         @endphp
         <div class="departure_names"  id="{{ $key === 0 ? 'departure-section' : 'return-section' }}" style="display:{{ $key === 0 ? 'block' : 'none' }};">
-            <div class="df-items plane">
+            {{-- <div class="df-items plane">
                 <h1>{{ $key === 0 ? 'Departure' : 'Return' }} Flights</h1>
                 <p class="small font-italic">
                     {{ $departure['airport'] }} ({{ $departure['code'] }}) →
                     {{ $arrival['airport'] }} ({{ $arrival['code'] }})
                 </p>
-            </div>
+            </div> --}}
             {{-- Flights :) --}}
             @forelse ($segments as $flight)
                 {{-- @dd($flightData, $flight) --}}
@@ -138,15 +138,13 @@
                                 <div><h2><strong>{{ $flightArr['time'] ?? '' }}</strong></h2></div>
                             </div>
                             <div class="my-3 flight-names-dec text-center">
-                                <p>
-
-                                    {{ $flightDep['airport'] }} ({{ $flightDep['code'] }}) -
+                                <p>{{ $flightDep['airport'] }} ({{ $flightDep['code'] }}) -
                                     @if ($flight['isConnected'])
-                                    <span class="connected">{{ $stopCount }} {{ $stopCount > 1 ? 'Stops' : 'Stop' }}</span>
+                                        <span class="connected">{{ $stopCount }} {{ $stopCount > 1 ? 'Stops' : 'Stop' }}</span>
                                     @else
-                                    Nonstop
+                                        Nonstop
                                     @endif
-                                    - {{ $flightArr['airport'] }} ({{ $flightArr['code'] }})
+                                        - {{ $flightArr['airport'] }} ({{ $flightArr['code'] }})
                                 </p>
                             </div>
                             {{-- <div class="text-muted small kgs-total">🧳 Total: 20kg &nbsp;&nbsp; 🍴 Meal</div> --}}
@@ -410,7 +408,7 @@
         let firstFlight, firstConnectedFlight, returnConnectedFlight;
         let segments, flightTotalFare, rtnSelectedFlight, airline, depSelectedFlight;
         // let firstSegments, secondSegments;
-        $(".connected").click(function() {
+        $('.connected').off('click').on('click', function () {
             $(this).closest(".flight-card").find(".details-section").slideToggle();
         });
 
@@ -452,6 +450,8 @@
             }
 
             if (selectedCarrier === 'pia') {
+                $('#departure-text').removeClass('active');
+                $('#return-text').addClass('active');
                 $("#departure-section").slideUp(500, function() {
                     $("#return-section").fadeIn(500);
                 });
@@ -906,6 +906,8 @@
                     firstBundleId = bundleId;
                     offerIdsDep = offerIds;
                     if (isReturn) {
+                        $('#departure-text').removeClass('active');
+                        $('#return-text').addClass('active');
                         $("#departure-section").slideUp(500, function() {
                             $("#return-section").fadeIn(500);
                         });
