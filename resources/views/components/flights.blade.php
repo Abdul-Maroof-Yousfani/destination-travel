@@ -725,6 +725,10 @@
                         $bundleLoop.html(`<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">No bundles available</div>`);
                         return;
                     }
+                    if (!res.bundles || res.bundles === "Not found") {
+                        showBasicOnly(element, res, direction, firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight);
+                        return;
+                    }
                     renderBundles(res || [], element, direction, firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight);
                 },
                 error: (xhr, status, error) => {
@@ -736,10 +740,58 @@
                 }
             });
         };
+        function showBasicOnly(el, data, isReturn, firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight) {
+            const $flightCard = $(el).closest(".flight-card");
+            const $bundleLoop = $flightCard.find(".bundle-loop");
+
+            const segments = getSegment(data.originDestinationOptions.FlightSegment)
+                || data.originDestinationOptions.map(item => getSegment(item.FlightSegment));
+
+            const flightTotalFare = data?.prices?.ItinTotalFare ?? null;
+
+            const flightData = isReturn
+                ? { firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight }
+                : { firstFlight, firstConnectedFlight };
+
+            $bundleLoop.html(`
+                <div class="card shadow-sm mx-2">
+                    <div class="card-header bg-light fw-bold">
+                        Basic
+                    </div>
+                    <div class="card-body">
+                        <span class="fw-bold">Included</span>
+                        <ul class="list-unstyled small">
+                            <li>Check-in: 10 Kg</li>
+                            <li>Checked Baggage (Baggage Rate)</li>
+                            <li>Seat</li>
+                            <li>Meal</li>
+                            <li>Modification (Penalties Apply)</li>
+                            <li>Cancellation (Penalties Apply)</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer text-center bg-white">
+                        <button class="btn btn-primary w-100 fw-bold bookBtn"
+                            data-airline="flyjinnah"
+                            data-flight='${JSON.stringify(flightData).replace(/'/g, "&apos;")}'
+                            data-segments='${JSON.stringify(segments).replace(/"/g, "&quot;")}'
+                            data-flight-total-fare='${JSON.stringify(flightTotalFare).replace(/"/g, "&quot;")}'
+                            data-is-return="${isReturn}"
+                            data-bundle-id="basic">
+                            + PKR 0.00
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
         const renderBundles = (data, el, isReturn, firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight) => {
-            let useBundleId = data.bundles[0] ? (data.bundles[0].bundledService.some(b => b.bunldedServiceId == firstBundleId) ? firstBundleId : null) : null;
+            let useBundleId = data?.bundles?.[0]?.bundledService?.some(b => b.bunldedServiceId == firstBundleId)
+                ? firstBundleId
+                : null;
+
+            // let useBundleId = data.bundles[0] ? (data.bundles[0].bundledService.some(b => b.bunldedServiceId == firstBundleId) ? firstBundleId : null) : null;
             firstBundleId = (firstBundleId === 'basic') ? 'basic' : (isReturn ? useBundleId : useBundleId);
-            const bundles = isReturn ? (data.bundles[1].bundledService || []) : (data.bundles.bundledService || []);
+            const bundles = isReturn ? (data?.bundles[1].bundledService || []) : (data?.bundles.bundledService || []);
             const bundlesArray = Array.isArray(bundles) ? bundles : (bundles ? [bundles] : []);
             const $flightCard = $(el).closest(".flight-card");
             const $bundleSection = $flightCard.find(".bundle-section");
