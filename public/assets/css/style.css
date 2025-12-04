@@ -598,11 +598,19 @@ ul.m-silder button.slick-arrow.slick-prev{left:-555px !important;}
 .modal-dialog{max-width:86% !important;}
 .emri img{width:100% !important;}
 .table-responsive.profile-destinations .table-sm td,.table-sm th{font-size:14px;}
+.fare-scroll > .card {
+  
+    width: 46% !important;
+}
 }
 @media (max-width:768px){.menuWrap2.menuWrap2-mobile{display:block !important;}
 .menuWrap2{display:none !important;}
 .menuWrap2.menuWrap2-mobile ul{display:flex;align-items:center;justify-content:right;text-align:center;gap:33px;}
 .logo a img{width:53% !important;}
+.fare-scroll > .card {
+  
+    width: 46% !important;
+}
 .tab-links ul{gap:50px;margin-bottom:-22px;}
 .tab-head h2{font-size:19px !important;text-align:center !important;}
 .radio-container label{font-size:11px !important;}
