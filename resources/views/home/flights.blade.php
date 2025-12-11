@@ -60,8 +60,8 @@
 .filter-dropdown-container{position:relative;display:inline-block;/* ensures toggle and dropdown are together */
 }
 /* Toggle button */
-.filter-toggle{cursor:pointer;padding:5px 10px;border:1px solid #ccc;background:#fff;display:flex;align-items:center;justify-content:space-between;min-width:80px;/* adjust as needed */
-}
+.filter-toggle{cursor:pointer;padding:5px 10px;display:flex;align-items:center;justify-content:space-between;}
+
 /* Dropdown menu */
 .filter-dropdown{position:absolute;top:100%;left:0;background:#fff;border:1px solid #ccc;min-width:100%;/* match toggle width */
  z-index:999;display:none;}
