@@ -26,6 +26,41 @@
 .input-group-text{background-color:#fff;cursor:pointer;transition:all 0.3s ease;color:#00839d;}
 .input-group-text:hover{color:#000;}
 .form-control{height:48px;padding:12px 16px;border:1px solid #e0e0e0;border-radius:8px;font-size:15px;color:#333;background-color:#fff !important;transition:all 0.2sease;}
+
+
+/* Only target dropdowns inside .dropdowns */
+/* .dropdowns .dropdown{position:relative;}
+.dropdowns .dropdown-toggle{cursor:pointer;background:#fff;}
+.dropdowns .dropdown-menu{display:none;position:absolute;background:#fff;padding:12px;border:1px solid #ddd;width:220px;border-radius:6px;z-index:9999;}
+.dropdowns .dropdown-menu.show{display:block !important;}
+.dropdowns .quantity{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.dropdowns .quantity button{width:26px;height:26px;border:1px solid #ccc;background:#f7f7f7;cursor:pointer;}
+.dropdowns .quantity button:hover{background:#e8e8e8;} */
+/* Optional:clean inputs */
+/* .dropdowns input[type="radio"]{margin-right:6px;} */
+/* WRAPPER (Only inside .dropdowns) */
+.dropdowns .dropdown{position:relative;cursor:pointer;}
+/* Toggle Button */
+.dropdowns .dropdown-toggle{padding:10px 15px;border:1px solid #ddd;border-radius:6px;background:#fff;display:flex;align-items:center;gap:8px;}
+/* Dropdown Menu */
+.dropdowns .dropdown-menu{position:absolute;top:110%;left:0;min-width:180px;background:#fff;border:1px solid #ddd;border-radius:6px;padding:10px;display:none;z-index:9999;}
+/* Show class toggled by JS */
+.dropdowns .dropdown-menu.show{display:block;}
+/* Dropdown item style */
+.dropdowns .dropdown-item{padding:8px 5px;font-size:14px;cursor:pointer;border-radius:4px;}
+.dropdowns .dropdown-item:hover{background:#f5f5f5;}
+/* Passenger Buttons UI (safe,minimal) */
+/* .dropdowns .quantity{display:flex;justify-content:space-between;align-items:center;padding:6px 0;}
+.dropdowns .quantity button{width:26px;height:26px;border:1px solid #ccc;background:#fff;cursor:pointer;border-radius:4px;}
+.dropdowns .quantity .count{min-width:20px;text-align:center;font-weight:600;} */
+.dropdowns .quantity{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.dropdowns .quantity button{width:26px;height:26px;border:1px solid #ccc;background:#f7f7f7;cursor:pointer;}
+.dropdowns .quantity button:hover{background:#e8e8e8;}
+.dropdowns .error-limit{color:red;font-size:12px;padding-top:5px;}
+.quantity button:hover{color:#000 !important;}
+.dropdowns .dropdown-menu{display:none !important;}
+.dropdowns .dropdown-menu.show{display:block !important;}
+
 </style>
 @if (session('error'))
     <script>
@@ -238,445 +273,12 @@
             </ul>
         </div>
     </div>
-    <!-- <div class="box-2 tab-content">
-
-        <div class="radio-container">
-            <div>
-                <input type="radio" id="option1" name="options" value="option1">
-                <label for="option1">One Way</label>
-            </div>
-            <div>
-                <input type="radio" id="option2" name="options" value="option2">
-                <label for="option2">Return</label>
-            </div>
-            <div>
-                <input type="radio" id="option3" name="options" value="option3">
-                <label for="option3">Multi City</label>
-            </div>
-
-
-
-            <div>
-                <div class="dropdown-toggle" id="dropdownToggle1">
-                    <span class="selected-country">
-                        <i class="fa-solid fa-person-walking-luggage"></i> 1 Adult
-                    </span>
-                </div>
-                <div class="dropdown-menu dropdown-menu1" id="dropdownMenu1" style="display: none;">
-                    <div class="dropdown-item quantity" id="adults">
-                        <span>Adults</span>
-                        <button class="decrement">-</button>
-                        <span class="count">1</span>
-                        <button class="increment">+</button>
-                    </div>
-                    <div class="dropdown-item quantity" id="children">
-                        <span>Children</span>
-                        <button class="decrement">-</button>
-                        <span class="count">0</span>
-                        <button class="increment">+</button>
-                    </div>
-                    <div class="dropdown-item quantity" id="infants">
-                        <span>Infants</span>
-                        <button class="decrement">-</button>
-                        <span class="count">0</span>
-                        <button class="increment">+</button>
-                    </div>
-                    <p id="error-message" class="error-limit"></p>
-                </div>
-            </div>
-
-
-
-      
-            <div class="Economy">
-                <div class="dropdown-toggle" id="dropdownToggle2" onclick="toggleDropdown()">
-                    <span class="selected-country">Economy</span>
-                </div>
-                <div class="dropdown-menu dropdown-menu2" id="dropdownMenu2" style="display: none;">
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="economy" onclick="updateSelection(this)"> Economy
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="premium" onclick="updateSelection(this)"> Premium Economy
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="business" onclick="updateSelection(this)"> Business
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="first" onclick="updateSelection(this)"> First
-                        </label>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-        <div class="fly">
-            <ul>
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </div>
-                        <div class="flys">
-                            <p>Flying From (City or Airport)</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <div class="right-left">
-                    <i class="fa-solid fa-right-left"></i>
-                    </div>
-                </li>
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </div>
-                        <div class="flys flys2">
-                            <p>Flying From (City or Airport)</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-calendar-days"></i>
-                        </div>
-                        <div class="flys flys2">
-                            <p>Check in</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-calendar-days"></i>
-                        </div>
-                        <div class="flys">
-                            <p>Check Out</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <div class="search-container">
-                    <a href="{{ route('flights')}}"><i class="fa-solid fa-magnifying-glass"></i></a>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </div> -->
-    <!-- <div class="box-3  tab-content">
-        <div class="radio-container">
-            <div>
-                <input type="radio" id="option1" name="options" value="option1">
-                <label for="option1">One Way</label>
-            </div>
-            <div>
-                <input type="radio" id="option2" name="options" value="option2">
-                <label for="option2">Return</label>
-            </div>
-            <div>
-                <input type="radio" id="option3" name="options" value="option3">
-                <label for="option3">Multi City</label>
-            </div>
-
-            <div>
-                <div class="dropdown-toggle" id="dropdownToggle1">
-                    <span class="selected-country">
-                        <i class="fa-solid fa-person-walking-luggage"></i> 1 Adult
-                    </span>
-                </div>
-                <div class="dropdown-menu dropdown-menu1" id="dropdownMenu1" style="display: none;">
-                    <div class="dropdown-item quantity" id="adults">
-                        <span>Adults</span>
-                        <button class="decrement">-</button>
-                        <span class="count">1</span>
-                        <button class="increment">+</button>
-                    </div>
-                    <div class="dropdown-item quantity" id="children">
-                        <span>Children</span>
-                        <button class="decrement">-</button>
-                        <span class="count">0</span>
-                        <button class="increment">+</button>
-                    </div>
-                    <div class="dropdown-item quantity" id="infants">
-                        <span>Infants</span>
-                        <button class="decrement">-</button>
-                        <span class="count">0</span>
-                        <button class="increment">+</button>
-                    </div>
-                    <p id="error-message" class="error-limit"></p>
-                </div>
-      
-            <div class="Economy">
-                <div class="dropdown-toggle" id="dropdownToggle2" onclick="toggleDropdown()">
-                    <span class="selected-country">Economy</span>
-                </div>
-                <div class="dropdown-menu dropdown-menu2" id="dropdownMenu2" style="display: none;">
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="economy" onclick="updateSelection(this)"> Economy
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="premium" onclick="updateSelection(this)"> Premium Economy
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="business" onclick="updateSelection(this)"> Business
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="first" onclick="updateSelection(this)"> First
-                        </label>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="fly">
-            <ul>
-
-            
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="locs">
-                            <div class="icon-head-loc">
-                                <i class="fa-solid fa-location-dot"></i>
-                            </div>
-                            <div class="flys">
-                                <p>Flying From (City or Airport)</p>
-                            </div>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <div class="right-left mob-hid">
-                    <i class="fa-solid fa-right-left"></i>
-                    </div>
-                </li>
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="locs">
-                            <div class="icon-head-loc">
-                                <i class="fa-solid fa-location-dot"></i>
-                            </div>
-                            <div class="flys flys2">
-                                <p>Flying From (City or Airport)</p>
-                            </div>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-
-
-
-
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-calendar-days"></i>
-                        </div>
-                        <div class="flys flys2">
-                            <p>Check in</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-calendar-days"></i>
-                        </div>
-                        <div class="flys">
-                            <p>Check Out</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <div class="search-container">
-                    <a href="{{ route('flights')}}"><i class="fa-solid fa-magnifying-glass"></i></a>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </div>
-    <div class="box-4 tab-content">
-        <div class="radio-container">
-            <div>
-                <input type="radio" id="option1" name="options" value="option1">
-                <label for="option1">One Way</label>
-            </div>
-            <div>
-                <input type="radio" id="option2" name="options" value="option2">
-                <label for="option2">Return</label>
-            </div>
-            <div>
-                <input type="radio" id="option3" name="options" value="option3">
-                <label for="option3">Multi City</label>
-            </div>
-
-
-
-            <div>
-                <div class="dropdown-toggle" id="dropdownToggle1">
-                    <span class="selected-country">
-                        <i class="fa-solid fa-person-walking-luggage"></i> 1 Adult
-                    </span>
-                </div>
-                <div class="dropdown-menu dropdown-menu1" id="dropdownMenu1" style="display: none;">
-                    <div class="dropdown-item quantity" id="adults">
-                        <span>Adults</span>
-                        <button class="decrement">-</button>
-                        <span class="count">1</span>
-                        <button class="increment">+</button>
-                    </div>
-                    <div class="dropdown-item quantity" id="children">
-                        <span>Children</span>
-                        <button class="decrement">-</button>
-                        <span class="count">0</span>
-                        <button class="increment">+</button>
-                    </div>
-                    <div class="dropdown-item quantity" id="infants">
-                        <span>Infants</span>
-                        <button class="decrement">-</button>
-                        <span class="count">0</span>
-                        <button class="increment">+</button>
-                    </div>
-                    <p id="error-message" class="error-limit"></p>
-                </div>
-            </div>
-
-
-
-
-            <div class="Economy">
-                <div class="dropdown-toggle" id="dropdownToggle2" onclick="toggleDropdown()">
-                    <span class="selected-country">Economy</span>
-                </div>
-                <div class="dropdown-menu dropdown-menu2" id="dropdownMenu2" style="display: none;">
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="economy" onclick="updateSelection(this)"> Economy
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="premium" onclick="updateSelection(this)"> Premium Economy
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="business" onclick="updateSelection(this)"> Business
-                        </label>
-                    </div>
-                    <div class="dropdown-item">
-                        <label>
-                            <input type="radio" name="class" value="first" onclick="updateSelection(this)"> First
-                        </label>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-        <div class="fly">
-            <ul>
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </div>
-                        <div class="flys">
-                            <p>Flying From (City or Airport)</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <div class="right-left">
-                    <i class="fa-solid fa-right-left"></i>
-                    </div>
-                </li>
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </div>
-                        <div class="flys flys2">
-                            <p>Flying From (City or Airport)</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-
-
-                
-
-
-
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-calendar-days"></i>
-                        </div>
-                        <div class="flys flys2">
-                            <p>Check in</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                    <div class="main-flex">
-                        <div class="icon-head-loc">
-                            <i class="fa-solid fa-calendar-days"></i>
-                        </div>
-                        <div class="flys">
-                            <p>Check Out</p>
-                        </div>
-                    </div>
-                    </a>
-                </li>
-                <li>
-                    <div class="search-container">
-                    <a href="{{ route('flights')}}"><i class="fa-solid fa-magnifying-glass"></i></a>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </div> -->
+    <!-- <div class="box-2 tab-content"></div>-->
 </div>
-<!-- <script>
+<script>
+    /* ==========================
+    DROPDOWN MENU HANDLER
+    ========================== */
     document.querySelectorAll('.dropdown-toggle').forEach((toggle) => {
     toggle.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -692,43 +294,54 @@
     document.querySelectorAll('.dropdown-menu').forEach((m) => m.classList.remove('active'));
     });
 </script>
+
 <script>
+    /* ==========================
+    SELECT2 INITIALIZATION
+    ========================== */
     $(document).ready(function () {
     $(".select2").select2({
         theme: "default",
-        placeholder: $(this).data("placeholder"),
+        placeholder: function() {
+        return $(this).data("placeholder");
+        },
         minimumResultsForSearch: 5,
         width: "100%",
     });
     });
 </script>
+
 <script>
-
-  // Dual-month date pickers
-  flatpickr("#depart", {
-    dateFormat: "d M Y",
-    minDate: "today",
-    onChange: function(selectedDates, dateStr) {
-      if (selectedDates.length > 0) {
-        returnPicker.set('minDate', selectedDates[0]);
-      }
-    }
-  });
-
-  const returnPicker = flatpickr("#return", {
+    /* ==========================
+    FLATPICKR INITIALIZATION
+    ========================== */
+    const returnPicker = flatpickr("#returnDate", {
     dateFormat: "d M Y",
     minDate: "today"
-  });
+    });
 
-  flatpickr("#tourStart", { dateFormat: "d M Y", minDate: "today" });
-  flatpickr("#tourEnd", { dateFormat: "d M Y", minDate: "today" });
-  flatpickr("#checkIn", { dateFormat: "d M Y", minDate: "today" });
-  flatpickr("#checkOut", { dateFormat: "d M Y", minDate: "today" });
-  flatpickr("#visaDate", { dateFormat: "d M Y", minDate: "today" });
+    flatpickr("#departure", {
+    dateFormat: "d M Y",
+    minDate: "today",
+    onChange: function(selectedDates) {
+        if (selectedDates.length > 0) {
+        returnPicker.set('minDate', selectedDates[0]);
+        }
+    }
+    });
 
-
+    flatpickr("#tourStart", { dateFormat: "d M Y", minDate: "today" });
+    flatpickr("#tourEnd", { dateFormat: "d M Y", minDate: "today" });
+    flatpickr("#checkIn", { dateFormat: "d M Y", minDate: "today" });
+    flatpickr("#checkOut", { dateFormat: "d M Y", minDate: "today" });
+    flatpickr("#visaDate", { dateFormat: "d M Y", minDate: "today" });
 </script>
+
 <script>
+
+    /* ==========================
+    INPUT FOCUS ON ICON CLICK
+    ========================== */
     document.querySelectorAll('.input-group-text').forEach(icon => {
     icon.addEventListener('click', function() {
         const input = this.previousElementSibling;
@@ -736,106 +349,132 @@
     });
     });
 </script>
+
 <script>
+    /* ==========================
+    AIRPORT SELECT2 WITH STATIC + AJAX
+    ========================== */
     const staticAirports = [
-        @foreach($airports as $airport)
-            { id: '{{ $airport->code }}', text: '{{ addslashes($airport->name) }} ({{ $airport->code }})' },
-        @endforeach
+    @foreach($airports as $airport)
+        { id: '{{ $airport->code }}', text: '{{ addslashes($airport->name) }} ({{ $airport->code }})' },
+    @endforeach
     ];
 
     function setupAirportSelect(selector) {
-        $(selector).select2({
-            theme: 'classic',
-            placeholder: $(selector).data('placeholder'),
-            minimumInputLength: 0,
-            ajax: {
-                transport: function (params, success, failure) {
-                    const term = params.data.term || '';
-                    
-                    if (!term.length) {
-                        // No search term, show only static list
-                        success({ results: staticAirports });
-                        return;
-                    }
+    $(selector).select2({
+        theme: 'classic',
+        placeholder: $(selector).data('placeholder'),
+        minimumInputLength: 0,
+        ajax: {
+        transport: function (params, success, failure) {
+            const term = params.data.term || '';
 
-                    // With search term, show only remote results
-                    $.ajax({
-                        url: '{{ route("airport") }}',
-                        dataType: 'json',
-                        delay: 250,
-                        data: { term },
-                        success: function (data) {
-                            success({ results: data.results });
-                        },
-                        error: failure
-                    });
-                },
-                processResults: function (data) {
-                    return data;
-                },
-                cache: true
+            if (!term.length) {
+            success({ results: staticAirports });
+            return;
             }
+
+            $.ajax({
+            url: '{{ route("airport") }}',
+            dataType: 'json',
+            delay: 250,
+            data: { term },
+            success: function (data) {
+                success({ results: data.results });
+            },
+            error: failure
+            });
+        },
+        processResults: function (data) {
+            return data;
+        },
+        cache: true
+        }
+    });
+    }
+
+    function setInitialAirportValue(selector, code) {
+    if (!code) return;
+
+    const staticMatch = staticAirports.find(a => a.id === code);
+
+    if (staticMatch) {
+        const option = new Option(staticMatch.text, staticMatch.id, true, true);
+        $(selector).append(option).trigger('change');
+    } else {
+        $.ajax({
+        url: '{{ route("airport") }}',
+        data: { term: code },
+        dataType: 'json',
+        success: function (data) {
+            const match = data.results.find(item => item.id === code);
+            if (match) {
+            const option = new Option(match.text, match.id, true, true);
+            $(selector).append(option).trigger('change');
+            }
+        }
         });
     }
-    const setInitialAirportValue = (selector, code) => {
-        if (!code) return;
+    }
+</script>
 
-        const staticMatch = staticAirports.find(a => a.id === code);
-
-        if (staticMatch) {
-            const option = new Option(staticMatch.text, staticMatch.id, true, true);
-            $(selector).append(option).trigger('change');
-        } else {
-            $.ajax({
-                url: '{{ route("airport") }}',
-                data: { term: code },
-                dataType: 'json',
-                success: function (data) {
-                    const match = data.results.find(item => item.id === code);
-                    if (match) {
-                        const option = new Option(match.text, match.id, true, true);
-                        $(selector).append(option).trigger('change');
-                    }
-                }
-            });
-        }
-    };
-
-
-    document.getElementById('dropdownToggle1').addEventListener('click', function(event) {
-        event.stopPropagation(); // Prevent immediate closing
-        const menu = document.getElementById('dropdownMenu1');
-        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-    });
+<script>
+    /* ==========================
+    FLIGHT SEARCH LOGIC
+    ========================== */
     $(document).ready(function () {
-        const getURLParam = param => new URLSearchParams(window.location.search).get(param) || "";
-        
-        let departure = $("#departure");
-        let returnDate = $("#returnDate");
-
-        let today = new Date().toISOString().split('T')[0];
-        departure.attr("min", today)
-
-        departure.val(getURLParam("dep"));
-        returnDate.val(getURLParam("return"));
-
-        returnDate.attr("min", departure.val() || today)
-        departure.on("change", function () {
-            let selectedDeparture = $(this).val();
-            returnDate.attr("min", selectedDeparture);
-
-            // clear returnDate if it's before the new departure date
-            if (returnDate.val() < selectedDeparture) {
-                returnDate.val("");
+        const getURLParam = (param) => new URLSearchParams(window.location.search).get(param) || "";
+        const departurePicker = flatpickr("#departure", {
+            dateFormat: "d M Y",
+            minDate: "today",
+            onChange: function(selectedDates) {
+            if (selectedDates.length > 0) {
+                returnPicker.set('minDate', selectedDates[0]);
+            }
             }
         });
-        // $("#from").val(getURLParam("arr"));
-        // $("#to").val(getURLParam("dest"));
+
+        const returnPicker = flatpickr("#returnDate", {
+            dateFormat: "d M Y",
+            minDate: "today"
+        });
+
+        // Helper to parse ISO to Flatpickr format
+        function setPickerFromISO(picker, isoDate) {
+            if (!isoDate) return;
+            const date = new Date(isoDate);
+            if (!isNaN(date)) {
+            picker.setDate(date, true); // true triggers onChange
+            }
+        }
+
+        // Set dates from URL params
+        setPickerFromISO(departurePicker, getURLParam("dep"));
+        setPickerFromISO(returnPicker, getURLParam("return"));
+        //   let departure = $("#departure");
+        //   let returnDate = $("#returnDate");
+
+        //   let today = new Date().toISOString().split('T')[0];
+        //   departure.attr("min", today);
+
+        //   departure.val(getURLParam("dep"));
+        //   returnDate.val(getURLParam("return"));
+
+        //   returnDate.attr("min", departure.val() || today);
+
+        //   departure.on("change", function () {
+        //     let selectedDeparture = $(this).val();
+        //     returnDate.attr("min", selectedDeparture);
+
+        //     if (returnDate.val() < selectedDeparture) {
+        //       returnDate.val("");
+        //     }
+        //   });
+
         setInitialAirportValue('#from', getURLParam("arr"));
         setInitialAirportValue('#to', getURLParam("dest"));
 
-
-        if(!$("#returnDate").val()){
+        if (!$("#returnDate").val()) {
             $("#returnDate").prop("disabled", true);
             $("#oneWaySearch").prop("checked", true);
         } else {
@@ -843,11 +482,11 @@
         }
 
         $('#oneWaySearch').change(function() {
-            $("#returnDate").prop("disabled", this.checked);
-            $("#returnDate").val(null);
+            $("#returnDate").prop("disabled", this.checked).val(null);
         });
+
         $('#returnSearch').change(function() {
-            $("#returnDate").removeProp("disabled", this.checked);
+            $("#returnDate").prop("disabled", !this.checked);
             $("#returnDate").val(getURLParam("return"));
         });
 
@@ -859,9 +498,17 @@
         $("#flightChildren .count").text(children);
         $("#flightInfants .count").text(infants);
 
+        //   const updatePassengerSummary = () => {
+        //     let totalPassengers = adults + children + infants;
+        //     $(".passengerDetails").html(`<i class="fa-solid fa-person-walking-luggage"></i> ${totalPassengers} Passenger${totalPassengers > 1 ? "s" : ""}`);
+        //   };
+        // passenger
         const updatePassengerSummary = () => {
             let totalPassengers = adults + children + infants;
-            $(".passengerDetails").html(`<i class="fa-solid fa-person-walking-luggage"></i> ${totalPassengers} Passenger${totalPassengers > 1 ? "s" : ""}`);
+            $(".passengerDetails").html(`
+                <i class="fa-solid fa-person-walking-luggage"></i> 
+                ${totalPassengers} <span class="passenger-text">Passenger${totalPassengers > 1 ? "s" : ""}</span>
+            `);
         };
 
         const validatePassengerCounts = () => {
@@ -869,9 +516,9 @@
             let errorMsg = "";
 
             if (infants > adults) {
-                errorMsg = "Infants cannot exceed the number of adults.";
+            errorMsg = "Infants cannot exceed the number of adults.";
             } else if (totalPassengers > 9) {
-                errorMsg = "Total passengers cannot be more than 9.";
+            errorMsg = "Total passengers cannot be more than 9.";
             }
             $(".flightPessangerError").text(errorMsg);
             return errorMsg === "";
@@ -879,30 +526,28 @@
 
         $(".flightIncrement, .flightDecrement").click(function () {
             let parent = $(this).closest(".quantity");
-            let countSpan = parent.find(".count");
             let isIncrement = $(this).hasClass("flightIncrement");
-
             let totalPassengers = adults + children + infants;
 
             if (isIncrement) {
-                if (totalPassengers >= 9) {
-                    $(".flightPessangerError").text("Total passengers cannot be more than 9.");
-                    return;
-                }
+            if (totalPassengers >= 9) {
+                $(".flightPessangerError").text("Total passengers cannot be more than 9.");
+                return;
+            }
 
-                if (parent.attr("id") === "flightAdults") adults++;
-                else if (parent.attr("id") === "flightChildren") children++;
-                else if (parent.attr("id") === "flightInfants") {
-                    if (infants < adults) infants++;
-                    else {
-                        $(".flightPessangerError").text("Infants cannot exceed the number of adults.");
-                        return;
-                    }
+            if (parent.attr("id") === "flightAdults") adults++;
+            else if (parent.attr("id") === "flightChildren") children++;
+            else if (parent.attr("id") === "flightInfants") {
+                if (infants < adults) infants++;
+                else {
+                $(".flightPessangerError").text("Infants cannot exceed the number of adults.");
+                return;
                 }
+            }
             } else {
-                if (parent.attr("id") === "flightAdults") adults = Math.max(adults - 1, 1);
-                else if (parent.attr("id") === "flightChildren") children = Math.max(children - 1, 0);
-                else if (parent.attr("id") === "flightInfants") infants = Math.max(infants - 1, 0);
+            if (parent.attr("id") === "flightAdults") adults = Math.max(adults - 1, 1);
+            else if (parent.attr("id") === "flightChildren") children = Math.max(children - 1, 0);
+            else if (parent.attr("id") === "flightInfants") infants = Math.max(infants - 1, 0);
             }
 
             $("#flightAdults .count").text(adults);
@@ -917,374 +562,63 @@
 
         $("#searchFlight").click(function (event) {
             event.preventDefault();
-            
+
             let cabinClass = $('input[name="cabinClass"]:checked').val();
             let from = $('#from').val();
             let destination = $('#to').val();
-            let departure = $("#departure").val();
-            let returnDate = $("#returnDate").val();
+            let departureDate = formatDateToISO($("#departure").val());
+            let returnRaw = $("#returnDate").val();
+            let returnDateVal = returnRaw && returnRaw !== "null" ? formatDateToISO(returnRaw) : null;
+            console.log(from, destination, departureDate, returnDateVal);
+            // return
 
-            if (!from || !destination || !departure) return _alert("Please fill all required fields.", 'warning')
+            if (!from || !destination || !departureDate) {
+            alert("Please fill all required fields.");
+            return;
+            }
 
             if (!validatePassengerCounts()) return;
 
-            window.location.href = `/flights?arr=${from}&dest=${destination}&dep=${departure}&return=${returnDate}&cabinClass=${cabinClass}&adt=${adults}&chd=${children}&inf=${infants}`;
+            let url = `/flights?arr=${from}&dest=${destination}&dep=${departureDate}`;
+            if (returnDateVal) url += `&return=${returnDateVal}`;
+            url += `&cabinClass=${cabinClass}&adt=${adults}&chd=${children}&inf=${infants}`;
+
+            window.location.href = url;
         });
+
         setupAirportSelect('#from');
         setupAirportSelect('#to');
     });
-</script> -->
-<!-- citys -->
 
+    // date & years
+    function formatDateToISO(dateStr) {
+        if (!dateStr) return null;
+        // Parse the date string
+        const date = new Date(dateStr);
+        
+        // Check if date is valid
+        if (isNaN(date)) return null;
 
+        // Get components
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // months are 0-based
+        const day = date.getDate().toString().padStart(2, '0');
 
-
-<script>
-/* ==========================
-   DROPDOWN MENU HANDLER
-========================== */
-document.querySelectorAll('.dropdown-toggle').forEach((toggle) => {
-  toggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const menu = toggle.nextElementSibling;
-    document.querySelectorAll('.dropdown-menu').forEach((m) => {
-      if (m !== menu) m.classList.remove('active');
-    });
-    menu.classList.toggle('active');
-  });
-});
-
-document.addEventListener('click', () => {
-  document.querySelectorAll('.dropdown-menu').forEach((m) => m.classList.remove('active'));
-});
+        // Return in YYYY-MM-DD format
+        return `${year}-${month}-${day}`;
+    }
+    function formatISOToReadable(dateStr) {
+        if (!dateStr) return null;
+        const date = new Date(dateStr);
+        if (isNaN(date)) return null;
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const day = date.getDate();
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        return `${day} ${month} ${year}`;
+    }
 </script>
-
-<script>
-/* ==========================
-   SELECT2 INITIALIZATION
-========================== */
-$(document).ready(function () {
-  $(".select2").select2({
-    theme: "default",
-    placeholder: function() {
-      return $(this).data("placeholder");
-    },
-    minimumResultsForSearch: 5,
-    width: "100%",
-  });
-});
-</script>
-
-<script>
-/* ==========================
-   FLATPICKR INITIALIZATION
-========================== */
-const returnPicker = flatpickr("#returnDate", {
-  dateFormat: "d M Y",
-  minDate: "today"
-});
-
-flatpickr("#departure", {
-  dateFormat: "d M Y",
-  minDate: "today",
-  onChange: function(selectedDates) {
-    if (selectedDates.length > 0) {
-      returnPicker.set('minDate', selectedDates[0]);
-    }
-  }
-});
-
-flatpickr("#tourStart", { dateFormat: "d M Y", minDate: "today" });
-flatpickr("#tourEnd", { dateFormat: "d M Y", minDate: "today" });
-flatpickr("#checkIn", { dateFormat: "d M Y", minDate: "today" });
-flatpickr("#checkOut", { dateFormat: "d M Y", minDate: "today" });
-flatpickr("#visaDate", { dateFormat: "d M Y", minDate: "today" });
-</script>
-
-<script>
-/* ==========================
-   INPUT FOCUS ON ICON CLICK
-========================== */
-document.querySelectorAll('.input-group-text').forEach(icon => {
-  icon.addEventListener('click', function() {
-    const input = this.previousElementSibling;
-    if (input) input.focus();
-  });
-});
-</script>
-
-<script>
-/* ==========================
-   AIRPORT SELECT2 WITH STATIC + AJAX
-========================== */
-const staticAirports = [
-  @foreach($airports as $airport)
-    { id: '{{ $airport->code }}', text: '{{ addslashes($airport->name) }} ({{ $airport->code }})' },
-  @endforeach
-];
-
-function setupAirportSelect(selector) {
-  $(selector).select2({
-    theme: 'classic',
-    placeholder: $(selector).data('placeholder'),
-    minimumInputLength: 0,
-    ajax: {
-      transport: function (params, success, failure) {
-        const term = params.data.term || '';
-
-        if (!term.length) {
-          success({ results: staticAirports });
-          return;
-        }
-
-        $.ajax({
-          url: '{{ route("airport") }}',
-          dataType: 'json',
-          delay: 250,
-          data: { term },
-          success: function (data) {
-            success({ results: data.results });
-          },
-          error: failure
-        });
-      },
-      processResults: function (data) {
-        return data;
-      },
-      cache: true
-    }
-  });
-}
-
-function setInitialAirportValue(selector, code) {
-  if (!code) return;
-
-  const staticMatch = staticAirports.find(a => a.id === code);
-
-  if (staticMatch) {
-    const option = new Option(staticMatch.text, staticMatch.id, true, true);
-    $(selector).append(option).trigger('change');
-  } else {
-    $.ajax({
-      url: '{{ route("airport") }}',
-      data: { term: code },
-      dataType: 'json',
-      success: function (data) {
-        const match = data.results.find(item => item.id === code);
-        if (match) {
-          const option = new Option(match.text, match.id, true, true);
-          $(selector).append(option).trigger('change');
-        }
-      }
-    });
-  }
-}
-</script>
-
-<script>
-/* ==========================
-   FLIGHT SEARCH LOGIC
-========================== */
-$(document).ready(function () {
-  const getURLParam = (param) => new URLSearchParams(window.location.search).get(param) || "";
-
-   const departurePicker = flatpickr("#departure", {
-    dateFormat: "d M Y",
-    minDate: "today",
-    onChange: function(selectedDates) {
-      if (selectedDates.length > 0) {
-        returnPicker.set('minDate', selectedDates[0]);
-      }
-    }
-  });
-
-  const returnPicker = flatpickr("#returnDate", {
-    dateFormat: "d M Y",
-    minDate: "today"
-  });
-
-  // Helper to parse ISO to Flatpickr format
-  function setPickerFromISO(picker, isoDate) {
-    if (!isoDate) return;
-    const date = new Date(isoDate);
-    if (!isNaN(date)) {
-      picker.setDate(date, true); // true triggers onChange
-    }
-  }
-
-  // Set dates from URL params
-  setPickerFromISO(departurePicker, getURLParam("dep"));
-  setPickerFromISO(returnPicker, getURLParam("return"));
-//   let departure = $("#departure");
-//   let returnDate = $("#returnDate");
-
-//   let today = new Date().toISOString().split('T')[0];
-//   departure.attr("min", today);
-
-//   departure.val(getURLParam("dep"));
-//   returnDate.val(getURLParam("return"));
-
-//   returnDate.attr("min", departure.val() || today);
-
-//   departure.on("change", function () {
-//     let selectedDeparture = $(this).val();
-//     returnDate.attr("min", selectedDeparture);
-
-//     if (returnDate.val() < selectedDeparture) {
-//       returnDate.val("");
-//     }
-//   });
-
-  setInitialAirportValue('#from', getURLParam("arr"));
-  setInitialAirportValue('#to', getURLParam("dest"));
-
-  if (!$("#returnDate").val()) {
-    $("#returnDate").prop("disabled", true);
-    $("#oneWaySearch").prop("checked", true);
-  } else {
-    $("#returnSearch").prop("checked", true);
-  }
-
-  $('#oneWaySearch').change(function() {
-    $("#returnDate").prop("disabled", this.checked).val(null);
-  });
-
-  $('#returnSearch').change(function() {
-    $("#returnDate").prop("disabled", !this.checked);
-    $("#returnDate").val(getURLParam("return"));
-  });
-
-  let adults = parseInt(getURLParam("adt")) || 1;
-  let children = parseInt(getURLParam("chd")) || 0;
-  let infants = parseInt(getURLParam("inf")) || 0;
-
-  $("#flightAdults .count").text(adults);
-  $("#flightChildren .count").text(children);
-  $("#flightInfants .count").text(infants);
-
-//   const updatePassengerSummary = () => {
-//     let totalPassengers = adults + children + infants;
-//     $(".passengerDetails").html(`<i class="fa-solid fa-person-walking-luggage"></i> ${totalPassengers} Passenger${totalPassengers > 1 ? "s" : ""}`);
-//   };
-
-const updatePassengerSummary = () => {
-    let totalPassengers = adults + children + infants;
-    $(".passengerDetails").html(`
-        <i class="fa-solid fa-person-walking-luggage"></i> 
-        ${totalPassengers} <span class="passenger-text">Passenger${totalPassengers > 1 ? "s" : ""}</span>
-    `);
-};
-
-  const validatePassengerCounts = () => {
-    let totalPassengers = adults + children + infants;
-    let errorMsg = "";
-
-    if (infants > adults) {
-      errorMsg = "Infants cannot exceed the number of adults.";
-    } else if (totalPassengers > 9) {
-      errorMsg = "Total passengers cannot be more than 9.";
-    }
-    $(".flightPessangerError").text(errorMsg);
-    return errorMsg === "";
-  };
-
-  $(".flightIncrement, .flightDecrement").click(function () {
-    let parent = $(this).closest(".quantity");
-    let isIncrement = $(this).hasClass("flightIncrement");
-    let totalPassengers = adults + children + infants;
-
-    if (isIncrement) {
-      if (totalPassengers >= 9) {
-        $(".flightPessangerError").text("Total passengers cannot be more than 9.");
-        return;
-      }
-
-      if (parent.attr("id") === "flightAdults") adults++;
-      else if (parent.attr("id") === "flightChildren") children++;
-      else if (parent.attr("id") === "flightInfants") {
-        if (infants < adults) infants++;
-        else {
-          $(".flightPessangerError").text("Infants cannot exceed the number of adults.");
-          return;
-        }
-      }
-    } else {
-      if (parent.attr("id") === "flightAdults") adults = Math.max(adults - 1, 1);
-      else if (parent.attr("id") === "flightChildren") children = Math.max(children - 1, 0);
-      else if (parent.attr("id") === "flightInfants") infants = Math.max(infants - 1, 0);
-    }
-
-    $("#flightAdults .count").text(adults);
-    $("#flightChildren .count").text(children);
-    $("#flightInfants .count").text(infants);
-
-    validatePassengerCounts();
-    updatePassengerSummary();
-  });
-
-  updatePassengerSummary();
-
-  $("#searchFlight").click(function (event) {
-    event.preventDefault();
-
-    let cabinClass = $('input[name="cabinClass"]:checked').val();
-    let from = $('#from').val();
-    let destination = $('#to').val();
-    let departureDate = formatDateToISO($("#departure").val());
-    let returnRaw = $("#returnDate").val();
-    let returnDateVal = returnRaw && returnRaw !== "null" ? formatDateToISO(returnRaw) : null;
-    console.log(from, destination, departureDate, returnDateVal);
-    // return
-
-    if (!from || !destination || !departureDate) {
-      alert("Please fill all required fields.");
-      return;
-    }
-
-    if (!validatePassengerCounts()) return;
-
-    let url = `/flights?arr=${from}&dest=${destination}&dep=${departureDate}`;
-    if (returnDateVal) url += `&return=${returnDateVal}`;
-    url += `&cabinClass=${cabinClass}&adt=${adults}&chd=${children}&inf=${infants}`;
-
-    window.location.href = url;
-  });
-
-  setupAirportSelect('#from');
-  setupAirportSelect('#to');
-});
-
-function formatDateToISO(dateStr) {
-    if (!dateStr) return null;
-    // Parse the date string
-    const date = new Date(dateStr);
-    
-    // Check if date is valid
-    if (isNaN(date)) return null;
-
-    // Get components
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // months are 0-based
-    const day = date.getDate().toString().padStart(2, '0');
-
-    // Return in YYYY-MM-DD format
-    return `${year}-${month}-${day}`;
-}
-function formatISOToReadable(dateStr) {
-    if (!dateStr) return null;
-    const date = new Date(dateStr);
-    if (isNaN(date)) return null;
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-    return `${day} ${month} ${year}`;
-}
-</script>
-
-
-
 
 {{-- <script>
     $(document).ready(function() {
@@ -1408,3 +742,46 @@ function formatISOToReadable(dateStr) {
 
     });
 </script> --}}
+
+<!-- dropdown script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const wrapper = document.querySelector(".dropdowns");
+        if (!wrapper) return;
+
+        const dropdownToggles = wrapper.querySelectorAll(".dropdown-toggle");
+
+        dropdownToggles.forEach(toggle => {
+            toggle.addEventListener("click", function (e) {
+                e.stopPropagation();
+                const menu = this.nextElementSibling;
+
+                // Close all other menus except current
+                wrapper.querySelectorAll(".dropdown-menu").forEach(m => {
+                    if (m !== menu) m.classList.remove("show");
+                });
+
+                // Always toggle current menu
+                menu.classList.toggle("show");
+            });
+        });
+
+        // Click anywhere outside the wrapper → close all dropdowns
+        document.addEventListener("click", function () {
+            wrapper.querySelectorAll(".dropdown-menu").forEach(menu => menu.classList.remove("show"));
+        });
+
+        // Clicking inside menu → stop propagation
+        wrapper.querySelectorAll(".dropdown-menu").forEach(menu => {
+            menu.addEventListener("click", function (e) {
+                e.stopPropagation();
+            });
+        });
+    });
+
+    // Cabin class update
+    function updateSelection(ele) {
+        document.querySelector(".selected-country").textContent =
+            ele.parentNode.textContent.trim();
+    }
+</script>

@@ -55,6 +55,25 @@
         .step-2{color:#bbb;}
         .step.active{color:#007688;font-weight:600;}
         .step.active .step-number{background-color:#007789 !important;color:#fff !important;}
+
+/* Container */
+.filter-dropdown-container{position:relative;display:inline-block;/* ensures toggle and dropdown are together */
+}
+/* Toggle button */
+.filter-toggle{cursor:pointer;padding:5px 10px;border:1px solid #ccc;background:#fff;display:flex;align-items:center;justify-content:space-between;min-width:80px;/* adjust as needed */
+}
+/* Dropdown menu */
+.filter-dropdown{position:absolute;top:100%;left:0;background:#fff;border:1px solid #ccc;min-width:100%;/* match toggle width */
+ z-index:999;display:none;}
+.filter-dropdown.open{display:block;}
+/* Dropdown items */
+.dropdown-item{padding:5px 10px;cursor:pointer;}
+.dropdown-item:hover{background:#f0f0f0;}
+/* Optional:highlight selected */
+.dropdown-item.selected{font-weight:bold;background:#e0e0ff;}
+
+
+
     </style>
 @endsection
 @section('content')
@@ -285,24 +304,67 @@
 @endsection
 @section('script')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        localStorage.clear();
-        document.addEventListener("DOMContentLoaded", function() {
-        const container = document.querySelector(".filter-dropdown-container");
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const containers = document.querySelectorAll(".filter-dropdown-container");
+
+    containers.forEach(container => {
         const toggle = container.querySelector(".filter-toggle");
         const dropdown = container.querySelector(".filter-dropdown");
+        const items = dropdown.querySelectorAll(".dropdown-item"); // update class if needed
+
+        // Toggle dropdown on button click
         toggle.addEventListener("click", function(e) {
             e.stopPropagation();
+            
+            // Close other dropdowns
+            containers.forEach(c => {
+                if (c !== container) {
+                    c.querySelector(".filter-dropdown").classList.remove("open");
+                }
+            });
+
+            // Toggle this one
             dropdown.classList.toggle("open");
         });
-        // Close when clicking outside
-        document.addEventListener("click", function(e) {
-            if (!container.contains(e.target)) {
+
+        // Prevent dropdown from closing when clicking inside
+        dropdown.addEventListener("click", function(e) {
+            e.stopPropagation();
+        });
+
+        // Close dropdown when selecting an item
+        items.forEach(item => {
+            item.addEventListener("click", function(e) {
+                e.stopPropagation();
+
+                // Update toggle text
+                toggle.textContent = this.textContent;
+
+                // Close dropdown
+                dropdown.classList.remove("open");
+
+                // Optional: highlight selected
+                items.forEach(i => i.classList.remove("selected"));
+                this.classList.add("selected");
+            });
+        });
+    });
+
+    // Close all dropdowns when clicking outside
+    document.addEventListener("click", function() {
+        containers.forEach(container => {
+            const dropdown = container.querySelector(".filter-dropdown");
             dropdown.classList.remove("open");
-            }
         });
-        });
-    </script>
+    });
+});
+</script>
+
+
+
+
+
 
 <script>
     const tabs = document.querySelectorAll(".tab");

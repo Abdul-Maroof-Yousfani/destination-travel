@@ -598,19 +598,13 @@ ul.m-silder button.slick-arrow.slick-prev{left:-555px !important;}
 .modal-dialog{max-width:86% !important;}
 .emri img{width:100% !important;}
 .table-responsive.profile-destinations .table-sm td,.table-sm th{font-size:14px;}
-.fare-scroll > .card {
-  
-    width: 46% !important;
-}
+.fare-scroll > .card{width:46% !important;}
 }
 @media (max-width:768px){.menuWrap2.menuWrap2-mobile{display:block !important;}
 .menuWrap2{display:none !important;}
 .menuWrap2.menuWrap2-mobile ul{display:flex;align-items:center;justify-content:right;text-align:center;gap:33px;}
 .logo a img{width:53% !important;}
-.fare-scroll > .card {
-  
-    width: 46% !important;
-}
+.fare-scroll > .card{width:46% !important;}
 .tab-links ul{gap:50px;margin-bottom:-22px;}
 .tab-head h2{font-size:19px !important;text-align:center !important;}
 .radio-container label{font-size:11px !important;}
@@ -672,7 +666,7 @@ section.featured.wow.fadeInRight{padding:8px 0px;}
 section.mainBanner{height:68vh;}
 .banner{border-radius:16px;}
 .dropdown-item.quantity{font-size:13px;line-height:20px;padding:1px 0px;}
-.quantity .count{font-size:18px !important;margin:0 26px;}
+.quantity .count{font-size:18px !important;margin:0 4px;}
 .dropdown-menu.economy-menu.active{left:-74px !important;}
 .hep ul li a span{font-size:10px !important;}
 .hep ul{justify-content:center;flex-wrap:wrap;gap:8px;}
@@ -774,8 +768,12 @@ header .main-header ul.menu>li a{text-align:center !important;}
 .flight-top-bar{padding:14px 5px!important;}
 .right-actions{gap:4px!important;}
 .filter-dropdown.p-3{right:0!important;left:-260px!important;}
+.dropdowns .dropdown-toggle{gap:0px !important;}
+.dropdowns .dropdown-toggle{padding:10px 8px !important;}
 }
 @media (max-width:425px){.menu-Bar{float:right;margin-top:30px;}
+.dropdowns .dropdown-toggle{gap:0px !important;}
+.dropdowns .dropdown-toggle{padding:10px 8px !important;}
 .voucher h2{font-size:14px;margin-bottom:20px;}
 .tab-content{text-align:center!important;}
 .tab{padding:12px 8px!important;font-size:10px!important;}
@@ -867,7 +865,7 @@ div:where(.swal2-container) h2:where(.swal2-title){font-size:16px !important;}
 section.mainBanner{height:83vh;}
 .banner{padding:21px 13px;border-radius:16px;}
 .dropdown-item.quantity{font-size:13px;line-height:20px;padding:1px 0px;}
-.quantity .count{font-size:18px !important;margin:0 26px;}
+.quantity .count{font-size:18px !important;margin:0 4px;}
 .dropdown-menu.economy-menu.active{left:-74px !important;}
 .hep ul li a span{font-size:10px !important;}
 .hep ul{justify-content:center;flex-wrap:wrap;gap:8px;}
