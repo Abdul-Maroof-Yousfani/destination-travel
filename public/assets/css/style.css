@@ -759,7 +759,21 @@ header .main-header ul.menu>li a{text-align:center !important;}
 .tag{font-size:8px;}
 .flight-selection{padding:0px!important;margin-bottom:20px!important;}
 .step-text{font-size:13px!important;}
-.step-number{font-size:12px!important;width:33px!important;height:20px!important;line-height:19px!important;}
+.step-number {
+    display: inline-flex!important;          /* keeps text centered */
+    justify-content: center!important;        /* horizontal centering */
+    align-items: center!important;            /* vertical centering */
+    font-size: 11px !important;
+    width: 25px !important;         /* fixed width */
+    height: 25px !important;        /* match width for perfect circle */
+    line-height: 1 !important;      /* use 1 for flex centering */
+    border-radius: 50% !important;  /* perfect circle */
+    background-color: #bbb;         /* optional */
+    color: #fff!important;                    /* text color */
+    margin-right: 10px!important;            /* spacing between circles */
+    flex-shrink: 0!important;                /* prevent shrinking when multiple items */
+}
+
 .tab-content{text-align:center!important;}
 .tab{padding:12px 8px!important;font-size:10px!important;}
 .nonstop-btn{padding:7px 10px!important;font-size:10px!important;}
@@ -789,7 +803,24 @@ header .main-header ul.menu>li a{text-align:center !important;}
 .filter-dropdown.p-3{right:0!important;left:-260px!important;}
 .flight-selection{padding:0px!important;margin-bottom:20px!important;}
 .step-text{font-size:13px!important;}
-.step-number{font-size:12px!important;width:33px!important;height:20px!important;line-height:19px!important;}
+.step-number {
+    display: inline-flex!important;          /* keeps text centered */
+    justify-content: center!important;        /* horizontal centering */
+    align-items: center!important;            /* vertical centering */
+    font-size: 11px !important;
+    width: 25px !important;         /* fixed width */
+    height: 25px !important;        /* match width for perfect circle */
+    line-height: 1 !important;      /* use 1 for flex centering */
+    border-radius: 50% !important;  /* perfect circle */
+    background-color: #bbb;         /* optional */
+    color: #fff!important;                    /* text color */
+    margin-right: 10px!important;            /* spacing between circles */
+    flex-shrink: 0!important;                /* prevent shrinking when multiple items */
+}
+
+
+
+
 .back-edit-buttons{display:flex;justify-content:center;}
 .back-edit-buttons button{font-size:15px;padding:8px 5px;font-weight:500;}
 .fare-scroll > .card{width:100% !important;}
