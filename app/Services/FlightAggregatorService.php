@@ -23,11 +23,11 @@ class FlightAggregatorService
         FlyJinnahService $flyjinnah,
         AirblueService $airblue
     ) {
-        // $this->services = [$emirate, $flyjinnah, $airblue];
+        $this->services = [$emirate, $flyjinnah, $airblue];
         // $this->services = [$pia, $emirate, $flyjinnah];
         // $this->services = [$flyjinnah];
         // $this->services = [$emirate];
-        $this->services = [$airblue];
+        // $this->services = [$airblue];
         // $this->services = [$pia];
         $this->helper = $helper;
     }

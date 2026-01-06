@@ -36,19 +36,58 @@ class AirblueService
         $this->logPathBooking = $logDir . '/bookings_' . now()->format('Y_m_d') . '.log';
 
         $this->url           = $this->config['url'];
-        $this->certPath      = $this->config['cert'];
-        $this->keyPath       = $this->config['ssl_key'];
         $this->target        = $this->config['service_target'];
         $this->clientId      = $this->config['client_id'];
         $this->clientKey     = $this->config['client_key'];
         $this->agentId       = $this->config['agent_id'];
         $this->agentPassword = $this->config['agent_password'];
 
+        // Handle certificate and key paths (support both relative and absolute paths)
+        $certPath = $this->config['cert'] ?? null;
+        $keyPath = $this->config['ssl_key'] ?? null;
+
+        // Convert relative paths to absolute paths if needed
+        if ($certPath && !str_starts_with($certPath, '/') && !preg_match('/^[A-Z]:\\\\/', $certPath)) {
+            // Relative path - check if it's relative to public or base
+            if (str_starts_with($certPath, 'public/')) {
+                $this->certPath = public_path(str_replace('public/', '', $certPath));
+            } else {
+                $this->certPath = base_path($certPath);
+            }
+        } else {
+            $this->certPath = $certPath;
+        }
+
+        if ($keyPath && !str_starts_with($keyPath, '/') && !preg_match('/^[A-Z]:\\\\/', $keyPath)) {
+            // Relative path - check if it's relative to public or base
+            if (str_starts_with($keyPath, 'public/')) {
+                $this->keyPath = public_path(str_replace('public/', '', $keyPath));
+            } else {
+                $this->keyPath = base_path($keyPath);
+            }
+        } else {
+            $this->keyPath = $keyPath;
+        }
+
+        // Ensure certificate directory exists
+        if ($this->certPath) {
+            $certDir = dirname($this->certPath);
+            if (!is_dir($certDir) && $certDir !== '.' && $certDir !== '') {
+                mkdir($certDir, 0755, true);
+            }
+        }
+        if ($this->keyPath) {
+            $keyDir = dirname($this->keyPath);
+            if (!is_dir($keyDir) && $keyDir !== '.' && $keyDir !== '') {
+                mkdir($keyDir, 0755, true);
+            }
+        }
+
         if (!file_exists($this->certPath)) {
-            throw new \Exception("Airblue cert not found: {$this->certPath}");
+            throw new \Exception("Airblue cert not found: {$this->certPath}. Please ensure the certificate file exists at the specified path.");
         }
         if (!file_exists($this->keyPath)) {
-            throw new \Exception("Airblue key not found: {$this->keyPath}");
+            throw new \Exception("Airblue key not found: {$this->keyPath}. Please ensure the key file exists at the specified path.");
         }
     }
 
