@@ -5,6 +5,7 @@ namespace App\Helpers;
 use DateTime;
 use DateInterval;
 use Carbon\Carbon;
+use SimpleXMLElement;
 use App\Models\Airport;
 use Illuminate\Support\Facades\Cache;
 

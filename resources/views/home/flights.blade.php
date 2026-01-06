@@ -31,8 +31,7 @@
         button.btn.btn-share.mt-2{background-color:#02798b;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:bold;width:100%;border:2px solid #02798b;}
         button.btn.btn-share.mt-2:hover{background-color:transparent;color:#02798b;padding:8px 16px;border-radius:8px;font-weight:bold;width:100%;border:2px solid #02798b;transition:all 0.5s;}
         .flight-wrapper{margin-bottom:50px;}
-        .flight-top-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:#f5f7fc;/* same light background */
-        border-radius:12px;font-family:'Poppins',sans-serif;border:1px solid #e6e9f2;}
+        .flight-top-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:#f5f7fc;border-radius:12px;font-family:'Poppins',sans-serif;border:1px solid #e6e9f2;}
         /* LEFT TABS */
         .left-tabs{display:flex;}
         .tab{padding:15px 40px;background:#e8edfc;font-size:15px;font-weight:500;color:#4a5570;cursor:pointer;transition:0.2s ease;}
@@ -44,7 +43,7 @@
         .tab-content{display:none;margin-top:20px;padding:20px;background:#fff;border-radius:12px;border:1px solid #e3e7f2;}
         .tab-content.active{display:block;}
         /* filter dorpdown */
-        .filter-dropdown{max-height:0;overflow:hidden;transition:max-height 0.5sease;border:none !important;border-radius:10px;box-shadow:none !important;background:transparent !important;margin-top:0px!important position:absolute;}
+        .filter-dropdown{max-height:0;overflow:hidden;transition:max-height 0.5sease;border:none !important;border-radius:10px;box-shadow:none !important;background:transparent !important;margin-top:0px!important; position:absolute;}
         .filter-dropdown.open{max-height:500px;overflow-y:auto;position:absolute;left:-122px;top:69px;background:#fff !important;box-shadow:1px 0px 5px #000000a6 !important;z-index:1;}
         .filter-dropdown.p-3{position:absolute;left:-122px;top:63px;}
         .flight-selection{display:flex;justify-content:left;align-items:center;padding:20px;background-color:#fff;gap:20px;}
@@ -55,25 +54,13 @@
         .step-2{color:#bbb;}
         .step.active{color:#007688;font-weight:600;}
         .step.active .step-number{background-color:#007789 !important;color:#fff !important;}
-
-/* Container */
-.filter-dropdown-container{position:relative;display:inline-block;/* ensures toggle and dropdown are together */
-}
-/* Toggle button */
-.filter-toggle{cursor:pointer;padding:5px 10px;display:flex;align-items:center;justify-content:space-between;}
-
-/* Dropdown menu */
-.filter-dropdown{position:absolute;top:100%;left:0;background:#fff;border:1px solid #ccc;min-width:100%;/* match toggle width */
- z-index:999;display:none;}
-.filter-dropdown.open{display:block;}
-/* Dropdown items */
-.dropdown-item{padding:5px 10px;cursor:pointer;}
-.dropdown-item:hover{background:#f0f0f0;}
-/* Optional:highlight selected */
-.dropdown-item.selected{font-weight:bold;background:#e0e0ff;}
-
-
-
+        .filter-dropdown-container{position:relative;display:inline-block;}
+        .filter-toggle{cursor:pointer;padding:5px 10px;display:flex;align-items:center;justify-content:space-between;}
+        .filter-dropdown{position:absolute;top:100%;left:0;background:#fff;border:1px solid #ccc;min-width:100%;z-index:999;display:none;}
+        .filter-dropdown.open{display:block;}
+        .dropdown-item{padding:5px 10px;cursor:pointer;}
+        .dropdown-item:hover{background:#f0f0f0;}
+        .dropdown-item.selected{font-weight:bold;background:#e0e0ff;}
     </style>
 @endsection
 @section('content')
@@ -97,19 +84,33 @@
             <div class="row">
                 <div class="col-md-12 col-lg-12">
                     <div class="flight-selection">
-                        @php
-                            $departure = $data['departure'];
-                            $arrival = $data['arrival'];
-                        @endphp
-                        <div class="step step-1 active" id="departure-text">
-                            <span class="step-number">1</span>
-                            <span class="step-text">Select Departing Flight ({{ $departure['code'] }} - {{ $arrival['code'] }})</span>
-                        </div>
-                        @if ($data['return_count'] > 0)
-                            <div class="step step-2" id="return-text">
-                                <span class="step-number">2</span>
-                                <span class="step-text">Select Returning Flight ({{ $arrival['code'] }} - {{ $departure['code'] }})</span>
+                        @if ($routeType === 'MULTI')
+                            @foreach($data['legs'] as $legIndex => $options)
+                                @php
+                                    $firstFlight = $options->first();
+                                    $from = $firstFlight['departure']['code'] ?? '';
+                                    $to = $firstFlight['arrival']['code'] ?? '';
+                                    $date = $firstFlight['departure']['date'] ?? '';
+                                @endphp
+                                <div class="step step-{{ $legIndex }} {{ $loop->first ? 'active' : '' }}" id="leg-text-{{ $legIndex }}">
+                                    <span class="step-number">{{ $legIndex }}</span>
+                                    <span class="step-text">
+                                        Leg {{ $legIndex }}: {{ $from }} → {{ $to }}
+                                        <small class="text-muted d-block">{{ \Carbon\Carbon::parse($date)->format('D, d M Y') }}</small>
+                                    </span>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="step step-1 active" id="departure-text">
+                                <span class="step-number">1</span>
+                                <span class="step-text">Select Departing Flight ({{ $data['departure']['code'] }} - {{ $data['arrival']['code'] }})</span>
                             </div>
+                            @if($data['return_count'] > 0)
+                                <div class="step step-2" id="return-text">
+                                    <span class="step-number">2</span>
+                                    <span class="step-text">Return Flight ({{ $data['arrival']['code'] }} - {{ $data['departure']['code'] }})</span>
+                                </div>
+                            @endif
                         @endif
                     </div>
                     <div class="flight-wrapper">
@@ -268,16 +269,21 @@
                     <!-- CONTENT SECTIONS -->
                     <div class="tab-content mt-0 active" id="suggested">
                         <h3>Suggested Flights</h3>
-                        <x-flights :flightData="$data" :paxCount="$paxCount" />
+                        @if($routeType === 'MULTI')
+                            <x-multiple-flights :flightData="$data" :paxCount="$paxCount" />
+                        @else
+                            <x-flights :flightData="$data" :paxCount="$paxCount" />
+                        @endif
+                        {{-- <x-flights :flightData="$data" :paxCount="$paxCount" /> --}}
                     </div>
-                    <div class="tab-content mt-0" id="cheapest">
+                    {{-- <div class="tab-content mt-0" id="cheapest">
                         <h3>Cheapest Flights</h3>
                          <x-flights :flightData="$data" :paxCount="$paxCount" />
                     </div>
                     <div class="tab-content mt-0" id="fastest">
                         <h3>Fastest Flights</h3>
                          <x-flights :flightData="$data" :paxCount="$paxCount" />
-                    </div>
+                    </div> --}}
                 </div>
                 <div class="col-md-12 col-lg-3 br-left">
                     <div class="support-box">
@@ -306,6 +312,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    localStorage.clear();
     const containers = document.querySelectorAll(".filter-dropdown-container");
 
     containers.forEach(container => {

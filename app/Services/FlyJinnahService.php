@@ -180,57 +180,107 @@ class FlyJinnahService
     }
     public function searchFlights($data)
     {
-        $origin = $data['arr'];
-        $destination = $data['dest'];
-        $departureDate = $data['dep'];
-        $returnDate = $data['return'] ?? null;
         $cabinClass = $data['cabinClass'] ?? 'Y';
-        $adt = $data['adt'];
-        $chd = $data['chd'] ?? null;
-        $inf = $data['inf'] ?? null;
-        // dd($origin, $destination, $departureDate, $cabinClass, $returnDate, $adt, $chd, $inf);
+        $routeType = $data['routeType'] ?? 'ONEWAY';
+        $adt = $data['adt'] ?? 1;
+        $chd = $data['chd'] ?? 0;
+        $inf = $data['inf'] ?? 0;
+        if ($routeType === 'MULTI') {
+            return;
+        }
         $username = $this->username;
         $agentCode = $this->agentCode;
         $token = $this->getToken();
-        // $token = $this->tempToken;
-        // dd($username, $token);
+        
         if (!$token) {
             \Log::error('Authentication failed while searching flights.');
             return ['error' => 'Authentication failed.'];
         }
 
-        $headers = [
-            'X-AERO-SALES-CHANNEL' => "OTA",
-            'X-AERO-JOURNEY-TYPE' => $returnDate ? "RETURN" : "ONEWAY",
-            'X-AERO-USERID' => "$username",
-            'X-AERO-AGENT-CODE' => "$agentCode",
-            'Accept' => 'application/json',
-            'Content-Type' => 'application/json',
-            'Authorization' => "Bearer {$token}",
-        ];
-        // dd($headers);
-        $payload = [
-            "searchOnds" => [
-                [
+        // Handle new structure with segments array
+        $searchOnds = [];
+        $isReturn = false;
+        
+        if (isset($data['segments']) && is_array($data['segments']) && !empty($data['segments'])) {
+            foreach ($data['segments'] as $segment) {
+                $origin = $segment['arr'] ?? '';
+                $destination = $segment['dest'] ?? '';
+                $departureDate = $segment['dep'] ?? '';
+                
+                if (empty($origin) || empty($destination) || empty($departureDate)) {
+                    continue;
+                }
+                
+                $searchOnds[] = [
                     "origin" => ["code" => $origin, "locationType" => "AIRPORT"],
                     "destination" => ["code" => $destination, "locationType" => "AIRPORT"],
                     "searchStartDate" => $departureDate,
                     "searchEndDate" => $departureDate,
                     "preferredDate" => $departureDate,
                     "bookingType" => "NORMAL",
-                    "cabinClass" => "Y",
+                    "cabinClass" => $cabinClass,
                     "ondRef" => "{$origin}/{$destination}",
                     "interlineQuoteDetails" => null
-                ]
-            ],
+                ];
+            }
+            
+            // Determine if return based on routeType or number of segments
+            $isReturn = ($routeType === 'ROUND') || (count($searchOnds) > 1);
+        } else {
+            // Fallback to old structure for backward compatibility
+            $origin = $data['arr'] ?? '';
+            $destination = $data['dest'] ?? '';
+            $departureDate = $data['dep'] ?? '';
+            $returnDate = $data['return'] ?? null;
+            
+            $searchOnds[] = [
+                "origin" => ["code" => $origin, "locationType" => "AIRPORT"],
+                "destination" => ["code" => $destination, "locationType" => "AIRPORT"],
+                "searchStartDate" => $departureDate,
+                "searchEndDate" => $departureDate,
+                "preferredDate" => $departureDate,
+                "bookingType" => "NORMAL",
+                "cabinClass" => $cabinClass,
+                "ondRef" => "{$origin}/{$destination}",
+                "interlineQuoteDetails" => null
+            ];
+            
+            if ($returnDate) {
+                $searchOnds[] = [
+                    "origin" => ["code" => $destination, "locationType" => "AIRPORT"],
+                    "destination" => ["code" => $origin, "locationType" => "AIRPORT"],
+                    "searchStartDate" => $returnDate,
+                    "searchEndDate" => $returnDate,
+                    "preferredDate" => $returnDate,
+                    "bookingType" => "NORMAL",
+                    "cabinClass" => $cabinClass,
+                    "ondRef" => "{$destination}/{$origin}",
+                    "interlineQuoteDetails" => null
+                ];
+                $isReturn = true;
+            }
+        }
+
+        $headers = [
+            'X-AERO-SALES-CHANNEL' => "OTA",
+            'X-AERO-JOURNEY-TYPE' => $isReturn ? "RETURN" : "ONEWAY",
+            'X-AERO-USERID' => "$username",
+            'X-AERO-AGENT-CODE' => "$agentCode",
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'Authorization' => "Bearer {$token}",
+        ];
+        
+        $payload = [
+            "searchOnds" => $searchOnds,
             "paxCounts" => [
-                ["count" => $adt ?? 1, "paxType" => "ADT"],
+                ["count" => $adt, "paxType" => "ADT"],
                 ["count" => $chd, "paxType" => "CHD"],
                 ["count" => $inf, "paxType" => "INF"]
             ],
-            "isReturn" => $returnDate ? true : false,
+            "isReturn" => $isReturn,
             "currencyCode" => "PKR",
-            "cabinClass" => "Y",
+            "cabinClass" => $cabinClass,
             "metaData" => [
                 "agentCode" => "OTA",
                 "country" => "PK",
@@ -242,19 +292,6 @@ class FlyJinnahService
                 ]
             ]
         ];
-        if ($returnDate) {
-            $payload["searchOnds"][] = [
-                "origin" => ["code" => $destination, "locationType" => "AIRPORT"],
-                "destination" => ["code" => $origin, "locationType" => "AIRPORT"],
-                "searchStartDate" => $returnDate,
-                "searchEndDate" => $returnDate,
-                "preferredDate" => $returnDate,
-                "bookingType" => "NORMAL",
-                "cabinClass" => "Y",
-                "ondRef" => "{$destination}/{$origin}",
-                "interlineQuoteDetails" => null
-            ];
-        };
         // dd($payload);
         try {
             if ($this->regenerateLogs) {file_put_contents($this->logPath, "searchFlights Request:\n" . json_encode($payload, JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);}

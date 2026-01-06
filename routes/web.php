@@ -21,9 +21,8 @@ Route::view('login', 'login')->name('login');
 Route::view('register', 'register')->name('register');
 Route::view('terms-and-conditions', 'home.pages.terms-and-conditions')->name('terms-and-conditions');
 Route::view('about-us', 'home.pages.about-us')->name('about-us');
-Route::get('profile', function () {
-    return view('home.pages.profile');
-});
+Route::get('profile', [HomeController::class, 'profile'])->name('profile')->middleware('auth:client');
+Route::post('profile/passenger/{passenger}/update', [HomeController::class, 'updatePassenger'])->name('passenger.update')->middleware('auth:client');
 Route::view('search-booking', 'home.pages.search-booking')->name('search.booking');
 Route::get('view-booking-details', [HomeController::class, 'viewBookingDetails'])->name('view.booking.details');
 Route::post('search-booking', [HomeController::class, 'searchBooking'])->name('search.booking.submit');
@@ -38,6 +37,8 @@ Route::prefix('flights')->group(function () {
     Route::post('booking-details', [FlightController::class, 'bookingDetails'])->name('booking_details');
     Route::get('booking', [FlightController::class, 'booking'])->name('flightBooking');
     Route::post('get-seat', [FlightController::class, 'getSeat'])->name('get_seat');
+    Route::post('confirm-seats', [FlightController::class, 'confirmSeats'])->name('confirm_seats');
+    Route::post('confirm-ancillaries', [FlightController::class, 'confirmAncillaries'])->name('confirm_ancillaries');
     Route::post('get-meal', [FlightController::class, 'getMeal'])->name('get_meal');
     Route::post('get-baggage', [FlightController::class, 'getBaggage'])->name('get_baggage');
 

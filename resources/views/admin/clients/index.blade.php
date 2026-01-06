@@ -46,6 +46,7 @@
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Register date</th>
+                        <th>Total bookings</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -57,6 +58,7 @@
                         <td>{{ $client->email }}</td>
                         <td>{{ $client->full_phone }}</td>
                         <td>{{ $client->created_at->format('d-m-y h:i a') }}</td>
+                        <td>{{ $client->bookings->count() }}</td>
                         <td class="position-relative text-center">
                             <div class="dropdown">
                                 <button class="btn btn-sm btn_primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Actions</button>
@@ -74,7 +76,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No clients found</td>
+                        <td colspan="7" class="text-center text-muted">No clients found</td>
                     </tr>
                     @endforelse
                 </tbody>

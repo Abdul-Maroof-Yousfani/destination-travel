@@ -37,6 +37,7 @@ class Booking extends Model
         'only_search',
         'status',
         'is_oneway',
+        'type',
         'airline',
         'airline_id',
         'airline_code',
@@ -169,7 +170,14 @@ class Booking extends Model
 
     public function getFlightSummary(): string
     {
-        $tripType = $this->is_oneway ? 'ONEWAY' : 'RETURN';
+        // Use type column if available, otherwise fallback to is_oneway
+        $tripType = 'RETURN';
+        if ($this->type) {
+            $tripType = strtoupper($this->type);
+        } else {
+            $tripType = $this->is_oneway ? 'ONEWAY' : 'RETURN';
+        }
+        
         $airlineCode = strtoupper($this->airline_id ?? $this->order_id);
         $routes = $this->flights->map(function ($flight) {
             return strtoupper($flight->departure_code . '-' . $flight->arrival_code);
@@ -196,10 +204,10 @@ class Booking extends Model
         return $code . ' ' . number_format($totalPrice, 2);
     }
     // type
-    public function getTypeAttribute(): string
-    {
-        return $this->is_oneway ? 'ONEWAY' : 'RETURN';
-    }
+    // public function getTypeAttribute(): string
+    // {
+    //     return $this->is_oneway ? 'ONEWAY' : 'RETURN';
+    // }
 
 
 

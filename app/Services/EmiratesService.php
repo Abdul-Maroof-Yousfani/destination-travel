@@ -99,35 +99,98 @@ class EmiratesService
     }
     public function searchFlights($data) // AirShoppingRQ
     {
-        $origin = $data['arr'];
-        $destination = $data['dest'];
-        $departureDate = $data['dep'];
-        $returnDate = $data['return'] ?? null;
         $cabinClass = $data['cabinClass'] ?? 'Y';
-        $currCode = $data['currCode'] ?? 'PKR';
+        $routeType = $data['routeType'] ?? 'ONEWAY';
+        if ($routeType === 'MULTI') {
+            return ['error' => 'Multi-segment flights are not supported for Emirates.'];
+        }
+        
         session([
             'responseId' => null,
             'IdsExpireTimeEmi' => null,
         ]);
-        $paxXml = $this->getPaxTag(['adt' => $data['adt'], 'chd' => $data['chd'] ?? null, 'inf' => $data['inf'] ?? null]);
-        $returnXml = '';
-        $returnODR = '';
-        if ($returnDate) {
-            $returnXml = '
-            <OriginDestination OriginDestinationKey="OD2">
+        
+        $paxXml = $this->getPaxTag([
+            'adt' => $data['adt'] ?? 0, 
+            'chd' => $data['chd'] ?? 0, 
+            'inf' => $data['inf'] ?? 0
+        ]);
+        
+        // Handle new structure with segments array
+        if (isset($data['segments']) && is_array($data['segments']) && !empty($data['segments'])) {
+            $originDestinations = '';
+            $cabinPreferences = '';
+            $odKey = 1;
+            
+            foreach ($data['segments'] as $segment) {
+                $origin = $segment['arr'] ?? '';
+                $destination = $segment['dest'] ?? '';
+                $departureDate = $segment['dep'] ?? '';
+                
+                if (empty($origin) || empty($destination) || empty($departureDate)) {
+                    continue;
+                }
+                
+                $originDestinations .= '
+                <OriginDestination OriginDestinationKey="OD' . $odKey . '">
+                    <Departure>
+                        <AirportCode>' . $origin . '</AirportCode>
+                        <Date>' . $departureDate . '</Date>
+                    </Departure>
+                    <Arrival>
+                        <AirportCode>' . $destination . '</AirportCode>
+                    </Arrival>
+                </OriginDestination>';
+                
+                $cabinPreferences .= '
+                <CabinType>
+                    <Code>' . $cabinClass . '</Code>
+                    <OriginDestinationReferences>OD' . $odKey . '</OriginDestinationReferences>
+                </CabinType>';
+                
+                $odKey++;
+            }
+        } else {
+            // Fallback to old structure for backward compatibility
+            $origin = $data['arr'] ?? '';
+            $destination = $data['dest'] ?? '';
+            $departureDate = $data['dep'] ?? '';
+            $returnDate = $data['return'] ?? null;
+            
+            $originDestinations = '
+            <OriginDestination OriginDestinationKey="OD1">
                 <Departure>
-                    <AirportCode>'.$destination.'</AirportCode>
-                    <Date>'.$returnDate.'</Date>
+                    <AirportCode>' . $origin . '</AirportCode>
+                    <Date>' . $departureDate . '</Date>
                 </Departure>
                 <Arrival>
-                    <AirportCode>'.$origin.'</AirportCode>
+                    <AirportCode>' . $destination . '</AirportCode>
                 </Arrival>
             </OriginDestination>';
-            $returnODR = '
+            
+            $cabinPreferences = '
+            <CabinType>
+                <Code>' . $cabinClass . '</Code>
+                <OriginDestinationReferences>OD1</OriginDestinationReferences>
+            </CabinType>';
+            
+            if ($returnDate) {
+                $originDestinations .= '
+                <OriginDestination OriginDestinationKey="OD2">
+                    <Departure>
+                        <AirportCode>' . $destination . '</AirportCode>
+                        <Date>' . $returnDate . '</Date>
+                    </Departure>
+                    <Arrival>
+                        <AirportCode>' . $origin . '</AirportCode>
+                    </Arrival>
+                </OriginDestination>';
+                $cabinPreferences .= '
                 <CabinType>
-                    <Code>'.$cabinClass.'</Code>
+                    <Code>' . $cabinClass . '</Code>
                     <OriginDestinationReferences>OD2</OriginDestinationReferences>
                 </CabinType>';
+            }
         }
         $body = '<AirShoppingRQ Version="17.2" TransactionIdentifier="'.$this->randomId.'">
                         <Document id="document"/>
@@ -141,25 +204,12 @@ class EmiratesService
                         </Party>
                         <CoreQuery>
                             <OriginDestinations>
-                                <OriginDestination OriginDestinationKey="OD1">
-                                    <Departure>
-                                        <AirportCode>'.$origin.'</AirportCode>
-                                        <Date>'.$departureDate.'</Date>
-                                    </Departure>
-                                    <Arrival>
-                                        <AirportCode>'.$destination.'</AirportCode>
-                                    </Arrival>
-                                </OriginDestination>
-                                ' . $returnXml . '
+                                ' . $originDestinations . '
                             </OriginDestinations>
                         </CoreQuery>
                         <Preference>
                             <CabinPreferences>
-                                <CabinType>
-                                    <Code>'.$cabinClass.'</Code>
-                                    <OriginDestinationReferences>OD1</OriginDestinationReferences>
-                                </CabinType>
-                                ' . $returnODR . '
+                                ' . $cabinPreferences . '
                             </CabinPreferences>
                         </Preference>
                         <DataLists>

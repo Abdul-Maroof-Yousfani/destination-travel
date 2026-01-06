@@ -115,14 +115,19 @@ class HelperService
 
     function formatXml(string $xml): string
     {
+        // Check if XML is empty or only whitespace
+        if (trim($xml) === '') {
+            return $xml;
+        }
+        
         try {
             $dom = new \DOMDocument('1.0');
             $dom->preserveWhiteSpace = false;
             $dom->formatOutput = true;
             $dom->loadXML($xml);
             return $dom->saveXML();
-        } catch (\Exception $e) {
-            // If invalid XML, return original string
+        } catch (\Throwable $e) {
+            // If invalid XML or any error, return original string
             return $xml;
         }
     }

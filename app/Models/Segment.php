@@ -30,6 +30,9 @@ class Segment extends Model
     public function getFormattedDurationAttribute(): string
     {
         try {
+            if (!$this->flight_duration) {
+                return 'N/A';
+            }
             // If it's already a formatted string (e.g., "02h 30m"), just return it
             if (!str_starts_with($this->flight_duration, 'PT')) {
                 return $this->flight_duration;

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Airport;
 use App\Services\PiaService;
 use App\Helpers\HelperFunctions;
+use App\Services\AirblueService;
 use App\Services\EmiratesService;
 use App\Services\FlyJinnahService;
 use Illuminate\Support\Collection;
@@ -19,12 +20,14 @@ class FlightAggregatorService
         HelperFunctions $helper,
         PiaService $pia,
         EmiratesService $emirate,
-        FlyJinnahService $flyjinnah
+        FlyJinnahService $flyjinnah,
+        AirblueService $airblue
     ) {
-        $this->services = [$emirate, $flyjinnah];
+        // $this->services = [$emirate, $flyjinnah, $airblue];
         // $this->services = [$pia, $emirate, $flyjinnah];
         // $this->services = [$flyjinnah];
         // $this->services = [$emirate];
+        $this->services = [$airblue];
         // $this->services = [$pia];
         $this->helper = $helper;
     }
@@ -34,6 +37,8 @@ class FlightAggregatorService
         $destCode = $params['dest'] ?? null;
 
         $skipCarriers = [];
+        $isMulti = ($params['routeType'] ?? '') === 'MULTI' || count($params['segments'] ?? []) > 2;
+
         if ($arrCode && $destCode) {
             $airports = Airport::whereIn('code', [$arrCode, $destCode])->pluck('is_local', 'code');
             $arrIsLocal  = $airports[$arrCode] ?? null;
@@ -48,72 +53,100 @@ class FlightAggregatorService
         $allBundles = collect();
         $allExtras = collect();
         $allErrors = collect();
+        if ($isMulti) {
+            $allLegs = collect(); // Will be collect of leg collections (each leg has its options)
+            if(!empty($this->services)) {
+                foreach ($this->services as $service) {
+                    $carrier = strtolower($service->getCarrierName());
+                    if (in_array($carrier, $skipCarriers, true)) continue;
 
-        if(!empty($this->services)) {
-           foreach ($this->services as $service) {
-                $carrier = strtolower($service->getCarrierName());
-                if (in_array($carrier, $skipCarriers, true)) {
-                    continue;
+                    $rawFlights = $service->searchFlights($params);
+                    $normalized = $this->normalizeFlights($rawFlights, $service->getCarrierName());
+                    
+                    // For multi, append all legs from this service (assuming services return all legs)
+                    foreach ($normalized['flights'] as $leg) {
+                        $allLegs->push($leg);
+                    }
                 }
+            }
+            // dd($rawFlights, $normalized, $allLegs);
 
-                $rawFlights = $service->searchFlights($params);
-                $normalized = $this->normalizeFlights($rawFlights, $service->getCarrierName());
+            $totalCount = $allLegs->flatten(1)->filter(fn($f) => (float)preg_replace('/[^\d.]/', '', $f['price'] ?? 0) > 0)->count();
 
-                // Collect bundles
-                if ($carrier === 'pia') {
-                    $allBundles = $allBundles->merge($normalized['bundles'] ?? []);
-                }
-                // elseif ($carrier === 'flyJinnah') {
-                //     // Fetch bundles if needed (implement in FlyJinnahService)
-                //     $bundles = [];
-                //     $allBundles = $allBundles->merge($bundles);
-                // }
-                // Emirates bundles are per-flight, so no global merge needed here
+            return [
+                'flights' => $allLegs->map(fn($leg) => $leg->sortBy(fn($f) => (float)preg_replace('/[^\d.]/', '', $f['price'] ?? 0))->values()),
+                'total_count' => $totalCount,
+                'bundles' => $allBundles,
+                'extras' => $allExtras,
+                'errors' => $allErrors,
+            ];
+        } else {
+            if(!empty($this->services)) {
+            foreach ($this->services as $service) {
+                    $carrier = strtolower($service->getCarrierName());
+                    if (in_array($carrier, $skipCarriers, true)) {
+                        continue;
+                    }
 
-                // Collect errors
-                if (!empty($normalized['errors'])) {
-                    $allErrors = $allErrors->merge($normalized['errors']);
-                }
-                if (!empty($normalized['extras'])) {
-                    $allExtras = $allExtras->merge($normalized['extras']);
-                }
+                    $rawFlights = $service->searchFlights($params);
+                    $normalized = $this->normalizeFlights($rawFlights, $service->getCarrierName());
 
-                // Merge flights (index 0 = outbound, 1 = inbound)
-                $outbound = $normalized['flights'][0] ?? collect();
-                $inbound = $normalized['flights'][1] ?? collect();
-                $outboundFlights = $outboundFlights->merge($outbound);
-                $inboundFlights = $inboundFlights->merge($inbound);
-            } 
+                    // Collect bundles
+                    if ($carrier === 'pia') {
+                        $allBundles = $allBundles->merge($normalized['bundles'] ?? []);
+                    }
+                    // elseif ($carrier === 'flyJinnah') {
+                    //     // Fetch bundles if needed (implement in FlyJinnahService)
+                    //     $bundles = [];
+                    //     $allBundles = $allBundles->merge($bundles);
+                    // }
+                    // Emirates bundles are per-flight, so no global merge needed here
+
+                    // Collect errors
+                    if (!empty($normalized['errors'])) {
+                        $allErrors = $allErrors->merge($normalized['errors']);
+                    }
+                    if (!empty($normalized['extras'])) {
+                        $allExtras = $allExtras->merge($normalized['extras']);
+                    }
+
+                    // Merge flights (index 0 = outbound, 1 = inbound)
+                    $outbound = $normalized['flights'][0] ?? collect();
+                    $inbound = $normalized['flights'][1] ?? collect();
+                    $outboundFlights = $outboundFlights->merge($outbound);
+                    $inboundFlights = $inboundFlights->merge($inbound);
+                } 
+            }
+
+            // Sort by price
+            // $outboundFlights = $outboundFlights->sortBy('price')->values();
+            // $inboundFlights = $inboundFlights->sortBy('price')->values();
+            $outboundFlights = $outboundFlights->filter(function ($flight) {
+                $price = (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0);
+                return $price > 0;
+            })->values();
+
+            $outboundFlights = $outboundFlights->sortBy(function ($flight) {
+                return (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0);
+            })->values();
+
+            $inboundFlights = $inboundFlights->sortBy(function ($flight) {
+                return (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0);
+            })->values();
+
+            $flights = collect([$outboundFlights, $inboundFlights]);
+            $departureCount = $outboundFlights->count();
+            $returnCount = $inboundFlights->count();
+            return [
+                'flights' => $flights,
+                'total_count' => $departureCount + $returnCount,
+                'departure_count' => (int) $departureCount,
+                'return_count' => (int) $returnCount,
+                'bundles' => $allBundles,
+                'extras' => $allExtras,
+                'errors' => $allErrors
+            ];
         }
-
-        // Sort by price
-        // $outboundFlights = $outboundFlights->sortBy('price')->values();
-        // $inboundFlights = $inboundFlights->sortBy('price')->values();
-        $outboundFlights = $outboundFlights->filter(function ($flight) {
-            $price = (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0);
-            return $price > 0;
-        })->values();
-
-        $outboundFlights = $outboundFlights->sortBy(function ($flight) {
-            return (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0);
-        })->values();
-
-        $inboundFlights = $inboundFlights->sortBy(function ($flight) {
-            return (float) preg_replace('/[^\d.]/', '', $flight['price'] ?? 0);
-        })->values();
-
-        $flights = collect([$outboundFlights, $inboundFlights]);
-        $departureCount = $outboundFlights->count();
-        $returnCount = $inboundFlights->count();
-        return [
-            'flights' => $flights,
-            'total_count' => $departureCount + $returnCount,
-            'departure_count' => (int) $departureCount,
-            'return_count' => (int) $returnCount,
-            'bundles' => $allBundles,
-            'extras' => $allExtras,
-            'errors' => $allErrors
-        ];
     }
     private function normalizeFlights($rawData, $carrier)
     {
@@ -266,6 +299,22 @@ class FlightAggregatorService
                 }
                 $flightsCollection->push($data);
             }
+        } elseif ($carrier === 'airblue') {
+            if (isset($rawData['error'])) {
+                $errors->push([
+                    'details' => $rawData['message'] ?? $rawData,
+                ]);
+            } elseif (isset($rawData['success']) && $rawData['success']) {
+                $legs = $rawData['legs'] ?? [];
+                foreach (array_values($legs) as $legOptions) {
+                    $data = collect();
+                    foreach ($legOptions as $option) {
+                        $normalized = $this->normalizeAirblueOption($option, $carrier);
+                        $data->push($normalized);
+                    }
+                    $flightsCollection->push($data);
+                }
+            }
         }
 
         return [
@@ -273,6 +322,52 @@ class FlightAggregatorService
             'bundles' => $bundles,
             'extras' => $extras,
             'errors' => $errors
+        ];
+    }
+    private function normalizeAirblueOption($option, $carrier)
+    {
+        $segments = [];
+        foreach ($option['segments'] as $seg) {
+            $segments[] = [
+                'departure' => [
+                    'code' => $seg['origin'],
+                    'airport' => $this->helper->codeToCountry($seg['origin']),
+                    'local' => $this->helper::codeToLocalCheck($seg['origin'] ?? ''),
+                    'datetime' => $seg['departure_date'] . 'T' . $seg['departure_time'] . ':00',
+                    'date' => $this->helper::formatDateForFlights($seg['departure_date']),
+                    'time' => $this->helper::formatTimeForFlights($seg['departure_time']),
+                ],
+                'arrival' => [
+                    'code' => $seg['destination'],
+                    'airport' => $this->helper->codeToCountry($seg['destination']),
+                    'local' => $this->helper::codeToLocalCheck($seg['destination'] ?? ''),
+                    'datetime' => $seg['departure_date'] . 'T' . $seg['arrival_time'] . ':00', // Assume same day, adjust if needed
+                    'date' => $this->helper::formatDateForFlights($seg['departure_date']),
+                    'time' => $this->helper::formatTimeForFlights($seg['arrival_time']),
+                ],
+                'flight_number' => $seg['flight_number'],
+                'duration' => $seg['duration'],
+                'carrier' => $seg['airline'],
+                'baggage' => $option['bundles'][0]['baggage_raw'] ?? [],
+            ];
+        }
+
+        $first = $segments[0];
+        $last = end($segments);
+
+        return [
+            'carrier' => $carrier,
+            'cabinClass' => 'Y',
+            'departure' => $first['departure'],
+            'arrival' => $last['arrival'],
+            'duration' => $option['duration'],
+            'isConnected' => $option['stops'] > 0,
+            'price' => $option['cheapest_price'],
+            'code' => 'PKR',
+            'segments' => $segments,
+            'bundles' => $option['bundles'],
+            'status' => 'AVAILABLE',
+            'flightRaw' => $option,
         ];
     }
     private function normalizeSegment($segments, $airline)

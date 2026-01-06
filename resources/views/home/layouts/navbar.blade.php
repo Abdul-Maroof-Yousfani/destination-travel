@@ -118,7 +118,7 @@
                             </li> --}}
                             @auth('client')
                                 <li>
-                                    <a href="{{ route('login') }}"><i class="fa-regular fa-user"></i> Profile</a> &nbsp;
+                                    <a href="{{ route('profile') }}"><i class="fa-regular fa-user"></i> Profile</a> &nbsp;
                                     <a type="button" class="logoutBtn"><i class="fa fa-sign-out"></i> Logout</a>
                                 </li>
                             @else

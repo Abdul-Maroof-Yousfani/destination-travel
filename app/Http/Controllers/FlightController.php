@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Models\CancelResponse;
 use App\Services\HelperService;
 use App\Helpers\HelperFunctions;
+use App\Services\AirblueService;
 use App\Models\Log as BookingLog;
 use App\Services\EmiratesService;
 use App\Services\FlyJinnahService;
@@ -37,70 +38,144 @@ class FlightController extends Controller
         protected FlyJinnahService $flyJinnahService,
         protected PiaService $piaService,
         protected EmiratesService $emiratesService,
+        protected AirblueService $airblueService,
         protected HelperService $helperService,
         protected UserBookingService $bookingService
     ) {}
     public function search(Request $request, FlightAggregatorService $aggregator)
     {
-        try {
-            session([
-                'IdsExpireTimeFj' => null,
-                'IdsExpireTimeEmi' => null,
-            ]);
-            $tax = config('variables.flyjinnah_api.tax') ?? 0;
-            $validatedData = $request->validate([
-                'arr' => 'required|string',
-                'dest' => 'required|string',
-                'dep' => 'required|date',
-                'return' => 'nullable|date',
+        $segments = [];
+        $i = 1;
+
+        while ($request->has("s$i") && $request->has("d$i")) {
+            [$arr, $dest] = explode('-', $request->get("s$i"));
+            $segments[] = [
+                'arr'  => $arr,
+                'dest' => $dest,
+                'dep'  => $request->get("d$i"),
+            ];
+            $i++;
+        }
+
+        if (!empty($segments)) {
+            $request->merge(['segments' => $segments]);
+        }
+
+        session([
+            'IdsExpireTimeFj'  => null,
+            'IdsExpireTimeEmi' => null,
+        ]);
+
+        // ===================== VALIDATION =====================
+        if ($request->has('segments')) {
+            $validated = $request->validate([
+                'segments' => 'required|array|min:1',
+                'segments.*.arr'  => 'required|string',
+                'segments.*.dest' => 'required|string',
+                'segments.*.dep'  => 'required|date',
+
                 'cabinClass' => 'nullable|string|in:Y,W,C,J,P,F',
+                'routeType'  => 'nullable|string|in:MULTI,ROUND,ONEWAY',
                 'adt' => 'required|numeric',
                 'chd' => 'nullable|numeric',
                 'inf' => 'nullable|numeric',
             ]);
-            session(['cabinClass' => $validatedData['cabinClass']]);
-            $flights = $aggregator->searchAllFlights($validatedData);
-            if ($request->ajax()) return response()->json($flights);
-            $paxCount = [
-                'adt' => $validatedData['adt'] ?? 1,
-                'chd' => $validatedData['chd'] ?? 0,
-                'inf' => $validatedData['inf'] ?? 0
-            ];
-            $segments = [
-                'departure' => [
-                    'code' => $validatedData['arr'] ?? '',
-                    'airport' => app(HelperFunctions::class)->codeToCountry($validatedData['arr'] ?? ''),
-                ],
-                'arrival' => [
-                    'code' => $validatedData['dest'] ?? '',
-                    'airport' => app(HelperFunctions::class)->codeToCountry($validatedData['dest'] ?? ''),
-                ],
-            ];
-            $data = array_merge($segments, $flights);
-            $searchKey = "{$validatedData['arr']}_{$validatedData['dest']}";
-            $now = now()->format('d M Y h:i A');
-            BookingLog::updateOrCreate(
-                [
-                    'session_id' => session()->getId(),
-                    'changes' => $searchKey,
-                ],
-                [
-                    'notes' => "User searched flight from {$validatedData['arr']} to {$validatedData['dest']} on {$now}",
-                    'updated_at' => now(),
-                ]
-            );
-            // dd($emirateFlights);
-            return view('home.flights', [
-                'paxCount' => $paxCount,
-                'isRoundTrip' => isset($validatedData['return']) ? true : false,
-                'data' => $data,
+        } else {
+            $validated = $request->validate([
+                'arr' => 'required|string',
+                'dest' => 'required|string',
+                'dep' => 'required|date',
+                'return' => 'nullable|date',
+
+                'cabinClass' => 'nullable|string|in:Y,W,C,J,P,F',
+                'routeType' => 'nullable|string|in:MULTI,ROUND,ONEWAY',
+                'adt' => 'required|numeric',
+                'chd' => 'nullable|numeric',
+                'inf' => 'nullable|numeric',
             ]);
-    
-        } catch (\Exception $e) {
-            \Log::error('Flight search failed: ' . $e->getMessage());
-            return back()->with('error', 'An error occurred while searching for flights. Please try again.');
+
+            $validated['segments'] = [[
+                'arr' => $validated['arr'],
+                'dest' => $validated['dest'],
+                'dep' => $validated['dep'],
+                'return' => $validated['return'] ?? null,
+            ]];
         }
+
+        // ===================== ROUTE TYPE =====================
+        $routeType = $validated['routeType']
+            ?? (count($validated['segments']) > 1
+                ? 'MULTI'
+                : (isset($validated['return']) ? 'ROUND' : 'ONEWAY'));
+
+        session(['cabinClass' => $validated['cabinClass'] ?? 'Y']);
+
+        // ===================== SEARCH =====================
+        $flights = $aggregator->searchAllFlights($validated);
+
+        if ($request->ajax()) {
+            return response()->json($flights);
+        }
+
+        $data = $flights;
+
+        // ===================== MULTI FIX =====================
+        if ($routeType === 'MULTI') {
+            $legs = collect($flights['flights'])->values(); // reset keys
+
+            $data['legs'] = $legs->mapWithKeys(
+                fn ($leg, $index) => [$index + 1 => $leg]
+            );
+
+            $data['flights'] = $legs;
+        } else {
+            $data['flights'] = $flights['flights'];
+        }
+
+        // ===================== PAX =====================
+        $paxCount = [
+            'adt' => $validated['adt'] ?? 1,
+            'chd' => $validated['chd'] ?? 0,
+            'inf' => $validated['inf'] ?? 0,
+        ];
+
+        $firstSeg = $validated['segments'][0] ?? [];
+
+        $data['departure'] = [
+            'code'    => $firstSeg['arr'] ?? '',
+            'airport' => app(HelperFunctions::class)
+                            ->codeToCountry($firstSeg['arr'] ?? ''),
+        ];
+
+        $data['arrival'] = [
+            'code'    => $firstSeg['dest'] ?? '',
+            'airport' => app(HelperFunctions::class)
+                            ->codeToCountry($firstSeg['dest'] ?? ''),
+        ];
+
+        // ===================== LOG =====================
+        $searchKey = ($firstSeg['arr'] ?? '') . '_' . ($firstSeg['dest'] ?? '');
+        $now = now()->format('d M Y h:i A');
+
+        BookingLog::updateOrCreate(
+            [
+                'session_id' => session()->getId(),
+                'changes' => $searchKey,
+            ],
+            [
+                'notes' => "User searched flight from {$firstSeg['arr']} to {$firstSeg['dest']} on {$now}",
+                'updated_at' => now(),
+            ]
+        );
+
+        return view('home.flights', [
+            'paxCount'    => $paxCount,
+            'isRoundTrip' => isset($validated['return']),
+            'data'        => $data,
+            'routeType'   => $routeType,
+        ]);
     }
+
     public function getBundles(Request $request)
     {
         // return response()->json(
@@ -229,15 +304,42 @@ class FlightController extends Controller
             ];
             session(['data' => $data, 'totalFare' => $totalFarePrice ?? null]);
             return response()->json(['status' => 'success', 'redirect' => route('flightBooking')], 200);
-        }
+        } else if ($airline === 'airblue') {
+            // dd($request->all());
+            $data = [
+                'airline' => $airline,
+                'logo' => 'airblue.png',
+                'flights' => $request->flights ?? null,
+                'departure' => $request->departureFlight ?? null,
+                'return' => $request->returnFlight ?? null,
+                'paxCount' => $request->paxCount ?? null,
+                'firstBundle' => $request->firstBundleId ?? null,
+                'returnBundle' => $request->secondBundleId ?? null,
+                'passengerTypes' => $passengerTypes,
+            ];
+            $totalFarePrice = ($data['firstBundle']['total_price'] ?? 0) + ($data['returnBundle']['total_price'] ?? 0);
+            session([
+                'data' => $data,
+                'totalFare' => $totalFarePrice ?? null
+            ]);
+            return response()->json([
+                'status' => 'success',
+                'redirect' => route('flightBooking')
+            ], 200);
+        } 
         return response()->json(['status' => 'error', 'message' => 'Missing flight name!'], 400);
     }
     public function booking()
     {
-        // dd(session('data', []));
         $data = session('data', []);
+        // dd(session('data', []), session('totalFare', []), $data['flights'][0]['departure']);
         $isLocal = false;
-        if (!empty($data)) {
+        if (!empty($data) && $data['airline'] === 'airblue') {
+            $departure = filter_var($data['flights'][0]['departure']['departure']['local'], FILTER_VALIDATE_BOOLEAN);
+            $arrival   = filter_var($data['flights'][0]['departure']['arrival']['local'], FILTER_VALIDATE_BOOLEAN);
+            $isLocal = $departure && $arrival;
+        }
+        if (!empty($data) && $data['airline'] !== 'airblue') {
             $departure = filter_var($data['departure']['departure']['local'], FILTER_VALIDATE_BOOLEAN);
             $arrival   = filter_var($data['departure']['arrival']['local'], FILTER_VALIDATE_BOOLEAN);
             $isLocal = $departure && $arrival;
@@ -252,6 +354,19 @@ class FlightController extends Controller
     }
     public function getSeat(Request $request)
     {
+        if (empty($request->data)) {
+            return response()->json(['status' => 'error', 'message' => 'Missing seat data!'], 400);
+        }
+
+        if($request->airline === 'airblue') {
+            $getSeat = $this->airblueService->getSeat($request->data ?? null);
+            // dd($getSeat);
+            if (!empty($getSeat['error'])) {
+                return response()->json(['status'  => 'error', 'message' => $getSeat['error'], 'details' => $getSeat['message'] ?? null], 400);
+            }
+            return response()->json($getSeat);
+        }
+
         $seatMap = $this->flyJinnahService->seatMap([
             'data' => $request->data ?? null,
         ]);
@@ -275,6 +390,22 @@ class FlightController extends Controller
             'status' => 'success',
             'data' => $seatXml
         ], 200);
+    }
+    public function confirmSeats(Request $request)
+    {
+        if (empty($request->data)) {
+            return response()->json(['status' => 'error', 'message' => 'Missing seat data!'], 400);
+        }
+
+        if($request->airline === 'airblue') {
+            $getSeat = $this->airblueService->confirmSeats($request->data ?? null);
+            // dd($getSeat);
+            if (!empty($getSeat['error'])) {
+                return response()->json(['status'  => 'error', 'message' => $getSeat['error'], 'details' => $getSeat['details'] ?? null], 400);
+            }
+            return response()->json($getSeat);
+        }
+        return response()->json(['status' => 'false', 'message' => 'Airline not supported'], 400);
     }
     public function getMeal(Request $request)
     {
@@ -307,6 +438,18 @@ class FlightController extends Controller
     }
     public function getBaggage(Request $request)
     {
+        if (empty($request->data)) {
+            return response()->json(['status' => 'error', 'message' => 'Missing seat data!'], 400);
+        }
+
+        if($request->airline === 'airblue') {
+            $getAncillaryItems = $this->airblueService->getAncillaryItems($request->data ?? null);
+            // dd($getAncillaryItems);
+            if (!empty($getAncillaryItems['error'])) {
+                return response()->json(['status'  => 'error', 'message' => $getAncillaryItems['error'], 'details' => $getAncillaryItems['details'] ?? null], 400);
+            }
+            return response()->json($getAncillaryItems);
+        }
         $baggageMap = $this->flyJinnahService->baggageMap([
             'data' => $request->data ?? null,
         ]);
@@ -338,6 +481,22 @@ class FlightController extends Controller
             'status' => 'success',
             'data' => $baggageXml
         ], 200);
+    }
+    public function confirmAncillaries(Request $request)
+    {
+        if (empty($request->data)) {
+            return response()->json(['status' => 'error', 'message' => 'Missing seat data!'], 400);
+        }
+
+        if($request->airline === 'airblue') {
+            $getAncillaries = $this->airblueService->confirmAncillaries($request->data ?? null);
+            // dd($getAncillaries);
+            if (!empty($getAncillaries['error'])) {
+                return response()->json(['status'  => 'error', 'message' => $getAncillaries['error'], 'details' => $getAncillaries['details'] ?? null], 400);
+            }
+            return response()->json($getAncillaries);
+        }
+        return response()->json(['status' => 'false', 'message' => 'Airline not supported'], 400);
     }
     public function payment(Request $request)
     {
@@ -409,6 +568,23 @@ class FlightController extends Controller
             $passengers = $this->bookingService->createPassengers($request->passengers, $client->id);
             $flights = app(FlightBookingService::class)->handleBookingPia($bookFlight, $client->id, $cabinClass);
             // dd($request->all(), $flights);
+        } elseif ($airline === 'airblue') {
+            $data = $request->only(['user', 'passengers', 'data', 'paxCount']);
+            // dd($data);
+            if ($request->status === 'fetch') {
+                $cabinClass = session('cabinClass', 'Y');
+                $bookFlight = $this->airblueService->bookFlight($data ?? null);
+                if (!empty($bookFlight['error'])) {
+                    return response()->json(['status'  => 'error', 'message' => $bookFlight['error'], 'details' => $bookFlight['details'] ?? null], 400);
+                }
+                return response()->json($bookFlight);
+            } elseif($request->status === 'create') {
+                $client = $this->bookingService->createUser($request->user);
+                $passengers = $this->bookingService->createPassengers($request->passengers, $client->id);
+                $flights = app(FlightBookingService::class)->handleBookingAirblue($data, $client->id);
+            }
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'Missing flight name!'], 400);
         }
         BookingLog::create([
             'session_id' => session()->getId(),
@@ -712,6 +888,47 @@ class FlightController extends Controller
                 ], $alreadyTicketed ? 409 : 400);
             }
             $updatedBooking = app(FlightBookingService::class)->issueTicketsPia($orderChange, $booking->id);
+            // dd($updatedBooking);
+            BookingLog::create(['booking_id' => $booking->id, 'notes' => "Ticket issued on {$now}"]);
+            return response()->json(['status' => 'success', 'message' => 'Success! Your flight is booked. Safe travels!.', 'booking' => $updatedBooking]);
+        } else if ($airline === 'airblue') {
+            $orderChange = $this->airblueService->orderChange([
+                'amount' => $booking->price,
+                'code' => $booking->price_code,
+                'orderId' => $booking->order_id,
+                'ownerCode' => $booking->order_owner,
+            ]);
+            // dd($orderChange);
+            $alreadyTicketedMsg = str_contains(strtolower($orderChange['message'] ?? ''), 'already');
+            if ($alreadyTicketedMsg) return response()->json(['status' => 'error', 'message' => 'This flight was already ticketed.'], 409);
+            $errorMessage = $orderChange['error'] ?? null;
+            if ($errorMessage) {
+                $details = $orderChange['message'] ?? [];
+                $alreadyTicketed = collect($errorMessage)->contains(function ($errorMessage) {
+                    return str_contains(strtolower($errorMessage), 'already');
+                });
+                if (!$alreadyTicketed) {
+                    BookingLog::create([
+                        'booking_id' => $booking->id,
+                        'notes' => "Error found on approve tickets on {$now}",
+                    ]);
+                    $booking->update(['status' => Booking::STATUS_ERROR]);
+                    ErrorLog::create([
+                        'client_id' => $booking->client_id,
+                        'booking_id' => $booking->id,
+                        'error_type' => 'ticketing',
+                        'error_message' => json_encode($errorMessage),
+                        'details' => json_encode($details),
+                    ]);
+                };
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $alreadyTicketed ? 'This flight was already ticketed.' : 'Flight booking failed.',
+                    'code' => $alreadyTicketed ? 409 : 400,
+                    'details' => $errorMessage,
+                ], $alreadyTicketed ? 409 : 400);
+            }
+            $updatedBooking = app(FlightBookingService::class)->issueTicketsAirblue($orderChange, $booking->id);
             // dd($updatedBooking);
             BookingLog::create(['booking_id' => $booking->id, 'notes' => "Ticket issued on {$now}"]);
             return response()->json(['status' => 'success', 'message' => 'Success! Your flight is booked. Safe travels!.', 'booking' => $updatedBooking]);

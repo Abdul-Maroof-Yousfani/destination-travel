@@ -1,5 +1,5 @@
 {{-- @dd($flightData, $totalFare, $tax) --}}
-@if (isset($flightData) && !empty($flightData))
+@if (!empty($flightData) && isset($flightData) && isset($flightData['departure']))
     @php
         $logo = $flightData['airline'] ?? 'default';
 

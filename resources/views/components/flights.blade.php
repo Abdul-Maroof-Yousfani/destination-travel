@@ -1,4 +1,3 @@
-<!-- Departure Flights -->
 {{-- @dd($flightData) --}}
 {{-- HOTEL BOOKING PAX COUNT RULES
     6 rooms per request
@@ -17,61 +16,192 @@
     //     return $flightData; // first response will be cached
     // });
     // Temp
+
 @endphp
 <style>
-    .flight-card{border:1px solid #e0e0e0;border-radius:12px;padding:20px;margin:20px auto;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
-    .airline-logo{width:60px;height:auto;}
-    .price-btn,.price-btn-rtn{background-color:#004080;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:bold;}
-    .details-section{display:none;border-top:1px dashed #ccc;margin-top:15px;padding-top:15px;font-size:0.9rem;}
-    .connected{font-size:1em;color:#127f9f;cursor:pointer;text-decoration:underline;font-weight:600;}
-    .durationBadge{border:1px solid #127f9f;background:#2fbbe530;padding:2px 4px;border-radius:5px;font-size:0.8em !important;}
-    .pia-bundle-item{border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:16px;background:#fafafa;}
-    .bundle-header{margin-bottom:12px;}
-    .bundle-header h4{margin:0 0 4px;}
-    .baggage-summary{font-size:0.9rem;color:#555;}
-    .option-card{border:1px solid #eee;border-radius:8px;padding:10px;margin-bottom:10px;background:#fff;}
-    .option-header{display:flex;justify-content:space-between;align-items:center;}
-    .option-header h5{margin:0;font-size:1rem;}
-    .option-price{font-weight:600;color:#008000;}
-    .fare-list{padding-left:20px;margin:5px 0;}
-    .service-list{margin-top:5px;}
-    .service-badge{background:#e9ecef;padding:3px 8px;border-radius:4px;margin-right:4px;font-size:0.8rem;}
-    .bundle-footer{margin-top:12px;text-align:right;}
-    .df-items.plane{display:flex;align-items:end;justify-content:space-between;}
-    .df-items.plane h1{font-size:30px;}
-    .df-items.plane p{font-size:18px;font-weight:400;}
-    .timesHeading{display:flex;justify-content:space-around;}
-    .flight-duration{margin:11px 0;}
-    .price-btn,.price-btn-rtn{padding:8px 14px;font-size:13px;width:100%;}
-    .text-muted.small.roundtrip{text-align:center;font-weight:600;color:#000;}
+    .flight-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px auto;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .airline-logo {
+        width: 60px;
+        height: auto;
+    }
+
+    .price-btn,
+    .price-btn-rtn {
+        background-color: #004080;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    .details-section {
+        display: none;
+        border-top: 1px dashed #ccc;
+        margin-top: 15px;
+        padding-top: 15px;
+        font-size: 0.9rem;
+    }
+
+    .connected {
+        font-size: 1em;
+        color: #127f9f;
+        cursor: pointer;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+
+    .durationBadge {
+        border: 1px solid #127f9f;
+        background: #2fbbe530;
+        padding: 2px 4px;
+        border-radius: 5px;
+        font-size: 0.8em !important;
+    }
+
+    .pia-bundle-item {
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #fafafa;
+    }
+
+    .bundle-header {
+        margin-bottom: 12px;
+    }
+
+    .bundle-header h4 {
+        margin: 0 0 4px;
+    }
+
+    .baggage-summary {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .option-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #fff;
+    }
+
+    .option-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .option-header h5 {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .option-price {
+        font-weight: 600;
+        color: #008000;
+    }
+
+    .fare-list {
+        padding-left: 20px;
+        margin: 5px 0;
+    }
+
+    .service-list {
+        margin-top: 5px;
+    }
+
+    .service-badge {
+        background: #e9ecef;
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin-right: 4px;
+        font-size: 0.8rem;
+    }
+
+    .bundle-footer {
+        margin-top: 12px;
+        text-align: right;
+    }
+
+    .df-items.plane {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+    }
+
+    .df-items.plane h1 {
+        font-size: 30px;
+    }
+
+    .df-items.plane p {
+        font-size: 18px;
+        font-weight: 400;
+    }
+
+    .timesHeading {
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .flight-duration {
+        margin: 11px 0;
+    }
+
+    .price-btn,
+    .price-btn-rtn {
+        padding: 8px 14px;
+        font-size: 13px;
+        width: 100%;
+    }
+
+    .text-muted.small.roundtrip {
+        text-align: center;
+        font-weight: 600;
+        color: #000;
+    }
+
     .fare-scroll {
-    display: flex;
-    overflow-x: auto;
-    gap: 1rem;
-    padding-bottom: 1rem;
-    scroll-snap-type: x mandatory;
+        display: flex;
+        overflow-x: auto;
+        gap: 1rem;
+        padding-bottom: 1rem;
+        scroll-snap-type: x mandatory;
     }
 
     .fare-scroll::-webkit-scrollbar {
-    height: 8px;
+        height: 8px;
     }
 
     .fare-scroll::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
+        background: #ccc;
+        border-radius: 10px;
     }
 
-    .fare-scroll > .card {
-    flex: 0 0 auto;
-    scroll-snap-align: start;
+    .fare-scroll>.card {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
     }
-    .bundle-section{
+
+    .bundle-section {
         display: none;
     }
+
     .bundle-loader {
         padding: 20px;
         text-align: center;
     }
+
     .spinner {
         width: 32px;
         height: 32px;
@@ -87,20 +217,21 @@
             transform: rotate(360deg);
         }
     }
-
 </style>
+{{-- @dd($flightData) --}}
 @if (!empty($flightData))
     @php
         $isReturn = $flightData['return_count'] > 0;
         $bundles = $flightData['bundles'];
+
     @endphp
-    {{-- @dd($flightData) --}}
     @forelse ($flightData['flights'] as $key => $segments)
         @php
             // $departure = $key === 0 ? $flightData['departure'] : $flightData['arrival'];
             // $arrival = $key === 0 ? $flightData['arrival'] : $flightData['departure'];
         @endphp
-        <div class="departure_names"  id="{{ $key === 0 ? 'departure-section' : 'return-section' }}" style="display:{{ $key === 0 ? 'block' : 'none' }};">
+        <div class="departure_names" id="{{ $key === 0 ? 'departure-section' : 'return-section' }}"
+            style="display:{{ $key === 0 ? 'block' : 'none' }};">
             {{-- <div class="df-items plane">
                 <h1>{{ $key === 0 ? 'Departure' : 'Return' }} Flights</h1>
                 <p class="small font-italic">
@@ -133,18 +264,23 @@
                         <div class="col-12 col-md-8">
                             <!-- Time Info -->
                             <div class="timesHeading">
-                                <div><h2> <strong>{{ $flightDep['time'] ?? '' }}</strong></h2></div>
+                                <div>
+                                    <h2> <strong>{{ $flightDep['time'] ?? '' }}</strong></h2>
+                                </div>
                                 <div class="flight-duration">{{ $flight['duration'] ?? '' }}</div>
-                                <div><h2><strong>{{ $flightArr['time'] ?? '' }}</strong></h2></div>
+                                <div>
+                                    <h2><strong>{{ $flightArr['time'] ?? '' }}</strong></h2>
+                                </div>
                             </div>
                             <div class="my-3 flight-names-dec text-center">
                                 <p>{{ $flightDep['airport'] }} ({{ $flightDep['code'] }}) -
                                     @if ($flight['isConnected'])
-                                        <span class="connected">{{ $stopCount }} {{ $stopCount > 1 ? 'Stops' : 'Stop' }}</span>
+                                        <span class="connected">{{ $stopCount }}
+                                            {{ $stopCount > 1 ? 'Stops' : 'Stop' }}</span>
                                     @else
                                         Nonstop
                                     @endif
-                                        - {{ $flightArr['airport'] }} ({{ $flightArr['code'] }})
+                                    - {{ $flightArr['airport'] }} ({{ $flightArr['code'] }})
                                 </p>
                             </div>
                             {{-- <div class="text-muted small kgs-total">🧳 Total: 20kg &nbsp;&nbsp; 🍴 Meal</div> --}}
@@ -156,13 +292,15 @@
                                 data-flight="{{ json_encode($flight) }}">
                                 {{ $flight['code'] ?? 'PKR' }} {{ $flight['price'] ?? 0 }}
                             </button>
-                            <div class="text-muted small roundtrip">{{ $flightData['return_count'] === 0 ? 'One Way' : 'Round Trip' }}</div>
+                            <div class="text-muted small roundtrip">
+                                {{ $flightData['return_count'] === 0 ? 'One Way' : 'Round Trip' }}</div>
                         </div>
                     </div>
                     <!-- Connected Flight Details -->
                     <div class="details-section">
                         <div class=" mb-3">
-                            <span class="durationBadge text-dark">{{ Carbon::parse($flight['arrival']['datetime'])->format('l d, F') }}</span>
+                            <span
+                                class="durationBadge text-dark">{{ Carbon::parse($flight['arrival']['datetime'])->format('l d, F') }}</span>
                         </div>
                         @forelse ($flight['segments'] as $index => $segment)
                             <div class="card mb-3 shadow-sm">
@@ -250,85 +388,6 @@
                                 <div class="spinner"></div>
                                 <p class="small text-muted mt-2">Loading bundles...</p>
                             </div>
-                            <!-- Nil Baggage -->
-                            {{-- <div class="card shadow-sm mx-2">
-                                <div class="card-header bg-light fw-bold">
-                                    <span class="">Basic</span>
-                                </div>
-                                <div class="card-body">
-                                    <span class="fw-bold">Included</span>
-                                    <ul class="list-unstyled small">
-                                        <li>💼 Check-in: 10 Kg</li>
-                                        <span class="fw-bold">Chargeable</span>
-                                        <li>🧳 Checked Baggage Baggage Rate</li>
-                                        <li>💺 Seat</strong></li>
-                                        <li>🍴 Meal</strong></li>
-                                        <li>✏️ Modification: Penalties Apply</li>
-                                        <li>❌ Cancellation: Penalties Apply</li>
-                                    </ul>
-                                </div>
-                                <div class="card-footer text-center bg-white">
-                                    <button class="btn btn-primary w-100 fw-bold">PKR 21,590</button>
-                                </div>
-                            </div> --}}
-
-                            <!-- Standard -->
-                            {{-- <div class="card shadow-sm mx-2" >
-                                <div class="card-body">
-                                    <h5 class="card-title">Standard</h5>
-                                    <ul class="list-unstyled small">
-                                    <li>🧳 Carry-on: <strong>7kg 1 Piece</strong></li>
-                                    <li>💼 Check-in: <strong>20kg (1 PC)</strong></li>
-                                    <li>💺 Seat: <strong>Not Included</strong></li>
-                                    <li>🍴 Meal: <strong>Included</strong></li>
-                                    <li>✏️ Modification: <a href="#">Penalties Apply</a></li>
-                                    <li>❌ Cancellation: <a href="#">Penalties Apply</a></li>
-                                    </ul>
-                                </div>
-                                <div class="card-footer text-center bg-white">
-                                    <div class="small text-muted mb-1">Sasta Refund: PKR 899</div>
-                                    <button class="btn btn-outline-primary btn-sm w-100 mb-2">Add to this flight</button>
-                                    <button class="btn btn-primary w-100 fw-bold">PKR 23,090</button>
-                                </div>
-                            </div>
-
-                            <!-- Value -->
-                            <div class="card shadow-sm mx-2">
-                                <div class="card-body">
-                                    <h5 class="card-title">Value</h5>
-                                    <ul class="list-unstyled small">
-                                        <li>🧳 Carry-on: <strong>7kg 1 Piece</strong></li>
-                                        <li>💼 Check-in: <strong>30kg (1 PC)</strong></li>
-                                        <li>💺 Seat: <strong>Not Included</strong></li>
-                                        <li>🍴 Meal: <strong>Included</strong></li>
-                                        <li>✏️ Modification: <a href="#">Penalties Apply</a></li>
-                                        <li>❌ Cancellation: <a href="#">Penalties Apply</a></li>
-                                    </ul>
-                                </div>
-                                <div class="card-footer text-center bg-white">
-                                    <div class="small text-muted mb-1">Sasta Refund: PKR 899</div>
-                                    <button class="btn btn-outline-primary btn-sm w-100 mb-2">Add to this flight</button>
-                                    <button class="btn btn-primary w-100 fw-bold">PKR 24,590</button>
-                                </div>
-                            </div>
-
-                            <!-- Premium -->
-                            <div class="card shadow-sm mx-2">
-                                <div class="card-body">
-                                    <h5 class="card-title">Premium</h5>
-                                    <ul class="list-unstyled small">
-                                    <li>🧳 Carry-on: <strong>7kg 1 Piece</strong></li>
-                                    <li>💼 Check-in: <strong>40kg (1 PC)</strong></li>
-                                    <li>💺 Seat: <strong>Included</strong></li>
-                                    <li>🍴 Meal: <strong>Included</strong></li>
-                                    <li>✏️ Modification: <a href="#">Penalties Apply</a></li>
-                                    <li>❌ Cancellation: <a href="#">Penalties Apply</a></li>
-                                    </ul>
-                                </div>
-                                <div class="card-footer text-center bg-white">
-                                    <button class="btn btn-primary w-100 fw-bold">PKR 26,090</button>
-                                </div>
-                            </div> --}}
                         </div>
                     </div>
                 </div>
@@ -339,7 +398,7 @@
     @empty
         <p class="text-center text-muted">No flights available.</p>
     @endforelse
-    <div class="modal fade right" id="bundleModal" tabindex="-1" aria-hidden="true">
+    {{-- <div class="modal fade right" id="bundleModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header w-100">
@@ -394,7 +453,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 @endif
 <script>
     $(document).ready(function() {
@@ -408,7 +467,7 @@
         let firstFlight, firstConnectedFlight, returnConnectedFlight;
         let segments, flightTotalFare, rtnSelectedFlight, airline, depSelectedFlight;
         // let firstSegments, secondSegments;
-        $('.connected').off('click').on('click', function () {
+        $('.connected').off('click').on('click', function() {
             $(this).closest(".flight-card").find(".details-section").slideToggle();
         });
 
@@ -427,8 +486,12 @@
             if (selectedCarrier === 'emirates') {
                 renderEmirateBundles(departureFlight.bundles || [], this, false);
             }
+            if (selectedCarrier === 'airblue') {
+                renderAirblueBundles(departureFlight.bundles || [], this, false);
+            }
             if (selectedCarrier === 'pia') {
-                if (!isReturn) return showModal();
+                alert('need to update function ui');
+                // if (!isReturn) return showModal();
             }
             if (!isReturn) return;
 
@@ -467,57 +530,61 @@
                 rtnSelectedFlight = returnFlightRaw.flightRaw;
                 let newReturnFlight = getFlightData(rtnSelectedFlight.flightSegments[0]);
                 returnConnectedFlight = getFlightData(rtnSelectedFlight.flightSegments[1] || null);
-                getFlightBundle(firstFlight, firstConnectedFlight, this, true, newReturnFlight, returnConnectedFlight);
+                getFlightBundle(firstFlight, firstConnectedFlight, this, true, newReturnFlight,
+                    returnConnectedFlight);
+            } else if (selectedCarrier === "airblue") {
+                renderAirblueBundles(returnFlight.bundles || [], this, true);
             } else {
-                showModal();
+                alert('missing flight');
             }
         });
 
         // Useless for now
-        const showModal = () => {
-            console.log('showModal');
-            const depInfo = formatFlight(departureFlight);
-            const rtnInfo = returnFlight ? formatFlight(returnFlight) : null;
-            $('.modalFlights').html(flightHtml(depInfo, rtnInfo));
+        // const showModal = () => {
+        //     console.log('showModal');
+        //     const depInfo = formatFlight(departureFlight);
+        //     const rtnInfo = returnFlight ? formatFlight(returnFlight) : null;
+        //     $('.modalFlights').html(flightHtml(depInfo, rtnInfo));
 
-            // $('#bundleModal').modal("show");
+        //     // $('#bundleModal').modal("show");
 
-            // console.log(selectedCarrier, departureFlight, returnFlight)
-            if (selectedCarrier === 'emirates') {
-                $('#bundleModal').modal("show");
-                $(".directModalBundles").html(renderEmiBundles(departureFlight.bundles, false));
-                if (returnFlight) {
-                    $(".returnModalBundles").html(renderEmiBundles(returnFlight.bundles, true));
-                }
-            }
-            // else if (selectedCarrier === 'flyJinnah') {
-            //     depSelectedFlight = departureFlight.flightRaw;
-            //     if (returnFlight) {
-            //         rtnSelectedFlight = returnFlight.flightRaw;
-            //         bookBothBundle(depSelectedFlight.flightSegments, rtnSelectedFlight.flightSegments);
-            //     } else {
-            //         bookBothBundle(depSelectedFlight.flightSegments, null);
-            //     }
-            // }
-            else if (selectedCarrier === 'pia') {
-                console.log('pia');
-                const matchedBundle = findMatchingBundles(departureFlight, returnFlight, bundles);
+        //     // console.log(selectedCarrier, departureFlight, returnFlight)
+        //     if (selectedCarrier === 'emirates') {
+        //         console.log('emirates');
+        //         $('#bundleModal').modal("show");
+        //         $(".directModalBundles").html(renderEmiBundles(departureFlight.bundles, false));
+        //         if (returnFlight) {
+        //             $(".returnModalBundles").html(renderEmiBundles(returnFlight.bundles, true));
+        //         }
+        //     }
+        //     // else if (selectedCarrier === 'flyJinnah') {
+        //     //     depSelectedFlight = departureFlight.flightRaw;
+        //     //     if (returnFlight) {
+        //     //         rtnSelectedFlight = returnFlight.flightRaw;
+        //     //         bookBothBundle(depSelectedFlight.flightSegments, rtnSelectedFlight.flightSegments);
+        //     //     } else {
+        //     //         bookBothBundle(depSelectedFlight.flightSegments, null);
+        //     //     }
+        //     // }
+        //     else if (selectedCarrier === 'pia') {
+        //         console.log('pia');
+        //         const matchedBundle = findMatchingBundles(departureFlight, returnFlight, bundles);
 
-                if (matchedBundle) {
-                    airline = selectedCarrier;
-                    // firstBundleId = extractSelectedBundleData(matchedBundle);
-                    // sendBookingRequest(false);
-                    // console.log(firstBundleId)
-                    $(".directModalBundles").html(renderPiaBundles(matchedBundle));
-                    $('#bundleModal').modal("show");
-                    $(".bundleBtns").addClass('d-none');
-                    // console.log('✅ Bundle found:', matchedBundle);
-                } else {
-                    _alert('No bundle found for this selection', 'warning');
-                }
-            }
+        //         if (matchedBundle) {
+        //             airline = selectedCarrier;
+        //             // firstBundleId = extractSelectedBundleData(matchedBundle);
+        //             // sendBookingRequest(false);
+        //             // console.log(firstBundleId)
+        //             $(".directModalBundles").html(renderPiaBundles(matchedBundle));
+        //             $('#bundleModal').modal("show");
+        //             $(".bundleBtns").addClass('d-none');
+        //             // console.log('✅ Bundle found:', matchedBundle);
+        //         } else {
+        //             _alert('No bundle found for this selection', 'warning');
+        //         }
+        //     }
 
-        };
+        // };
         const renderEmirateBundles = (data, el, isReturn) => {
             responseId = extras.emirates.responseId ?? '';
             const $flightCard = $(el).closest(".flight-card");
@@ -534,7 +601,9 @@
 
             if (!data || data.length === 0) {
                 setTimeout(() => {
-                    $bundleLoop.html(`<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">No bundles available for Emirates</div>`);
+                    $bundleLoop.html(
+                        `<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">No bundles available for Emirates</div>`
+                    );
                 }, 400);
                 return;
             }
@@ -687,7 +756,8 @@
                 PassengerRef: item?.services?.[0]?.passengerRefs || null
             }));
         // AJAX to get bundles
-        const getFlightBundle = (firstFlight, firstConnectedFlight, element, direction, returnFlight, returnConnectedFlight) => {
+        const getFlightBundle = (firstFlight, firstConnectedFlight, element, direction, returnFlight,
+            returnConnectedFlight) => {
             // console.log(firstFlight, firstConnectedFlight, direction, returnFlight, returnConnectedFlight);
             const $flightCard = $(element).closest(".flight-card");
             const $bundleSection = $flightCard.find(".bundle-section");
@@ -712,7 +782,8 @@
                     returnConnectedFlight,
 
                     // firstFlight:flight, connectedFlight,
-                    paxCount, isReturn,
+                    paxCount,
+                    isReturn,
                     _token: "{{ csrf_token() }}"
                 },
                 beforeSend: () => $bundleSection.slideToggle(),
@@ -722,36 +793,50 @@
                     // flightTotalFare = res['prices']['ItinTotalFare'] ?? null;
 
                     if (res.error) {
-                        $bundleLoop.html(`<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">No bundles available</div>`);
+                        $bundleLoop.html(
+                            `<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">No bundles available</div>`
+                        );
                         return;
                     }
                     if (!res.bundles || res.bundles === "Not found") {
-                        showBasicOnly(element, res, direction, firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight);
+                        showBasicOnly(element, res, direction, firstFlight,
+                            firstConnectedFlight, returnFlight, returnConnectedFlight);
                         return;
                     }
-                    renderBundles(res || [], element, direction, firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight);
+                    renderBundles(res || [], element, direction, firstFlight,
+                        firstConnectedFlight, returnFlight, returnConnectedFlight);
                 },
                 error: (xhr, status, error) => {
                     console.error('Error:', error)
-                    $bundleLoop.html(`<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">No bundles available</div>`);
+                    $bundleLoop.html(
+                        `<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">No bundles available</div>`
+                    );
                 },
                 complete: () => {
                     $flightCard.data("loading-bundles", false);
                 }
             });
         };
-        function showBasicOnly(el, data, isReturn, firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight) {
+
+        function showBasicOnly(el, data, isReturn, firstFlight, firstConnectedFlight, returnFlight,
+            returnConnectedFlight) {
             const $flightCard = $(el).closest(".flight-card");
             const $bundleLoop = $flightCard.find(".bundle-loop");
 
-            const segments = getSegment(data.originDestinationOptions.FlightSegment)
-                || data.originDestinationOptions.map(item => getSegment(item.FlightSegment));
+            const segments = getSegment(data.originDestinationOptions.FlightSegment) ||
+                data.originDestinationOptions.map(item => getSegment(item.FlightSegment));
 
             const flightTotalFare = data?.prices?.ItinTotalFare ?? null;
 
-            const flightData = isReturn
-                ? { firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight }
-                : { firstFlight, firstConnectedFlight };
+            const flightData = isReturn ? {
+                firstFlight,
+                firstConnectedFlight,
+                returnFlight,
+                returnConnectedFlight
+            } : {
+                firstFlight,
+                firstConnectedFlight
+            };
 
             $bundleLoop.html(`
                 <div class="card shadow-sm mx-2">
@@ -784,27 +869,38 @@
             `);
         }
 
-        const renderBundles = (data, el, isReturn, firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight) => {
-            let useBundleId = data?.bundles?.[0]?.bundledService?.some(b => b.bunldedServiceId == firstBundleId)
-                ? firstBundleId
-                : null;
+        const renderBundles = (data, el, isReturn, firstFlight, firstConnectedFlight, returnFlight,
+            returnConnectedFlight) => {
+            let useBundleId = data?.bundles?.[0]?.bundledService?.some(b => b.bunldedServiceId ==
+                    firstBundleId) ?
+                firstBundleId :
+                null;
 
             // let useBundleId = data.bundles[0] ? (data.bundles[0].bundledService.some(b => b.bunldedServiceId == firstBundleId) ? firstBundleId : null) : null;
             firstBundleId = (firstBundleId === 'basic') ? 'basic' : (isReturn ? useBundleId : useBundleId);
-            const bundles = isReturn ? (data?.bundles[1].bundledService || []) : (data?.bundles.bundledService || []);
+            const bundles = isReturn ? (data?.bundles[1].bundledService || []) : (data?.bundles
+                .bundledService || []);
             const bundlesArray = Array.isArray(bundles) ? bundles : (bundles ? [bundles] : []);
             const $flightCard = $(el).closest(".flight-card");
             const $bundleSection = $flightCard.find(".bundle-section");
             const $bundleLoop = $flightCard.find(".bundle-loop");
             const segments = getSegment(data.originDestinationOptions.FlightSegment) || data
-                    .originDestinationOptions.map(item => getSegment(item.FlightSegment));
+                .originDestinationOptions.map(item => getSegment(item.FlightSegment));
             const flightTotalFare = data['prices']['ItinTotalFare'] ?? null;
 
-            const flightData = isReturn
-                ? { firstFlight, firstConnectedFlight, returnFlight, returnConnectedFlight }
-                : { firstFlight, firstConnectedFlight };
+            const flightData = isReturn ? {
+                firstFlight,
+                firstConnectedFlight,
+                returnFlight,
+                returnConnectedFlight
+            } : {
+                firstFlight,
+                firstConnectedFlight
+            };
             if (!bundlesArray || bundlesArray.length === 0) {
-                $bundleLoop.html(`<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">No bundles available</div>`);
+                $bundleLoop.html(
+                    `<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">No bundles available</div>`
+                );
                 return;
             }
             setTimeout(() => {
@@ -838,12 +934,12 @@
                     </div>
                 `;
                 const dynamicCards = bundles
-                    .filter(row => row.description && String(row.description).trim() !== "") 
+                    .filter(row => row.description && String(row.description).trim() !== "")
                     .map(row => {
                         const name = row.bundledServiceName ?? "N/A";
                         const price = formatCurrency(Math.round(row.perPaxBundledFee || 0));
-                        const descArr = Array.isArray(row.description)
-                            ? [] : (row.description || "").split("\n");
+                        const descArr = Array.isArray(row.description) ? [] : (row
+                            .description || "").split("\n");
                         const descHTML = descArr.map(d => `<li>${d}</li>`).join("");
                         return `
                             <div class="card shadow-sm mx-2">
@@ -869,9 +965,9 @@
                         `;
                     })
                     .join("");
-                const finalOutput = dynamicCards.trim() === "" 
-                    ? `<div class="alert alert-warning">No valid bundles available</div>`
-                    : `
+                const finalOutput = dynamicCards.trim() === "" ?
+                    `<div class="alert alert-warning">No valid bundles available</div>` :
+                    `
                         <div class="fare-scroll d-flex overflow-auto pb-3">
                             ${staticCard}
                             ${dynamicCards}
@@ -881,9 +977,9 @@
             }, 300);
         };
 
-        $(document).on('click', '.bookBtn', function () {
+        $(document).on('click', '.bookBtn', function() {
             airline = $(this).data('airline');
-            if (['flyjinnah', 'emirate'].includes(airline)) {
+            if (['flyjinnah', 'emirate', 'airblue'].includes(airline)) {
                 let isDirect = false;
                 let bundleId = $(this).data('bundle-id') ?? null;
                 let isReturnBundle = $(this).data('is-return');
@@ -932,12 +1028,12 @@
                 // console.log(firstBundleId)
                 if (firstBundleId && (!isReturn || secondBundleId)) {
                     if (airline === 'flyjinnah') {
-                        isDirect = firstBundleId === 'basic' && (!isReturn || secondBundleId === 'basic');
+                        isDirect = firstBundleId === 'basic' && (!isReturn || secondBundleId ===
+                            'basic');
                     }
                     sendBookingRequest(isDirect);
                 }
-            }
-            else if(['pia'].includes(airline)){
+            } else if (['pia'].includes(airline)) {
                 const offerID = JSON.parse(decodeURIComponent($(this).data('bundle-id')));
                 const selectedBundle = bundles.find(b => b.offerID === offerID);
                 const selectedData = extractSelectedBundleData(selectedBundle);
@@ -1097,18 +1193,86 @@
                     rtnSelectedFlight: rtnSelectedFlight ?? null,
                     departureFlight: departureFlight ?? null,
                     returnFlight: returnFlightRaw ?? null,
-                    isDirectBooking, flightTotalFare, segments,
-                    paxCount, airline, _token: "{{ csrf_token() }}"
+                    isDirectBooking,
+                    flightTotalFare,
+                    segments,
+                    paxCount,
+                    airline,
+                    _token: "{{ csrf_token() }}"
                 }
             } else if (airline === "emirate") {
                 data = {
                     firstBundleId: firstBundleId ? JSON.parse(decodeURIComponent(firstBundleId)) : null,
-                    secondBundleId: secondBundleId ? JSON.parse(decodeURIComponent(secondBundleId)) : null,
+                    secondBundleId: secondBundleId ? JSON.parse(decodeURIComponent(secondBundleId)) :
+                        null,
                     depOfferIds: offerIdsDep ? JSON.parse(decodeURIComponent(offerIdsDep)) : null,
                     rtnOfferIds: offerIdsRtn ? JSON.parse(decodeURIComponent(offerIdsRtn)) : null,
                     departureFlight: departureFlight ?? null,
                     returnFlight: returnFlight ?? null,
-                    responseId, airline, paxCount,
+                    responseId,
+                    airline,
+                    paxCount,
+                    _token: "{{ csrf_token() }}"
+                }
+            } else if (airline === "airblue") {
+                // Parse bundle IDs
+                const departureBundle = firstBundleId ? JSON.parse(decodeURIComponent(firstBundleId)) :
+                    null;
+                const returnBundle = secondBundleId ? JSON.parse(decodeURIComponent(secondBundleId)) : null;
+
+                // Build flights array (same format as multiple-flights)
+                const flightsData = [];
+
+                if (departureFlight && departureBundle) {
+                    // Deep clone the entire flight object and remove bundles property
+                    const cleanDepartureFlight = JSON.parse(JSON.stringify(departureFlight));
+                    if (cleanDepartureFlight.bundles) {
+                        delete cleanDepartureFlight.bundles;
+                    }
+
+                    // Remove bundles and best_bundle from flightRaw if it exists
+                    if (cleanDepartureFlight.flightRaw) {
+                        if (cleanDepartureFlight.flightRaw.bundles) {
+                            delete cleanDepartureFlight.flightRaw.bundles;
+                        }
+                        if (cleanDepartureFlight.flightRaw.best_bundle) {
+                            delete cleanDepartureFlight.flightRaw.best_bundle;
+                        }
+                    }
+
+                    flightsData.push({
+                        departure: cleanDepartureFlight,
+                        bundle: departureBundle
+                    });
+                }
+
+                if (returnFlight && returnBundle) {
+                    // Deep clone the entire flight object and remove bundles property
+                    const cleanReturnFlight = JSON.parse(JSON.stringify(returnFlight));
+                    if (cleanReturnFlight.bundles) {
+                        delete cleanReturnFlight.bundles;
+                    }
+
+                    // Remove bundles and best_bundle from flightRaw if it exists
+                    if (cleanReturnFlight.flightRaw) {
+                        if (cleanReturnFlight.flightRaw.bundles) {
+                            delete cleanReturnFlight.flightRaw.bundles;
+                        }
+                        if (cleanReturnFlight.flightRaw.best_bundle) {
+                            delete cleanReturnFlight.flightRaw.best_bundle;
+                        }
+                    }
+
+                    flightsData.push({
+                        departure: cleanReturnFlight,
+                        bundle: returnBundle
+                    });
+                }
+
+                data = {
+                    flights: flightsData,
+                    airline: 'airblue',
+                    paxCount: paxCount,
                     _token: "{{ csrf_token() }}"
                 }
             } else if (airline === "pia") {
@@ -1116,7 +1280,8 @@
                     bundle: firstBundleId,
                     departureFlight: departureFlight ?? null,
                     returnFlight: returnFlight ?? null,
-                    airline, paxCount,
+                    airline,
+                    paxCount,
                     _token: "{{ csrf_token() }}"
                 }
             }
@@ -1184,27 +1349,25 @@
         // }
         function extractSelectedBundleData(bundle) {
             if (!bundle) return null;
- 
+
             // const paxRefIDs = bundle.offerItem
             //     ?.flatMap(item => item.fareDetail?.map(fd => fd.PaxRefID) || [])
             //     .flatMap(id => Array.isArray(id) ? id : [id])
             //     .filter(Boolean) || [];
- 
+
             const paxRefIDs = bundle.offerItem
                 ?.flatMap(item => {
-                    const fareDetails = Array.isArray(item.fareDetail)
-                        ? item.fareDetail
-                        : item.fareDetail
-                            ? [item.fareDetail]
-                            : [];
- 
+                    const fareDetails = Array.isArray(item.fareDetail) ?
+                        item.fareDetail :
+                        item.fareDetail ? [item.fareDetail] : [];
+
                     return fareDetails.map(fd => fd.PaxRefID);
                 })
                 .flatMap(id => Array.isArray(id) ? id : [id])
                 .filter(Boolean) || [];
             const uniquePaxRefs = [...new Set(paxRefIDs)];
             const offerItemID = bundle.offerItem?.[0]?.id || '';
- 
+
             return {
                 PaxRefID: uniquePaxRefs,
                 offerID: bundle.offerID || '',
@@ -1349,7 +1512,11 @@
                         }
                     });
                 });
-                const counts = { Adult: 0, Child: 0, Infant: 0 };
+                const counts = {
+                    Adult: 0,
+                    Child: 0,
+                    Infant: 0
+                };
                 paxRefs.forEach(ref => {
                     if (ref.includes('ADT')) counts.Adult++;
                     else if (ref.includes('CHD')) counts.Child++;
@@ -1378,7 +1545,8 @@
                 offerItems.forEach(item => {
                     let fareDetails = [];
                     if (Array.isArray(item.fareDetail)) fareDetails = item.fareDetail;
-                    else if (item.fareDetail && typeof item.fareDetail === 'object') fareDetails = [item.fareDetail];
+                    else if (item.fareDetail && typeof item.fareDetail === 'object')
+                        fareDetails = [item.fareDetail];
 
                     let paxRef = fareDetails?.[0]?.PaxRefID;
                     const type = getPassengerType(Array.isArray(paxRef) ? paxRef[0] : paxRef);
@@ -1483,7 +1651,7 @@
             //         </div>
             //     `;
             // }).join('');
-            
+
             return normalizedData.map((bundle, bundleIdx) => {
                 const offerID = bundle.offerID || '';
                 const offerItems = bundle.offerItem || [];
@@ -1493,7 +1661,8 @@
                 const totalPrice = bundle.totalPrice || {};
                 const displayPrice = totalPrice.total_amount || '0';
                 const displayCurrency = totalPrice.currency || 'PKR';
-                const baggageSummary = Object.values(baggageByType).filter(Boolean).join(' | ') || '0KG';
+                const baggageSummary = Object.values(baggageByType).filter(Boolean).join(' | ') ||
+                    '0KG';
 
                 // ✅ Build passenger cards
                 const passengerSectionsHtml = Object.entries(passengerCounts)
@@ -1505,30 +1674,34 @@
                             if (!Array.isArray(fareDetail)) fareDetail = [fareDetail];
                             return fareDetail.some(fd => {
                                 const paxRefs = fd.PaxRefID;
-                                const refs = Array.isArray(paxRefs) ? paxRefs : [paxRefs];
-                                return refs.some(ref => getPassengerType(ref) === type);
+                                const refs = Array.isArray(paxRefs) ? paxRefs :
+                                    [paxRefs];
+                                return refs.some(ref => getPassengerType(
+                                    ref) === type);
                             });
                         });
                         if (!matchingItem) return '';
 
                         const price = matchingItem.price || {};
                         const base = parseFloat(price.base_amount || 0) * count;
-                        const tax = parseFloat(matchingItem.taxSummary?.TotalTaxAmount || 0) * count;
+                        const tax = parseFloat(matchingItem.taxSummary?.TotalTaxAmount || 0) *
+                            count;
 
-                        const fareDetailHtml = (Array.isArray(matchingItem.fareDetail)
-                            ? matchingItem.fareDetail
-                            : [matchingItem.fareDetail || {}])
+                        const fareDetailHtml = (Array.isArray(matchingItem.fareDetail) ?
+                                matchingItem.fareDetail : [matchingItem.fareDetail || {}])
                             .filter(fd => fd?.FareComponent?.PaxSegmentRefID)
                             .slice(0, 2)
                             .map(fd => {
                                 const name = fd.FareComponent?.FareBasisCode || 'Standard';
-                                const seg = fd.FareComponent?.PaxSegmentRefID
-                                    ? `<small class="text-muted">(${fd.FareComponent.PaxSegmentRefID})</small>` : '';
+                                const seg = fd.FareComponent?.PaxSegmentRefID ?
+                                    `<small class="text-muted">(${fd.FareComponent.PaxSegmentRefID})</small>` :
+                                    '';
                                 return `<li class="mb-1"><span class="fw-bold">${name}</span> ${seg}</li>`;
                             })
                             .join('');
 
-                        const servicesHtml = [...new Set((matchingItem.service || []).map(s => s.name || s.code || 'BAG'))]
+                        const servicesHtml = [...new Set((matchingItem.service || []).map(s => s
+                                .name || s.code || 'BAG'))]
                             .slice(0, 3)
                             .map(srv => `<span class="badge bg-secondary me-1">${srv}</span>`)
                             .join('');
@@ -1590,7 +1763,7 @@
 
             const depPrice = parseFloat(departureFlight.price.replace(/,/g, '')) || 0;
 
-            $("#return-section .flight-card").each(function () {
+            $("#return-section .flight-card").each(function() {
                 const btn = $(this).find(".price-btn-rtn");
                 const rtnFlight = btn.data("flight");
 
@@ -1609,8 +1782,61 @@
             });
         }
 
+        // Airblue
+        const renderAirblueBundles = (data, el, isReturn) => {
+            const $flightCard = $(el).closest(".flight-card");
+            const $bundleSection = $flightCard.find(".bundle-section");
+            const $bundleLoop = $flightCard.find(".bundle-loop");
+            $bundleSection.slideToggle();
 
+            if (!data || data.length === 0) {
+                setTimeout(() => {
+                    $bundleLoop.html(`<div class="w-100 bg-body-secondary text-dark-emphasis rounded-2 text-center py-2">
+                        No bundles available for Airblue
+                    </div>`);
+                }, 400);
+                return;
+            }
 
+            const normalizedData = Array.isArray(data) ? data : [data];
+
+            setTimeout(() => {
+                const cardsHtml = normalizedData.map(row => {
+                    // console.log(row)
+                    const bulletPoints = `
+                        <li>Baggage: ${row.baggage}</li>
+                        <li>Meals: Included</li>
+                        <li>Seat Selection: Mandatory with standard charges</li>
+                        <li>Refunds & Exchanges: Allowed with Higher Fee</li>
+                    `;
+
+                    return `
+                        <div class="card h-100 shadow-sm mx-2">
+                            <div class="card-header bg-light fw-bold">
+                                ${row.bundle_name}
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled small">${bulletPoints}</ul>
+                            </div>
+                            <div class="card-footer text-center bg-white">
+                                <button
+                                    class="btn btn-primary w-100 fw-bold bookBtn"
+                                    data-airline="airblue"
+                                    data-is-return="${isReturn}"
+                                    data-bundle-id="${encodeURIComponent(JSON.stringify(row))}"
+                                >
+                                    PKR ${formatCurrency(row.total_price)}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                $bundleLoop.html(`
+                    <div class="fare-scroll d-flex overflow-auto pb-3">${cardsHtml}</div>
+                `);
+            }, 500);
+        };
 
     });
 </script>

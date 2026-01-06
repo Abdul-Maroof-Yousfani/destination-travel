@@ -17,12 +17,15 @@ use Illuminate\Support\Facades\Log;
 
 class FlightBookingService
 {
+    // --------------------------------------------------------------EMIRATES--------------------------------------------------------------
     public function handleBookingEmi(array $response, int $clientId, $cabinClass): array
     {
         $segments = $response['segments'] ?? [];
         $bundle = $response['bundle'] ?? [];
         $responsePassengers = $response['passengers'] ?? [];
         $isOneWay = count($segments) === 1;
+        $segmentCount = count($segments);
+        $bookingType = $segmentCount === 1 ? 'oneway' : ($segmentCount === 2 ? 'return' : 'multi');
         $tax = config('variables.tax') ?? 400;
         $taxCode = config('variables.tax_code') ?? 'PKR';
         
@@ -78,6 +81,7 @@ class FlightBookingService
                 'order_id'          => $order['OrderID'] ?? null,
                 'order_owner'       => $order['Owner'] ?? null,
                 'is_oneway'         => $isOneWay,
+                'type'              => $bookingType,
                 'flight_booking_id' => $bookingReferences['bookingId'] ?? null,
                 'ticket_limit'      => Carbon::parse($timeLimits['ticketingTimeLimit'] ?? null),
                 'payment_limit'     => Carbon::parse($timeLimits['paymentTimeLimit'] ?? null),
@@ -218,6 +222,8 @@ class FlightBookingService
         $timeLimits          = $bundle['timeLimits'] ?? [];
         $segments            = $response['segments'] ?? [];
         $isOneWay            = count($segments) === 1;
+        $segmentCount        = count($segments);
+        $bookingType         = $segmentCount === 1 ? 'oneway' : ($segmentCount === 2 ? 'return' : 'multi');
         $booking             = Booking::findOrFail($bookingId);
 
         $ticketTimeLimit = isset($timeLimits['ticketingTimeLimit']) ? Carbon::parse($timeLimits['ticketingTimeLimit']) : $booking->ticket_limit;
@@ -226,6 +232,7 @@ class FlightBookingService
         try {
             $booking->update([
                 'is_oneway'         => $isOneWay,
+                'type'              => $bookingType,
                 'order_id'          => $order['OrderID'] ?? null,
                 'order_owner'       => $order['Owner'] ?? null,
                 'flight_booking_id' => $bookingReferences['bookingId'] ?? null,
@@ -318,6 +325,8 @@ class FlightBookingService
         $airTravelers = $airReservation['TravelerInfo']['AirTraveler'] ?? [];
         $itinerary = isset($itinerary[0]) ? $itinerary : [$itinerary];
         $isOneWay = count($itinerary) === 1;
+        $itineraryCount = count($itinerary);
+        $bookingType = $itineraryCount === 1 ? 'oneway' : ($itineraryCount === 2 ? 'return' : 'multi');
         $tax = config('variables.tax') ?? 400;
         $taxCode = config('variables.tax_code') ?? 'PKR';
 
@@ -399,6 +408,7 @@ class FlightBookingService
                 'order_id'          => $bookingRef['ID'] ?? null,
                 'order_owner'       => null,
                 'is_oneway'         => $isOneWay,
+                'type'              => $bookingType,
                 'flight_booking_id' => null,
                 'ticket_limit'      => $ticketLimit ? Carbon::parse($ticketLimit) : null,
                 'payment_limit'     => $paymentLimit ? Carbon::parse($paymentLimit) : null,
@@ -684,6 +694,8 @@ class FlightBookingService
         $order = $response['order'] ?? [];
         $passengers = $response['passengers'] ?? [];
         $isOneWay = count($journeys) === 1;
+        $journeyCount = count($journeys);
+        $bookingType = $journeyCount === 1 ? 'oneway' : ($journeyCount === 2 ? 'return' : 'multi');
         $tax = config('variables.tax') ?? 400;
         $taxCode = config('variables.tax_code') ?? 'PKR';
 
@@ -752,6 +764,7 @@ class FlightBookingService
                 'order_id'          => $order['orderID'] ?? null,
                 'order_owner'       => $order['ownerCode'] ?? null,
                 'is_oneway'         => $isOneWay,
+                'type'              => $bookingType,
                 'flight_booking_id' => $bookingReferences['bookingId'] ?? null,
                 'ticket_limit'      => Carbon::parse($timeLimits['ticketingTimeLimit'] ?? null),
                 'payment_limit'     => Carbon::parse($timeLimits['paymentTimeLimit'] ?? null),
@@ -890,6 +903,8 @@ class FlightBookingService
         $order = $response['order'] ?? [];
         $journeys = $response['journeys'] ?? [];
         $isOneWay = count($journeys) === 1;
+        $journeyCount = count($journeys);
+        $bookingType = $journeyCount === 1 ? 'oneway' : ($journeyCount === 2 ? 'return' : 'multi');
         $booking = Booking::findOrFail($bookingId);
 
         $ticketTimeLimit = $response['paymentLimit'] ?? $booking->ticket_limit;
@@ -898,6 +913,7 @@ class FlightBookingService
         try {
             $booking->update([
                 'is_oneway'         => $isOneWay,
+                'type'              => $bookingType,
                 'order_id'          => $order['orderID'] ?? null,
                 'order_owner'       => $order['ownerCode'] ?? null,
                 'flight_booking_id' => $order['orderID'] ?? null,
@@ -980,6 +996,327 @@ class FlightBookingService
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Ticket issuance failed for PIA: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    // --------------------------------------------------------------AIRBLUE--------------------------------------------------------------
+    public function handleBookingAirblue(array $response, int $clientId): array
+    {
+        $data = $response['data'] ?? [];
+        $user = $response['user'] ?? [];
+        $travelers = $data['travelers'] ?? [];
+        $paxCount = $response['paxCount'] ?? [];
+        $flightsData = $data['flights'] ?? [];
+        $isOneWay = count($flightsData) === 1;
+        $flightCount = count($flightsData);
+        $bookingType = $flightCount === 1 ? 'oneway' : ($flightCount === 2 ? 'return' : 'multi');
+        $tax = config('variables.tax') ?? 400;
+        $taxCode = config('variables.tax_code') ?? 'PKR';
+
+        $flightsCreated = [];
+
+        DB::beginTransaction();
+
+        try {
+            $bookingData = $data['booking'] ?? [];
+            $timeLimit = $data['ticket_time_limit'] ?? null;
+            $passengers = [];
+            foreach ($travelers as $passenger) {
+                $apiName = isset($passenger['first_name']) ? strtolower(preg_replace('/\s+/', '', $passenger['first_name'])) : null;
+                $dob = $passenger['birth_date'] ?? null;
+                $existingPassenger = Passenger::get()
+                    ->filter(function ($p) use ($apiName, $dob) {
+                        $dbName = strtolower(preg_replace('/\s+/', '', $p->given_name));
+                        return $dbName === $apiName && $p->dob->format('Y-m-d') === $dob;
+                    })
+                    ->first();
+                if ($existingPassenger) {
+                    $existingPassenger->update([
+                        'passenger_reference' => $passenger['rph'],
+                        'type' => $passenger['type'],
+                    ]);
+                    $passengers[] = [
+                        'id'                 => $existingPassenger->id,
+                        'title'              => $existingPassenger->title ?? '',
+                        'given_name'         => $existingPassenger->given_name ?? '',
+                        'surname'            => $existingPassenger->surname ?? '',
+                        'dob'                => $existingPassenger->dob ? $existingPassenger->dob->toDateString() : null,
+                        'nationality'        => $existingPassenger->nationality ?? '',
+                        'passport_no'        => $existingPassenger->passport_no ?? '',
+                        'passport_exp'       => $existingPassenger->passport_exp ? $existingPassenger->passport_exp->toDateString() : null,
+                        'type'               => $existingPassenger->type ?? '',
+                        'passenger_reference'=> $existingPassenger->passenger_reference ?? '',
+                    ];
+                }
+            }
+
+            // Create Booking first
+            $booking = Booking::create([
+                'client_id'         => $clientId,
+                'passenger_details' => json_encode($passengers),
+                'order_id'          => $bookingData['pnr'] ?? null,
+                'order_owner'       => $bookingData['instance'] ?? null,
+                'is_oneway'         => $isOneWay,
+                'type'              => $bookingType,
+                'flight_booking_id' => $bookingData['pnr'] ?? null,
+                'ticket_limit'      => Carbon::parse($timeLimit),
+                'payment_limit'     => Carbon::parse($timeLimit), // Assuming same as ticket limit; adjust if separate
+                'airline_id'        => null, // No airline ID in Airblue data
+                'airline'           => 'airblue',
+                'transaction_id'    => '-', // No transaction ID in data
+                'price_code'        => $data['total']['currency'] ?? null,
+                'price'             => $data['total']['amount'] ?? 0,
+                'tax'               => $tax,
+                'tax_code'          => $taxCode,
+                'status'            => Booking::STATUS_INITIAL,
+            ]);
+
+            // Handle BookingItems (per traveler for granularity)
+            $travelers = $data['travelers'] ?? [];
+            $priceBreakdowns = $data['price_breakdown'] ?? [];
+            $ancillaries = $data['ancillaries'] ?? [];
+            $seats = $data['seats'] ?? [];
+            $raw = $data['raw'] ?? [];
+
+            // Extract penalties from raw FareInfo (assuming same for all)
+            $penalties = [];
+            $ptcFareBreakdowns = isset($raw['PriceInfo']['PTC_FareBreakdowns']['PTC_FareBreakdown'][0]) ? $raw['PriceInfo']['PTC_FareBreakdowns']['PTC_FareBreakdown'] : ([$raw['PriceInfo']['PTC_FareBreakdowns']['PTC_FareBreakdown']] ?? []);
+            foreach ($ptcFareBreakdowns as $ptc) {
+                $fareInfo = isset($ptc['FareInfo'][0]) ? $ptc['FareInfo'] : [$ptc['FareInfo']];
+                foreach ($fareInfo as $fareInfo) {
+                    $charges = $fareInfo['RuleInfo']['ChargesRules'] ?? [];
+                    $penalties[] = [
+                        'arrival' => $fareInfo['ArrivalAirport']['@attributes']['LocationCode'] ?? null,
+                        'destination' => $fareInfo['DepartureAirport']['@attributes']['LocationCode'] ?? null, // Swapped? Adjust if needed
+                        'cabin_type' => null, // No cabin in rules
+                        'cancel_fee' => $charges['VoluntaryRefunds']['Penalty'] ?? [],
+                        'change_fee' => $charges['VoluntaryChanges']['Penalty'] ?? [],
+                        'refund_fee' => [], // No separate refund_fee in data
+                    ];
+                }
+            }
+            // Map breakdowns by type
+            $breakdownMap = [];
+            foreach ($priceBreakdowns as $breakdown) {
+                $type = $breakdown['passenger_type'];
+                $quantity = (int) $breakdown['quantity'];
+                $numSegments = count($flightsData);
+                $faresPerPax = count($breakdown['per_segment_fares']) / $quantity; // Should be numSegments
+                $fares = $breakdown['per_segment_fares'];
+                $rphs = $breakdown['traveler_rphs'] ?? [];
+
+                for ($i = 0; $i < $quantity; $i++) {
+                    $paxFares = array_slice($fares, $i * $numSegments, $numSegments);
+                    $rph = $rphs[$i] ?? null;
+                    $paxAncillaries = array_filter($ancillaries, fn($a) => $a['traveler_rph'] === $rph);
+                    $paxSeats = array_filter($seats, fn($s) => $s['traveler_rph'] === $rph);
+
+                    // Calculate per-pax price (sum base + taxes + fees across their segments)
+                    $paxPrice = 0;
+                    $paxTaxes = [];
+                    foreach ($paxFares as $fare) {
+                        $paxPrice += (int) $fare['base_fare'] + (int) ($fare['taxes_total'] ?? 0) + (int) ($fare['fees_total'] ?? 0);
+                        $paxTaxes = array_merge($paxTaxes, $fare['taxes'] ?? []);
+                    }
+
+                    $bookingItem = BookingItem::create([
+                        'passenger_ref' => $rph,
+                        'passenger_code' => $type,
+                        'services' => json_encode(array_values($paxAncillaries)), // Ancillaries as services
+                        'taxes' => json_encode(array_unique($paxTaxes, SORT_REGULAR)),
+                        'price' => $paxPrice,
+                        'price_code' => $data['total']['currency'] ?? 'PKR',
+                        'booking_id' => $booking->id,
+                        'seats' => json_encode(array_values($paxSeats)), // Extra field for seats (add to migration if needed)
+                        'fares' => json_encode($paxFares), // Per-segment fares
+                    ]);
+
+                    if (!empty($penalties)) {
+                        $bookingItem->penalties()->createMany($penalties);
+                    }
+                }
+                $breakdownMap[$type] = $breakdown;
+            }
+
+            // Handle Flights and Segments
+            foreach ($flightsData as $index => $flight) {
+                $departureCode = $flight['departure_airport'];
+                $arrivalCode = $flight['arrival_airport'];
+                $departureDate = Carbon::parse($flight['departure_datetime']);
+                $arrivalDate = Carbon::parse($flight['arrival_datetime']);
+
+                // Calculate total price for this segment (sum across all relevant per_segment_fares)
+                $segmentPrice = 0;
+                foreach ($priceBreakdowns as $breakdown) {
+                    foreach ($breakdown['per_segment_fares'] as $fare) {
+                        if ($fare['from'] === $departureCode && $fare['to'] === $arrivalCode) {
+                            $segmentPrice += (int) $fare['base_fare'] + (int) ($fare['taxes_total'] ?? 0) + (int) ($fare['fees_total'] ?? 0);
+                        }
+                    }
+                }
+
+                // Determine direction (ENUM only accepts 'outbound' or 'return')
+                // First flight is 'outbound', all subsequent flights are 'return'
+                $direction = ($index === 0) ? 'outbound' : 'return';
+
+                $flightModel = Flight::create([
+                    'airline'        => $flight['marketing_airline'] ?? 'PA',
+                    'departure_code' => $departureCode,
+                    'arrival_code'   => $arrivalCode,
+                    'departure_date' => $departureDate,
+                    'price'          => $segmentPrice,
+                    'price_code'     => $data['total']['currency'] ?? 'PKR',
+                    'arrival_date'   => $arrivalDate,
+                    'is_connected'   => false, // No connections in Airblue data structure
+                    'pax_count'      => $paxCount,
+                    'cabin_class'    => $flight['cabin'] ?? 'Y',
+                    'client_id'      => $clientId,
+                    'booking_id'     => $booking->id,
+                ]);
+
+                // Create segment
+                Segment::create([
+                    'flight_id'      => $flightModel->id,
+                    'departure_code' => $departureCode,
+                    'arrival_code'   => $arrivalCode,
+                    'departure_date' => $departureDate,
+                    'flight_duration'=> null, // Calculate or from raw
+                    'arrival_date'   => $arrivalDate,
+                    'flight_number'  => $flight['flight_number'],
+                    'direction'      => $direction,
+                    'price'          => $segmentPrice, // Total for this segment
+                    'price_code'     => $data['total']['currency'] ?? 'PKR',
+                ]);
+
+                $flightsCreated[] = $flightModel;
+            }
+
+            BookingRequestBody::create([
+                'booking_id' => $booking->id,
+                'airline' => $booking->airline,
+                'xml_body' => json_encode($response['raw'] ?? $response),
+                'client_id' => $clientId,
+                'ticket_limit' => $booking->ticket_limit,
+                'payment_limit' => $booking->payment_limit,
+            ]);
+
+            DB::commit();
+            $booking->load('bookingItems.penalties', 'client');
+            return [
+                'message' => 'Flight booked successfully. Please complete payment before the deadline, otherwise it will be canceled.',
+                'booking' => $booking
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Flight/Segment creation failed for Airblue: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function updateBookingFieldsAirblue(array $response, int $bookingId): Booking
+    {
+        $data = $response['data'] ?? [];
+        $bookingData = $data['booking'] ?? [];
+        $flightsData = $data['flights'] ?? [];
+        $isOneWay = count($flightsData) === 1;
+        $flightCount = count($flightsData);
+        $bookingType = $flightCount === 1 ? 'oneway' : ($flightCount === 2 ? 'return' : 'multi');
+        $booking = Booking::findOrFail($bookingId);
+
+        $ticketTimeLimit = Carbon::parse($data['ticket_time_limit'] ?? $booking->ticket_limit);
+        $paymentTimeLimit = Carbon::parse($data['ticket_time_limit'] ?? $booking->payment_limit); // Assuming same
+
+        try {
+            $booking->update([
+                'is_oneway'         => $isOneWay,
+                'type'              => $bookingType,
+                'order_id'          => $bookingData['pnr'] ?? $booking->order_id,
+                'order_owner'       => $bookingData['instance'] ?? $booking->order_owner,
+                'flight_booking_id' => $bookingData['pnr'] ?? $booking->flight_booking_id,
+                'ticket_limit'      => $ticketTimeLimit,
+                'payment_limit'     => $paymentTimeLimit,
+                'airline_id'        => null,
+                'airline'           => 'airblue',
+                'transaction_id'    => $booking->transaction_id,
+                'price_code'        => $data['total']['currency'] ?? $booking->price_code,
+                'price'             => $data['total']['amount'] ?? $booking->price,
+                'status'            => $booking->status !== Booking::STATUS_ISSUED ? Booking::STATUS_CHANGED : $booking->status,
+            ]);
+            if ($booking->bookingRequest) {
+                $booking->bookingRequest()->update([
+                    'status' => 'change',
+                    'ticket_limit' => $ticketTimeLimit,
+                    'payment_limit' => $paymentTimeLimit,
+                    'xml_body' => json_encode($response ?? []),
+                ]);
+            }
+
+            return $booking->fresh();
+        } catch (\Throwable $e) {
+            Log::error('Booking table update failed for Airblue: '.$e->getMessage(), ['booking_id' => $bookingId]);
+            throw $e;
+        }
+    }
+
+    public function issueTicketsAirblue(array $data, int $bookingId): Booking
+    {
+        $booking = Booking::findOrFail($bookingId);
+        DB::beginTransaction();
+        try {
+            $ticketTimeLimit = $booking->ticket_limit;
+            $paymentTimeLimit = $booking->payment_limit;
+            $booking->update([
+                'status' => Booking::STATUS_ISSUED,
+                'only_search' => false,
+                'ticket_limit' => $ticketTimeLimit,
+                'payment_limit' => $paymentTimeLimit,
+            ]);
+            if ($booking->bookingRequest) {
+                $booking->bookingRequest()->update([
+                    'status' => 'change',
+                    'ticket_limit' => $ticketTimeLimit,
+                    'payment_limit' => $paymentTimeLimit,
+                ]);
+            }
+            // Create Tickets
+            $tickets = [];
+            $passengerDetails = json_decode($booking->passenger_details, true) ?? [];
+            foreach ($data['tickets'] ?? [] as $ticketInfo) {
+                $matchedRef = null;
+                $ticketName = strtoupper(trim(($ticketInfo['passenger']['first_name'] ?? '') . ' ' . ($ticketInfo['passenger']['last_name'] ?? '')));
+                $ticketType = $ticketInfo['passenger_type_code'] ?? '';
+                foreach ($passengerDetails as $pd) {
+                    $pdName = strtoupper(trim(($pd['given_name'] ?? '') . ' ' . ($pd['surname'] ?? '')));
+                    $pdType = $pd['type'] ?? '';
+                    if ($pdName === $ticketName && $pdType === $ticketType) {
+                        $matchedRef = $pd['passenger_reference'] ?? null;
+                        break;
+                    }
+                }
+                $tickets[] = [
+                    'airline' => 'airblue',
+                    'passenger_reference' => $matchedRef,
+                    'place' => null,
+                    'ticket_no' => $ticketInfo['ticket_number'] ?? null,
+                    'type' => $ticketInfo['passenger_type_code'] ?? null,
+                    'issue_date' => now(),
+                    'price_code' => null,
+                    'price' => null,
+                    'price_reference' => null,
+                    'ticket_details' => json_encode($ticketInfo),
+                    'client_id' => $booking->client_id,
+                    'booking_id' => $booking->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            if (!empty($tickets)) Ticket::insert($tickets);
+            DB::commit();
+            return $booking->load('bookingItems.penalties', 'client', 'tickets');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Flight/Segment creation failed for Airblue: ' . $e->getMessage());
             throw $e;
         }
     }

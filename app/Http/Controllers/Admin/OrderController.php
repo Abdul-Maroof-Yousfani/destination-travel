@@ -46,7 +46,11 @@ class OrderController extends Controller
         }
 
         if ($request->type) {
-            $query->where('is_oneway', $request->type === 'oneway' ? 1 : 0);
+            $query->where('type', $request->type);
+        }
+
+        if ($request->airline) {
+            $query->where('airline', $request->airline);
         }
 
         if ($request->agent && $user->can('manage all bookings')) {
@@ -67,6 +71,8 @@ class OrderController extends Controller
                 'flight_booking_id' => $b->flight_booking_id,
                 'status' => $b->status,
                 'is_oneway' => $b->is_oneway,
+                'type' => $b->type ?? ($b->is_oneway ? 'oneway' : 'return'),
+                'airline' => $b->airline ?? null,
                 'agent_name' => optional($b->agent)->name,
                 'client_name' => optional($b->client)->name,
                 'client_phone' => optional($b->client)->phone,

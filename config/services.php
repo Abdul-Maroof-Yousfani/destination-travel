@@ -75,4 +75,14 @@ return [
         'pcc' => env('EMIRATES_PCC', 'ETXO')
     ],
 
+    'airblue' => [
+        'url'           => env('AIRBLUE_URL'),
+        'service_target'=> env('AIRBLUE_SERVICE_TARGET'),
+        'client_id'     => env('AIRBLUE_CLIENT_ID'),
+        'client_key'    => env('AIRBLUE_CLIENT_KEY'),
+        'agent_id'      => env('AIRBLUE_AGENT_ID'),
+        'agent_password'=> env('AIRBLUE_AGENT_PASSWORD'),
+        'cert'          => env('AIRBLUE_CERT_PATH'),
+        'ssl_key'       => env('AIRBLUE_KEY_PATH'),
+    ],
 ];

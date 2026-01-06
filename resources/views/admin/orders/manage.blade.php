@@ -426,13 +426,23 @@
                                 $taxes = json_decode($item->taxes, true);
                                 $totalTax = null;
                                 if ($airline === 'flyjinnah' && is_array($taxes)) {
-                                    $totalTax = array_sum(array_map(function($tax) {
-                                        return isset($tax['@attributes']['Amount']) ? (float) $tax['@attributes']['Amount'] : 0;
-                                    }, $taxes));
+                                    $totalTax = array_sum(
+                                        array_map(function ($tax) {
+                                            return isset($tax['@attributes']['Amount']) ? (float) $tax['@attributes']['Amount'] : 0;
+                                        }, $taxes),
+                                    );
                                 } elseif ($airline === 'pia' && is_array($taxes)) {
-                                    $totalTax = array_sum(array_map(function($tax) {
-                                        return isset($tax['amount']) ? (float) $tax['amount'] : 0;
-                                    }, $taxes));
+                                    $totalTax = array_sum(
+                                        array_map(function ($tax) {
+                                            return isset($tax['amount']) ? (float) $tax['amount'] : 0;
+                                        }, $taxes),
+                                    );
+                                } elseif ($airline === 'airblue' && is_array($taxes)) {
+                                    $totalTax = array_sum(
+                                        array_map(function ($tax) {
+                                            return isset($tax['Amount']) ? (float) $tax['Amount'] : 0;
+                                        }, $taxes),
+                                    );
                                 }
                             @endphp
                             <div class="row">
@@ -450,8 +460,10 @@
                                                 @endforeach
                                             </ul>
                                             <div class="mt-2">
-                                                <strong>Base Amount:</strong> {{ $taxes['baseAmount']['amount'] }} {{ $taxes['baseAmount']['code'] }}<br>
-                                                <strong>Total Tax:</strong> {{ $taxes['total']['amount'] }} {{ $taxes['total']['code'] }}
+                                                <strong>Base Amount:</strong> {{ $taxes['baseAmount']['amount'] }}
+                                                {{ $taxes['baseAmount']['code'] }}<br>
+                                                <strong>Total Tax:</strong> {{ $taxes['total']['amount'] }}
+                                                {{ $taxes['total']['code'] }}
                                             </div>
                                         @elseif ($airline === 'flyjinnah')
                                             <ul class="mb-0">
@@ -459,13 +471,15 @@
                                                     <li>
                                                         <strong>{{ $tax['@attributes']['TaxCode'] }}</strong>:
                                                         {{ $tax['@attributes']['TaxName'] }}
-                                                        ({{ $tax['@attributes']['Amount'] }} {{ $tax['@attributes']['CurrencyCode'] }})
+                                                        ({{ $tax['@attributes']['Amount'] }}
+                                                        {{ $tax['@attributes']['CurrencyCode'] }})
                                                     </li>
                                                 @endforeach
                                             </ul>
                                             @if ($totalTax !== null)
                                                 <div class="mt-2">
-                                                    <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }} {{ $item->price_code }}
+                                                    <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }}
+                                                    {{ $item->price_code }}
                                                 </div>
                                             @endif
                                         @elseif ($airline === 'pia')
@@ -480,7 +494,25 @@
                                             </ul>
                                             @if ($totalTax !== null)
                                                 <div class="mt-2">
-                                                    <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }} {{ $item->price_code }}
+                                                    <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }}
+                                                    {{ $item->price_code }}
+                                                </div>
+                                            @endif
+                                        @elseif ($airline === 'airblue')
+                                            <ul class="mb-0">
+                                                @foreach ($taxes as $tax)
+                                                    <li>
+                                                        <strong>{{ $tax['TaxCode'] ?? 'N/A' }}</strong>:
+                                                        {{ $tax['TaxCode'] ?? 'N/A' }} Tax
+                                                        ({{ $tax['Amount'] ?? '0' }}
+                                                        {{ $tax['CurrencyCode'] ?? $item->price_code }})
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                            @if ($totalTax !== null)
+                                                <div class="mt-2">
+                                                    <strong>Total Tax:</strong> {{ number_format($totalTax, 2) }}
+                                                    {{ $item->price_code }}
                                                 </div>
                                             @endif
                                         @else
@@ -504,6 +536,33 @@
                                                         {{ $service['service_definition_id'] ?: 'Flight Service' }}
                                                         (Segments: {{ implode(', ', $service['segment_refs']) }})
                                                     </li>
+                                                @elseif ($airline === 'airblue')
+                                                    <li>
+                                                        <strong>{{ $service['title'] ?? 'N/A' }}</strong>
+                                                        @if (!empty($service['description']))
+                                                            <br><small
+                                                                class="text-muted">{{ $service['description'] }}</small>
+                                                        @endif
+                                                        <br>
+                                                        <small>
+                                                            SSR Code: {{ $service['ssr_code'] ?? 'N/A' }} |
+                                                            Item Code: {{ $service['item_code'] ?? 'N/A' }} |
+                                                            Flight RPH: {{ $service['flight_rph'] ?? 'N/A' }}
+                                                        </small>
+                                                        <br>
+                                                        <small>
+                                                            Price:
+                                                            {{ !empty($service['price']) && !empty($service['currency']) ? $service['currency'] . ' ' . number_format($service['price'], 2) : 'Free' }}
+                                                            |
+                                                            Status: {{ $service['status'] ?? 'N/A' }} |
+                                                            Refundable:
+                                                            {{ !empty($service['refundable']) ? ($service['refundable'] === 'true' ? 'Yes' : 'No') : 'N/A' }}
+                                                        </small>
+                                                        @if (!empty($service['expires']))
+                                                            <br><small class="text-warning">Expires:
+                                                                {{ \Carbon\Carbon::parse($service['expires'])->format('d M Y, H:i') }}</small>
+                                                        @endif
+                                                    </li>
                                                 @endif
                                             @endforeach
                                         </ul>
@@ -512,9 +571,10 @@
                                     @endif
                                 </div>
                             </div>
-                            @if ($airline === 'flyjinnah')
+                            @if ($airline === 'flyjinnah' || $airline === 'airblue')
                                 <div class="mt-2">
-                                    <strong>Total Price:</strong> {{ number_format($item->price, 2) }} {{ $item->price_code }}
+                                    <strong>Total Price:</strong> {{ number_format($item->price, 2) }}
+                                    {{ $item->price_code }}
                                 </div>
                             @endif
                         </div>

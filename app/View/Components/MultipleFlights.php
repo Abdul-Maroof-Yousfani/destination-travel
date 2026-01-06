@@ -6,14 +6,17 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class searchflightold extends Component
+class MultipleFlights extends Component
 {
+    public $flightData;
+    public $paxCount;
     /**
      * Create a new component instance.
      */
-    public function __construct()
+    public function __construct($flightData, $paxCount)
     {
-        //
+        $this->flightData = $flightData;
+        $this->paxCount = $paxCount;
     }
 
     /**
@@ -21,6 +24,6 @@ class searchflightold extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.searchflightold');
+        return view('components.multiple-flights');
     }
 }
