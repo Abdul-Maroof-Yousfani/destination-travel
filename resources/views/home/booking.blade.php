@@ -3,7 +3,7 @@
 @section('title', 'Booking')
 @section('style')
 <style>
-  .plane{padding:20px;border-radius:15px;overflow-x:auto;scrollbar-width:thin;}
+   .plane{border-radius:15px;overflow:scroll;scrollbar-width:thin;padding:105px 105px 105px 250px;}
   .seat-row{display:flex;flex-direction:column;align-items:center;gap:5px;margin:5px}
   .seat{cursor:pointer;border:solid 1px #b9b9b9;width:39px;height:36px;border-radius:4px;padding:8px 0px;margin-top:6px;position:relative;}
   .seat:before{content:"";display:block;width:30px;height:26px;border:solid 1px #88857c;border-left:none;border-radius:0 5px 5px 0;position:absolute;margin:-4px -1px;}
@@ -17,29 +17,19 @@
   .tabPlane:before{content:"";position:absolute;height:336px;width:548px;padding-left:115px;border-radius:60% 0% 0% 60%;border:2px solid #c5c5c7;left:-263px;top:-2px;border-right:none;}
   .tabPlane:after{content:"";position:absolute;height:336px;width:548px;padding-left:115px;border-radius:0% 60% 60% 0%;border:2px solid #c5c5c7;right:-263px;top:-2px;border-left:none;}
   .winds1{position:relative;}
-  .winds1:before{content:"";position:absolute;top:-104px;right:472px;width:250px;height:94px;border-bottom-left-radius:30px;border-right:none !important;border-top:none !important;border:2px solid #c5c5c7;}
+  .winds1:before{content:"";position:absolute;top:-104px;right:90px;width:250px;height:94px;border-bottom-left-radius:30px;border-right:none !important;border-top:none !important;border:2px solid #c5c5c7;}
   .winds1:after{content:"";position:absolute;width:250px;height:94px;border:2px solid #c5c5c7;border-bottom-right-radius:60px;border-top:none;border-left:none;transform:skew(-35deg);left:322px;top:-104px;}
   .winds2{position:relative;}
   .winds2:after{content:"";position:absolute;width:250px;height:94px;border:2px solid #c5c5c7;border-top-right-radius:60px;border-bottom:none;border-left:none;transform:skew(35deg);left:303px;bottom:-104px;}
   .winds2:before{content:"";position:absolute;bottom:-104px;left:705px;width:250px;height:94px;border:2px solid #c5c5c7;border-top-left-radius:30px;border-right:none;border-bottom:none;}
-  .windows{position:relative;}
-  .windows:before{content:"";position:absolute;top:70px;left:-242px;width:100px;height:150px;background-image:url(/assets/images/windows.png);}
-  .windows:after{content:"";position:absolute;top:70px;left:-66px;width:37px;height:150px;background-image:url(/assets/images/lavatory.png);}
-  .windows2{position:relative;}
-  .ancillary-card {
-      transition: 0.2s;
-   }
-   .ancillary-card:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 10px rgba(0,0,0,0.15);
-   }
-   .ancillary-card.selected {
-      border: 2px solid #28a745;
-   }
-   .ancillary-card.disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-   }
+ .windows{position:relative;}
+.windows:before{content:"";position:absolute;top:70px;left:-242px;width:100px;height:150px;background-image:url(/assets/images/windows.png);}
+.windows:after{content:"";position:absolute;top:70px;left:-66px;width:37px;height:150px;background-image:url(/assets/images/lavatory.png);}
+.windows2{position:relative;}
+.ancillary-card{transition:0.2s;}
+.ancillary-card:hover{transform:scale(1.03);box-shadow:0 0 10px rgba(0,0,0,0.15);}
+.ancillary-card.selected{border:2px solid #28a745;}
+.ancillary-card.disabled{opacity:0.6;cursor:not-allowed;}
 
 </style>
 @endsection
