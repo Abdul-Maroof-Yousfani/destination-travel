@@ -76,8 +76,8 @@
 .remove-segment-btn:hover{background:#c82333;}
 .multi-city-segment .fly{margin-bottom:0;}
 .multi-city-actions{display:flex;justify-content:space-between;align-items:center;margin-top:15px;padding-top:15px;border-top:1px solid #e0e0e0;}
-.add-segment-btn{background:#0d6efd;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px;transition:background 0.3s ease;}
-.add-segment-btn:hover{background:#0b5ed7;}
+.add-segment-btn{background: #02798b;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px;transition:background 0.3s ease;}
+.add-segment-btn:hover{background:#000;}
 @media (max-width:768px){.multi-city-actions{flex-direction:column;gap:10px;}
 .add-segment-btn{width:100%;justify-content:center;}
 }
