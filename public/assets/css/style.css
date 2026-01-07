@@ -651,7 +651,7 @@ section.featured.wow.fadeInRight{padding:8px 0px;}
 .tab-links-mob{height:60px !important;}
 .tab-head h2{font-size:14px !important;font-weight:400;}
 .tab-head{border:1px solid #ddd;border-top:navajowhite;border-radius:0px 0px 3px 3px;margin-bottom:-2px;}
-.radio-container{gap:7px;}
+.radio-container{gap:7px;flex-wrap: wrap;}
 .dropdown-toggle{padding:7px 3px;font-size:16px;}
 .radio-container label{padding:5px 10px;font-size:10px !important;}
 .passengerDetails .passenger-text{display:none;}
@@ -874,7 +874,7 @@ div:where(.swal2-container) h2:where(.swal2-title){font-size:16px !important;}
 .tab-links ul.tab-product li a i{font-size:20px !important;}
 .tab-head h2{font-size:14px !important;font-weight:400;}
 .tab-head{border:1px solid #ddd;border-top:navajowhite;border-radius:0px 0px 3px 3px;margin-bottom:-2px;}
-.radio-container{gap:7px;}
+.radio-container{gap:7px;flex-wrap: wrap;}
 .dropdown-toggle{padding:7px 3px;font-size:16px;}
 .radio-container label{padding:5px 10px;font-size:10px !important;}
 .passengerDetails .passenger-text{display:none;}
