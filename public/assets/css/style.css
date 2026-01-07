@@ -161,7 +161,7 @@ span.selected-country{color:#127F9F;font-size:15px;}
 .select2-search__field{height:38px !important;border:1px solid #cbd5e1 !important;border-radius:6px !important;padding:6px 10px !important;width:100% !important;}
 .select2-search__field:focus{border-color:#02798b !important;box-shadow:0 0 0 3px rgba(14,165,233,0.15);}
 .mob-hid i{border:1px solid #02798b;border-radius:60px;padding:8px 8px;background:#02798b;color:#fff;}
-section.mainBanner{display:flex;align-items:center;justify-content:center;height:452px;background-size:cover;background-repeat:no-repeat;}
+section.mainBanner{display:flex;align-items:center;justify-content:center;height:auto;background-size:cover;background-repeat:no-repeat;padding:100px 0px;}
 .banner{background-color:#ffffff;padding:25px 25px;border-radius:35px;}
 .tab-links-mob{display:none !important;}
 .tab-links{border-bottom:none !important;border:2px solid #E9E9E9;border-radius:15px 15px 0px 1px;height:100px;display:flex;justify-content:center;align-items:center;padding:0px 5px;width:100%;}
@@ -663,7 +663,7 @@ section.featured.wow.fadeInRight{padding:8px 0px;}
 .select2-container{width:100% !important;}
 .mob-hid{text-align:center;transform:rotate(90deg);margin-top:-19px;margin-bottom:-11px;z-index:1;position:relative;}
 .search-container{text-align:center;}
-section.mainBanner{height:68vh;}
+section.mainBanner{height:auto;padding:50px 0px;}
 .banner{border-radius:16px;}
 .dropdown-item.quantity{font-size:13px;line-height:20px;padding:1px 0px;}
 .quantity .count{font-size:18px !important;margin:0 4px;}
@@ -759,21 +759,18 @@ header .main-header ul.menu>li a{text-align:center !important;}
 .tag{font-size:8px;}
 .flight-selection{padding:0px!important;margin-bottom:20px!important;}
 .step-text{font-size:13px!important;}
-.step-number {
-    display: inline-flex!important;          /* keeps text centered */
-    justify-content: center!important;        /* horizontal centering */
-    align-items: center!important;            /* vertical centering */
-    font-size: 11px !important;
-    width: 25px !important;         /* fixed width */
-    height: 25px !important;        /* match width for perfect circle */
-    line-height: 1 !important;      /* use 1 for flex centering */
-    border-radius: 50% !important;  /* perfect circle */
-    background-color: #bbb;         /* optional */
-    color: #fff!important;                    /* text color */
-    margin-right: 10px!important;            /* spacing between circles */
-    flex-shrink: 0!important;                /* prevent shrinking when multiple items */
+.step-number{display:inline-flex!important;/* keeps text centered */
+ justify-content:center!important;/* horizontal centering */
+ align-items:center!important;/* vertical centering */
+ font-size:11px !important;width:25px !important;/* fixed width */
+ height:25px !important;/* match width for perfect circle */
+ line-height:1 !important;/* use 1 for flex centering */
+ border-radius:50% !important;/* perfect circle */
+ background-color:#bbb;/* optional */
+ color:#fff!important;/* text color */
+ margin-right:10px!important;/* spacing between circles */
+ flex-shrink:0!important;/* prevent shrinking when multiple items */
 }
-
 .tab-content{text-align:center!important;}
 .tab{padding:12px 8px!important;font-size:10px!important;}
 .nonstop-btn{padding:7px 10px!important;font-size:10px!important;}
@@ -785,11 +782,9 @@ header .main-header ul.menu>li a{text-align:center !important;}
 .dropdowns .dropdown-toggle{gap:0px !important;}
 .dropdowns .dropdown-toggle{padding:10px 3px !important;}
 .filter-toggle{padding:5px 4px !important;}
-
 }
 @media (max-width:425px){.menu-Bar{float:right;margin-top:30px;}
 .filter-toggle{padding:5px 4px !important;}
-
 .dropdowns .dropdown-toggle{gap:0px !important;}
 .dropdowns .dropdown-toggle{padding:10px 3px !important;}
 .voucher h2{font-size:14px;margin-bottom:20px;}
@@ -803,24 +798,18 @@ header .main-header ul.menu>li a{text-align:center !important;}
 .filter-dropdown.p-3{right:0!important;left:-260px!important;}
 .flight-selection{padding:0px!important;margin-bottom:20px!important;}
 .step-text{font-size:13px!important;}
-.step-number {
-    display: inline-flex!important;          /* keeps text centered */
-    justify-content: center!important;        /* horizontal centering */
-    align-items: center!important;            /* vertical centering */
-    font-size: 11px !important;
-    width: 25px !important;         /* fixed width */
-    height: 25px !important;        /* match width for perfect circle */
-    line-height: 1 !important;      /* use 1 for flex centering */
-    border-radius: 50% !important;  /* perfect circle */
-    background-color: #bbb;         /* optional */
-    color: #fff!important;                    /* text color */
-    margin-right: 10px!important;            /* spacing between circles */
-    flex-shrink: 0!important;                /* prevent shrinking when multiple items */
+.step-number{display:inline-flex!important;/* keeps text centered */
+ justify-content:center!important;/* horizontal centering */
+ align-items:center!important;/* vertical centering */
+ font-size:11px !important;width:25px !important;/* fixed width */
+ height:25px !important;/* match width for perfect circle */
+ line-height:1 !important;/* use 1 for flex centering */
+ border-radius:50% !important;/* perfect circle */
+ background-color:#bbb;/* optional */
+ color:#fff!important;/* text color */
+ margin-right:10px!important;/* spacing between circles */
+ flex-shrink:0!important;/* prevent shrinking when multiple items */
 }
-
-
-
-
 .back-edit-buttons{display:flex;justify-content:center;}
 .back-edit-buttons button{font-size:15px;padding:8px 5px;font-weight:500;}
 .fare-scroll > .card{width:100% !important;}
@@ -897,7 +886,7 @@ div:where(.swal2-container) h2:where(.swal2-title){font-size:16px !important;}
 .select2-container{width:100% !important;}
 .mob-hid{text-align:center;transform:rotate(90deg);margin-top:-19px;margin-bottom:-11px;z-index:1;position:relative;}
 .search-container{text-align:center;}
-section.mainBanner{height:83vh;}
+section.mainBanner{height:auto;padding:50px 0px;}
 .banner{padding:21px 13px;border-radius:16px;}
 .dropdown-item.quantity{font-size:13px;line-height:20px;padding:1px 0px;}
 .quantity .count{font-size:18px !important;margin:0 4px;}
