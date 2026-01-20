@@ -23,7 +23,7 @@ class FlightAggregatorService
         FlyJinnahService $flyjinnah,
         AirblueService $airblue
     ) {
-        $this->services = [$emirate, $flyjinnah, $airblue];
+        $this->services = [$emirate, $flyjinnah, $airblue, $pia];
         // $this->services = [$pia, $emirate, $flyjinnah];
         // $this->services = [$flyjinnah];
         // $this->services = [$emirate];
@@ -89,6 +89,7 @@ class FlightAggregatorService
                     }
 
                     $rawFlights = $service->searchFlights($params);
+                    // dd($rawFlights);
                     $normalized = $this->normalizeFlights($rawFlights, $service->getCarrierName());
 
                     // Collect bundles
@@ -156,50 +157,84 @@ class FlightAggregatorService
         $errors = collect();
 
         if ($carrier === 'pia') {
-            $outboundFlights = $rawData['flight'] ?? [];
             $bundles = collect($rawData['bundles'] ?? []);
-            foreach ($outboundFlights as $flights) {
-                $data = collect();
-                if (!empty($flights['flights'])) {
-                    \Log::info('PIA Flight Count', ['count' => count($flights['flights'])]);
-                    foreach ($flights['flights'] as $flight) {
-                        $segments = $flight['segments'] ?? [];
-                        if (empty($segments)) continue;
+            $itineraries = $rawData['itineraries'] ?? [];
+            $combinations = collect($rawData['combinations'] ?? []);
+            $extras = collect([
+                'pia' => [
+                    'combinations' => $combinations,
+                ]
+            ]);
 
-                        $departure = $segments[0]['departure_time'] ?? '';
-                        $arrival = $segments[1]['arrival_time'] ?? $segments[0]['arrival_time'] ?? '';
-                        $data->push([
-                            'carrier' => $carrier,
-                            'cabinClass' => $bundles->first()['parameters']['cabin_type'] ?? 'economy',
-                            'departure' => [
-                                'code' => $segments[0]['origin'] ?? '',
-                                'airport' => $this->helper::codeToCountry($segments[0]['origin'] ?? ''),
-                                'local' => $this->helper::codeToLocalCheck($segments[0]['origin'] ?? ''),
-                                'datetime' => $this->helper::formatDateTimeForFlights($departure),
-                                'date' => $this->helper::formatDateForFlights($departure),
-                                'time' => $this->helper::formatTimeForFlights($departure),
-                            ],
-                            'arrival' => [
-                                'code' => $segments[1]['destination'] ?? $segments[0]['destination'] ?? '',
-                                'airport' => $this->helper::codeToCountry($segments[1]['destination'] ?? $segments[0]['destination'] ?? ''),
-                                'local' => $this->helper::codeToLocalCheck($segments[1]['destination'] ?? $segments[0]['destination'] ?? ''),
-                                'datetime' => $this->helper::formatDateTimeForFlights($arrival),
-                                'date' => $this->helper::formatDateForFlights($arrival),
-                                'time' => $this->helper::formatTimeForFlights($arrival),
-                            ],
-                            'duration' => $this->helper::calculateDuration($departure, $arrival),
-                            'isConnected' => count($segments) > 1,
-                            'price' => number_format(($flight['price']['total_amount'] ?? 0), 2),
-                            'code' => $flight['price']['currency'] ?? 'PKR',
-                            'segments' => $this->normalizeSegment($segments, $carrier),
-                            'bundles' => $flight['bundleKey'] ?? null,
-                            'status' => 'AVAILABLE',
-                            'flightRaw' => null,
-                        ]);
+            $outbound = collect();
+            $inbound = collect();
+
+            foreach ($itineraries as $itinerary) {
+                $direction = $itinerary['direction'] ?? 'outbound';
+                $flightsRaw = $itinerary['flights'] ?? [];
+
+                foreach ($flightsRaw as $flight) {
+                    $journeyId = $flight['journey_id'] ?? null;
+                    if (!$journeyId) continue;
+
+                    // Find cheapest price for this journey across all bundles
+                    $relevantCombos = $combinations->filter(function ($c) use ($journeyId) {
+                        return isset($c['journeys'][$journeyId]);
+                    });
+
+                    if ($relevantCombos->isEmpty()) continue; 
+
+                    // Get the absolute minimum price from all combinations for this journey
+                    $price = $relevantCombos->min('total_price_pkr') ?? 0;
+                    $segments = $flight['segments'] ?? [];
+
+                    if (empty($segments)) continue;
+
+                    $firstSegment = $segments[0];
+                    $lastSegment = end($segments);
+
+                    $depDatetime = $firstSegment['departure']['datetime'] ?? '';
+                    $arrDatetime = $lastSegment['arrival']['datetime'] ?? '';
+
+                    $formattedFlight = [
+                        'carrier' => $carrier,
+                        'cabinClass' => $this->helper::getCabinClass('Y'),
+                        'departure' => [
+                            'code' => $firstSegment['departure']['airport'] ?? '',
+                            'airport' => $this->helper::codeToCountry($firstSegment['departure']['airport'] ?? ''),
+                            'local' => $this->helper::codeToLocalCheck($firstSegment['departure']['airport'] ?? ''),
+                            'datetime' => $this->helper::formatDateTimeForFlights($depDatetime),
+                            'date' => $this->helper::formatDateForFlights($depDatetime),
+                            'time' => $this->helper::formatTimeForFlights($depDatetime),
+                        ],
+                        'arrival' => [
+                            'code' => $lastSegment['arrival']['airport'] ?? '',
+                            'airport' => $this->helper::codeToCountry($lastSegment['arrival']['airport'] ?? ''),
+                            'local' => $this->helper::codeToLocalCheck($lastSegment['arrival']['airport'] ?? ''),
+                            'datetime' => $this->helper::formatDateTimeForFlights($arrDatetime),
+                            'date' => $this->helper::formatDateForFlights($arrDatetime),
+                            'time' => $this->helper::formatTimeForFlights($arrDatetime),
+                        ],
+                        'duration' => $this->helper::calculateDuration($depDatetime, $arrDatetime),
+                        'isConnected' => count($segments) > 1,
+                        'price' => number_format($price, 2, '.', ''),
+                        'code' => 'PKR',
+                        'segments' => $this->normalizeSegment($segments, $carrier),
+                        'bundles' => null, 
+                        'status' => $flight['availability_status'] ?? 'AVAILABLE',
+                        'flightRaw' => $flight,
+                    ];
+
+                    if ($direction === 'outbound') {
+                        $outbound->push($formattedFlight);
+                    } else {
+                        $inbound->push($formattedFlight);
                     }
                 }
-                $flightsCollection->push($data);
             }
+            $flightsCollection->push($outbound);
+            $flightsCollection->push($inbound);
+            
         } elseif ($carrier === 'flyJinnah') {
             $outboundFlights = $rawData ?? [];
             foreach ($outboundFlights as $flights) {
@@ -375,27 +410,31 @@ class FlightAggregatorService
         if ($airline === 'pia') {
             $data = [];
             foreach ($segments as $segment) {
+                $depDateTime = $segment['departure']['datetime'] ?? '';
+                $arrDateTime = $segment['arrival']['datetime'] ?? '';
+
                 $data[] = [
-                    'segment_key' => $segment['segment_key'] ?? '',
+                    'segment_key' => $segment['segment_id'] ?? null,
                     'departure' => [
-                        'code' => $segment['origin'] ?? '',
-                        'airport' => $this->helper::codeToCountry($segment['origin'] ?? ''),
-                        'local' => $this->helper::codeToLocalCheck($segment['origin'] ?? ''),
-                        'datetime' => $segment['departure_time'] ?? '',
+                        'code' => $segment['departure']['airport'] ?? '',
+                        'airport' => $this->helper::codeToCountry($segment['departure']['airport'] ?? ''),
+                        'local' => $this->helper::codeToLocalCheck($segment['departure']['airport'] ?? ''),
+                        'datetime' => $depDateTime,
                         'zuluTime' => null,
                     ],
                     'arrival' => [
-                        'code' => $segment['destination'] ?? '',
-                        'airport' => $this->helper::codeToCountry($segment['destination'] ?? ''),
-                        'local' => $this->helper::codeToLocalCheck($segment['destination'] ?? ''),
-                        'datetime' => $segment['arrival_time'] ?? '',
+                        'code' => $segment['arrival']['airport'] ?? '',
+                        'airport' => $this->helper::codeToCountry($segment['arrival']['airport'] ?? ''),
+                        'local' => $this->helper::codeToLocalCheck($segment['arrival']['airport'] ?? ''),
+                        'datetime' => $arrDateTime,
                         'zuluTime' => null,
                     ],
                     'flight_number' => $segment['flight_number'] ?? '',
-                    'duration' => $segment['duration'] ?? '',
-                    'aircraft' => $segment['aircraft_type'] ?? '',
-                    'carrier' => $segment['carrier'] ?? '',
-                    'baggage' => $segment['baggage_allowance'] ?? [],
+                    'duration' => $this->helper::calculateDuration($depDateTime, $arrDateTime),
+                    'aircraft' => $segment['aircraft'] ?? '',
+                    'carrier' => $segment['carrier'] ?? 'PK',
+                    'baggage' => [],
+                    'technical_stops' => $segment['technical_stops'] ?? [],
                 ];
             }
             return $data;

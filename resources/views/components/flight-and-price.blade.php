@@ -4,6 +4,7 @@
         $isEmirate = $airline === 'emirate';
         $isFlyJinnah = $airline === 'flyjinnah';
         $isAirblue = $airline === 'airblue';
+        $isPIA = $airline === 'pia';
 
         $logo = $flightData['airline'] ?? 'default';
 
@@ -48,10 +49,18 @@
             $outboundBundle = $flightData['firstBundle'] ?? null;
             $returnBundle = $flightData['returnBundle'] ?? null;
 
-            $totalPrice = ($outboundBundle['total_price'] ?? 0) + ($returnBundle['total_price'] ?? 0);
-            $totalBase = ($outboundBundle['base_price'] ?? 0) + ($returnBundle['base_price'] ?? 0);
-            $totalTax = ($outboundBundle['taxes'] ?? 0) + ($returnBundle['taxes'] ?? 0);
-            $totalFees = ($outboundBundle['fees'] ?? 0) + ($returnBundle['fees'] ?? 0);
+            // For PIA, extract price from the total_price_pkr field
+            if ($isPIA) {
+                $totalPrice = (float) ($flightData['total_price_pkr'] ?? 0);
+                $totalBase = $totalPrice; // PIA doesn't provide separate breakdown
+                $totalTax = 0;
+                $totalFees = 0;
+            } else {
+                $totalPrice = ($outboundBundle['total_price'] ?? 0) + ($returnBundle['total_price'] ?? 0);
+                $totalBase = ($outboundBundle['base_price'] ?? 0) + ($returnBundle['base_price'] ?? 0);
+                $totalTax = ($outboundBundle['taxes'] ?? 0) + ($returnBundle['taxes'] ?? 0);
+                $totalFees = ($outboundBundle['fees'] ?? 0) + ($returnBundle['fees'] ?? 0);
+            }
         }
     @endphp
 
@@ -271,6 +280,34 @@
                     <p>Tax</p>
                     <p>PKR {{ $tax ?? 0 }}</p>
                 </div>
+            @elseif ($isPIA)
+                {{-- PIA --}}
+                <div class="emr-adul justify-content-between">
+                    <p>Flight Fare ({{ $flightData['paxCount']['adt'] ?? 1 }} {{ ($flightData['paxCount']['adt'] ?? 1) > 1 ? 'Adults' : 'Adult' }})</p>
+                    <p>PKR {{ number_format((float) ($flightData['total_price_pkr'] ?? 0)) }}</p>
+                </div>
+                @if (($flightData['paxCount']['chd'] ?? 0) > 0)
+                    <div class="emr-adul justify-content-between">
+                        <p>Children ({{ $flightData['paxCount']['chd'] }})</p>
+                        <p>Included</p>
+                    </div>
+                @endif
+                @if (($flightData['paxCount']['inf'] ?? 0) > 0)
+                    <div class="emr-adul justify-content-between">
+                        <p>Infants ({{ $flightData['paxCount']['inf'] }})</p>
+                        <p>Included</p>
+                    </div>
+                @endif
+                <div class="border-top pt-3 mt-2">
+                    <div class="emr-adul justify-content-between">
+                        <p><strong>Outbound Bundle:</strong> {{ strtoupper($flightData['outbound_bundle'] ?? 'N/A') }}</p>
+                    </div>
+                    @if (isset($flightData['inbound_bundle']))
+                        <div class="emr-adul justify-content-between">
+                            <p><strong>Inbound Bundle:</strong> {{ strtoupper($flightData['inbound_bundle']) }}</p>
+                        </div>
+                    @endif
+                </div>
             @else
                 {{-- All Other Airlines (Airblue, SereneAir, etc.) --}}
                 @if ($isAirblue && isset($flights))
@@ -369,8 +406,8 @@
         </div>
     </div>
 
-    {{-- ==================== PENALTIES (Only for Emirates + All Others) ==================== --}}
-    @if ($isEmirate || (!$isEmirate && !$isFlyJinnah))
+    {{-- ==================== PENALTIES (Only for Emirates + All Others, excluding PIA and FlyJinnah) ==================== --}}
+    @if ($isEmirate || (!$isEmirate && !$isFlyJinnah && !$isPIA))
         <div class="bokkings-bar bokkings-bar2 penaltiesContainer">
             <div class="book-head">
                 <div class="youbook">

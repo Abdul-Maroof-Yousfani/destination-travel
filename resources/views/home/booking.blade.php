@@ -4,32 +4,32 @@
 @section('style')
 <style>
    .plane{border-radius:15px;overflow:scroll;scrollbar-width:thin;padding:105px 105px 105px 250px;}
-  .seat-row{display:flex;flex-direction:column;align-items:center;gap:5px;margin:5px}
-  .seat{cursor:pointer;border:solid 1px #b9b9b9;width:39px;height:36px;border-radius:4px;padding:8px 0px;margin-top:6px;position:relative;}
-  .seat:before{content:"";display:block;width:30px;height:26px;border:solid 1px #88857c;border-left:none;border-radius:0 5px 5px 0;position:absolute;margin:-4px -1px;}
-  .seat.selected{background-color:green;color:white;}
-  .seat.occupied{background-color:#d9d8d6;color:#000000;pointer-events:none;}
-  .aisle{height:20px;}
-  .mealCard:hover,.baggageCard:hover{background-color:#127F9F;color:#ffff;box-shadow:0 5px 15px rgba(0,0,0,0.2);}
-  /* .footerTimeOutContainer{z-index:9999;position:fixed;bottom:0;left:0;right:0;background-color:#127f9fe0;color:#fff;padding:15px;transition:opacity 0.5s ease-in-out;} */
-  .addOnsContainer{width:100%;}
-  .tabPlane{display:flex;flex-direction:column;justify-content:space-between;position:relative;min-width:min-content;margin:auto;border:2px solid #c5c5c7;min-height:280px;border-right:none;border-left:none;padding:10px;background:#fff;left:250px;top:0px;margin-bottom:115px;margin-top:115px;}
-  .tabPlane:before{content:"";position:absolute;height:336px;width:548px;padding-left:115px;border-radius:60% 0% 0% 60%;border:2px solid #c5c5c7;left:-263px;top:-2px;border-right:none;}
-  .tabPlane:after{content:"";position:absolute;height:336px;width:548px;padding-left:115px;border-radius:0% 60% 60% 0%;border:2px solid #c5c5c7;right:-263px;top:-2px;border-left:none;}
-  .winds1{position:relative;}
-  .winds1:before{content:"";position:absolute;top:-104px;right:90px;width:250px;height:94px;border-bottom-left-radius:30px;border-right:none !important;border-top:none !important;border:2px solid #c5c5c7;}
-  .winds1:after{content:"";position:absolute;width:250px;height:94px;border:2px solid #c5c5c7;border-bottom-right-radius:60px;border-top:none;border-left:none;transform:skew(-35deg);left:322px;top:-104px;}
-  .winds2{position:relative;}
-  .winds2:after{content:"";position:absolute;width:250px;height:94px;border:2px solid #c5c5c7;border-top-right-radius:60px;border-bottom:none;border-left:none;transform:skew(35deg);left:303px;bottom:-104px;}
-  .winds2:before{content:"";position:absolute;bottom:-104px;left:705px;width:250px;height:94px;border:2px solid #c5c5c7;border-top-left-radius:30px;border-right:none;border-bottom:none;}
- .windows{position:relative;}
-.windows:before{content:"";position:absolute;top:70px;left:-242px;width:100px;height:150px;background-image:url(/assets/images/windows.png);}
-.windows:after{content:"";position:absolute;top:70px;left:-66px;width:37px;height:150px;background-image:url(/assets/images/lavatory.png);}
-.windows2{position:relative;}
-.ancillary-card{transition:0.2s;}
-.ancillary-card:hover{transform:scale(1.03);box-shadow:0 0 10px rgba(0,0,0,0.15);}
-.ancillary-card.selected{border:2px solid #28a745;}
-.ancillary-card.disabled{opacity:0.6;cursor:not-allowed;}
+   .seat-row{display:flex;flex-direction:column;align-items:center;gap:5px;margin:5px}
+   .seat{cursor:pointer;border:solid 1px #b9b9b9;width:39px;height:36px;border-radius:4px;padding:8px 0px;margin-top:6px;position:relative;}
+   .seat:before{content:"";display:block;width:30px;height:26px;border:solid 1px #88857c;border-left:none;border-radius:0 5px 5px 0;position:absolute;margin:-4px -1px;}
+   .seat.selected{background-color:green;color:white;}
+   .seat.occupied{background-color:#d9d8d6;color:#000000;pointer-events:none;}
+   .aisle{height:20px;}
+   .mealCard:hover,.baggageCard:hover{background-color:#127F9F;color:#ffff;box-shadow:0 5px 15px rgba(0,0,0,0.2);}
+   /* .footerTimeOutContainer{z-index:9999;position:fixed;bottom:0;left:0;right:0;background-color:#127f9fe0;color:#fff;padding:15px;transition:opacity 0.5s ease-in-out;} */
+   .addOnsContainer{width:100%;}
+   .tabPlane{display:flex;flex-direction:column;justify-content:space-between;position:relative;min-width:min-content;margin:auto;border:2px solid #c5c5c7;min-height:280px;border-right:none;border-left:none;padding:10px;background:#fff;left:250px;top:0px;margin-bottom:115px;margin-top:115px;}
+   .tabPlane:before{content:"";position:absolute;height:336px;width:548px;padding-left:115px;border-radius:60% 0% 0% 60%;border:2px solid #c5c5c7;left:-263px;top:-2px;border-right:none;}
+   .tabPlane:after{content:"";position:absolute;height:336px;width:548px;padding-left:115px;border-radius:0% 60% 60% 0%;border:2px solid #c5c5c7;right:-263px;top:-2px;border-left:none;}
+   .winds1{position:relative;}
+   .winds1:before{content:"";position:absolute;top:-104px;right:90px;width:250px;height:94px;border-bottom-left-radius:30px;border-right:none !important;border-top:none !important;border:2px solid #c5c5c7;}
+   .winds1:after{content:"";position:absolute;width:250px;height:94px;border:2px solid #c5c5c7;border-bottom-right-radius:60px;border-top:none;border-left:none;transform:skew(-35deg);left:322px;top:-104px;}
+   .winds2{position:relative;}
+   .winds2:after{content:"";position:absolute;width:250px;height:94px;border:2px solid #c5c5c7;border-top-right-radius:60px;border-bottom:none;border-left:none;transform:skew(35deg);left:303px;bottom:-104px;}
+   .winds2:before{content:"";position:absolute;bottom:-104px;left:705px;width:250px;height:94px;border:2px solid #c5c5c7;border-top-left-radius:30px;border-right:none;border-bottom:none;}
+   .windows{position:relative;}
+   .windows:before{content:"";position:absolute;top:70px;left:-242px;width:100px;height:150px;background-image:url(/assets/images/windows.png);}
+   .windows:after{content:"";position:absolute;top:70px;left:-66px;width:37px;height:150px;background-image:url(/assets/images/lavatory.png);}
+   .windows2{position:relative;}
+   .ancillary-card{transition:0.2s;}
+   .ancillary-card:hover{transform:scale(1.03);box-shadow:0 0 10px rgba(0,0,0,0.15);}
+   .ancillary-card.selected{border:2px solid #28a745;}
+   .ancillary-card.disabled{opacity:0.6;cursor:not-allowed;}
 
 </style>
 @endsection
@@ -2134,13 +2134,13 @@
             return data.map((passenger, index) => {
                const matchingTicket = (tickets || []).find(t => t.passenger_reference === passenger.passenger_reference);
 
+               // <p>Price Reference: <span>${matchingTicket.price_reference}</span></p>
                const ticketHtml = matchingTicket ? `
                   <div class="col-6">
                      <div class="border rounded p-3 mt-2">
                         <p>Issue date: <br><span>${formatDateTime(matchingTicket.issue_date)}</span></p>
                         <p>ETicket No: <br><span class="copyText">${matchingTicket.ticket_no}</span></p>
                         <p>Type: <span>E-Ticket</span></p>
-                        <p>Price Reference: <span>${matchingTicket.price_reference}</span></p>
                      </div>
                   </div>
                ` : '<div class="col-12">No Ticket Issued</div>';
@@ -2222,8 +2222,13 @@
                data: {
                   user, passengers,
                   airline: data['airline'],
+                  offerId: data['offer_id'],
+                  owner: data['owner'],
                   data: data['bundle'],
                   paxCount: data['paxCount'],
+                  offer_item_ids: data['offer_item_ids'],
+                  total_price: data['total_price_pkr'],
+                  pax_ref_ids: data['pax_ref_ids'],
                   _token: "{{ csrf_token() }}"
                },
                beforeSend: () => _loader('show'),
@@ -2250,7 +2255,7 @@
                   firstBtn = true;
                   console.log(xhr);
                   (async () => {
-                     let alMsg = xhr.responseJSON?.message || 'Please check your details, something seems incorrect.';
+                     let alMsg = xhr.responseJSON?.details || 'Please check your details, something seems incorrect.';
                      if (await _confirm(alMsg, false, 'warning', 'Go Back')) {
                         // let goBack = localStorage.getItem('flights') || null;
                         // goBack ? window.location.href = `/flights${goBack}` : window.history.back();

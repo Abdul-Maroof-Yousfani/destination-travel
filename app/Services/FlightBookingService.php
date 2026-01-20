@@ -306,6 +306,7 @@ class FlightBookingService
                 ];
             }
             if (!empty($tickets)) Ticket::insert($tickets);
+            DB::commit();
             return $booking->load('bookingItems.penalties', 'client', 'tickets');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -314,9 +315,7 @@ class FlightBookingService
         }
     }
 
-
     // --------------------------------------------------------------FLYJINNAH--------------------------------------------------------------
-    
     public function handleBookingFJ(array $response, int $clientId): array
     {
         $otaAirBookRS = $response['Body']['OTA_AirBookRS'] ?? [];
@@ -900,11 +899,8 @@ class FlightBookingService
     }
     public function updateBookingFieldsPia(array $response, int $bookingId): Booking // Fetch API
     {
+        // dd($response);
         $order = $response['order'] ?? [];
-        $journeys = $response['journeys'] ?? [];
-        $isOneWay = count($journeys) === 1;
-        $journeyCount = count($journeys);
-        $bookingType = $journeyCount === 1 ? 'oneway' : ($journeyCount === 2 ? 'return' : 'multi');
         $booking = Booking::findOrFail($bookingId);
 
         $ticketTimeLimit = $response['paymentLimit'] ?? $booking->ticket_limit;
@@ -912,18 +908,13 @@ class FlightBookingService
 
         try {
             $booking->update([
-                'is_oneway'         => $isOneWay,
-                'type'              => $bookingType,
                 'order_id'          => $order['orderID'] ?? null,
                 'order_owner'       => $order['ownerCode'] ?? null,
-                'flight_booking_id' => $order['orderID'] ?? null,
                 'ticket_limit'      => Carbon::parse($ticketTimeLimit),
                 'payment_limit'     => Carbon::parse($paymentTimeLimit),
-                'airline_id'        => $order['ownerCode'] ?? null,
-                'airline'           => 'PIA',
                 'transaction_id'    => $response['transaction_id'] ?? $booking->transaction_id,
-                'price_code'        => data_get($response, 'passengers.0.fare_details.fare_price_type.price.currency', $booking->price_code),
-                'price'             => data_get($response, 'totalPrice', $booking->price),
+                // 'price_code'        => data_get($response, 'passengers.0.fare_details.fare_price_type.price.currency', $booking->price_code),
+                // 'price'             => data_get($response, 'totalPrice', $booking->price),
                 'status'            => $booking->status !== Booking::STATUS_ISSUED ? Booking::STATUS_CHANGED : $booking->status,
             ]);
 
@@ -932,7 +923,7 @@ class FlightBookingService
                     'status' => 'change',
                     'ticket_limit' => Carbon::parse($ticketTimeLimit),
                     'payment_limit' => Carbon::parse($paymentTimeLimit),
-                    'xml_body' => json_encode($response ?? []),
+                    // 'xml_body' => json_encode($response ?? []),
                 ]);
             }
 
@@ -1161,7 +1152,7 @@ class FlightBookingService
                 $direction = ($index === 0) ? 'outbound' : 'return';
 
                 $flightModel = Flight::create([
-                    'airline'        => $flight['marketing_airline'] ?? 'PA',
+                    'airline'        => 'airblue',
                     'departure_code' => $departureCode,
                     'arrival_code'   => $arrivalCode,
                     'departure_date' => $departureDate,
@@ -1213,7 +1204,6 @@ class FlightBookingService
             throw $e;
         }
     }
-
     public function updateBookingFieldsAirblue(array $response, int $bookingId): Booking
     {
         $data = $response['data'] ?? [];
@@ -1258,7 +1248,6 @@ class FlightBookingService
             throw $e;
         }
     }
-
     public function issueTicketsAirblue(array $data, int $bookingId): Booking
     {
         $booking = Booking::findOrFail($bookingId);
