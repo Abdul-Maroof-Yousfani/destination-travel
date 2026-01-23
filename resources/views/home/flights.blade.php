@@ -86,19 +86,21 @@
                     <div class="flight-selection">
                         @if ($routeType === 'MULTI')
                             @foreach($data['legs'] as $legIndex => $options)
-                                @php
-                                    $firstFlight = $options->first();
-                                    $from = $firstFlight['departure']['code'] ?? '';
-                                    $to = $firstFlight['arrival']['code'] ?? '';
-                                    $date = $firstFlight['departure']['date'] ?? '';
-                                @endphp
-                                <div class="step step-{{ $legIndex }} {{ $loop->first ? 'active' : '' }}" id="leg-text-{{ $legIndex }}">
-                                    <span class="step-number">{{ $legIndex }}</span>
-                                    <span class="step-text">
-                                        Leg {{ $legIndex }}: {{ $from }} → {{ $to }}
-                                        <small class="text-muted d-block">{{ \Carbon\Carbon::parse($date)->format('D, d M Y') }}</small>
-                                    </span>
-                                </div>
+                                @if ($options->count() > 0)
+                                    @php
+                                        $firstFlight = $options->first();
+                                        $from = $firstFlight['departure']['code'] ?? '';
+                                        $to = $firstFlight['arrival']['code'] ?? '';
+                                        $date = $firstFlight['departure']['date'] ?? '';
+                                    @endphp
+                                    <div class="step step-{{ $legIndex }} {{ $loop->first ? 'active' : '' }}" id="leg-text-{{ $legIndex }}">
+                                        <span class="step-number">{{ $legIndex }}</span>
+                                        <span class="step-text">
+                                            Leg {{ $legIndex }}: {{ $from }} → {{ $to }}
+                                            <small class="text-muted d-block">{{ \Carbon\Carbon::parse($date)->format('D, d M Y') }}</small>
+                                        </span>
+                                    </div>
+                                @endif
                             @endforeach
                         @else
                             <div class="step step-1 active" id="departure-text">

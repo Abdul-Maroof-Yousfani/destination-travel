@@ -12,6 +12,9 @@
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "league/csv": "^9.23",
+        "react/http": "^0.4.0",
+        "react/socket": "^0.4.6",
+        "spatie/async": "^1.8",
         "spatie/laravel-permission": "^6.18"
     },
     "require-dev": {

@@ -224,6 +224,7 @@ class AirblueService
         // dd($xml);
 
         $raw = $this->sendRequest('AirLowFareSearch', $xml);
+        // dd($raw);
 
         if (isset($raw['error'])) {
             return $raw;

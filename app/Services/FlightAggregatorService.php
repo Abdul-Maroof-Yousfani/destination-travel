@@ -9,6 +9,8 @@ use App\Services\AirblueService;
 use App\Services\EmiratesService;
 use App\Services\FlyJinnahService;
 use Illuminate\Support\Collection;
+use Spatie\Async\Pool;
+use Illuminate\Support\Facades\App;
 // 1) if in bundles have array so show directly bundles of this flight (speacially in emirates)
 // 2) if in bundles have key only so match bundle from outside flights bundles tag and show  (speacially in pia)
 // 3) if in bundles if null so fetch bundles from api (speacially in flyjinnah)
@@ -24,7 +26,6 @@ class FlightAggregatorService
         AirblueService $airblue
     ) {
         $this->services = [$emirate, $flyjinnah, $airblue, $pia];
-        // $this->services = [$pia, $emirate, $flyjinnah];
         // $this->services = [$flyjinnah];
         // $this->services = [$emirate];
         // $this->services = [$airblue];
@@ -53,19 +54,22 @@ class FlightAggregatorService
         $allBundles = collect();
         $allExtras = collect();
         $allErrors = collect();
+        
         if ($isMulti) {
             $allLegs = collect(); // Will be collect of leg collections (each leg has its options)
             if(!empty($this->services)) {
-                foreach ($this->services as $service) {
-                    $carrier = strtolower($service->getCarrierName());
-                    if (in_array($carrier, $skipCarriers, true)) continue;
-
-                    $rawFlights = $service->searchFlights($params);
-                    $normalized = $this->normalizeFlights($rawFlights, $service->getCarrierName());
-                    
-                    // For multi, append all legs from this service (assuming services return all legs)
-                    foreach ($normalized['flights'] as $leg) {
-                        $allLegs->push($leg);
+                // Execute all service searches in parallel
+                $results = $this->executeServicesInParallel($this->services, $params, $skipCarriers, $allErrors);
+                
+                // Process all results
+                foreach ($results as $result) {
+                    if (isset($result['rawFlights'])) {
+                        $normalized = $this->normalizeFlights($result['rawFlights'], $result['carrier']);
+                        
+                        // For multi, append all legs from this service (assuming services return all legs)
+                        foreach ($normalized['flights'] as $leg) {
+                            $allLegs->push($leg);
+                        }
                     }
                 }
             }
@@ -82,41 +86,41 @@ class FlightAggregatorService
             ];
         } else {
             if(!empty($this->services)) {
-            foreach ($this->services as $service) {
-                    $carrier = strtolower($service->getCarrierName());
-                    if (in_array($carrier, $skipCarriers, true)) {
-                        continue;
-                    }
+                // Execute all service searches in parallel
+                $results = $this->executeServicesInParallel($this->services, $params, $skipCarriers, $allErrors);
+                
+                // Process all results
+                foreach ($results as $result) {
+                    if (isset($result['rawFlights'])) {
+                        $carrier = $result['carrier'];
+                        $normalized = $this->normalizeFlights($result['rawFlights'], $carrier);
 
-                    $rawFlights = $service->searchFlights($params);
-                    // dd($rawFlights);
-                    $normalized = $this->normalizeFlights($rawFlights, $service->getCarrierName());
+                        // Collect bundles
+                        if ($carrier === 'pia') {
+                            $allBundles = $allBundles->merge($normalized['bundles'] ?? []);
+                        }
+                        // elseif ($carrier === 'flyJinnah') {
+                        //     // Fetch bundles if needed (implement in FlyJinnahService)
+                        //     $bundles = [];
+                        //     $allBundles = $allBundles->merge($bundles);
+                        // }
+                        // Emirates bundles are per-flight, so no global merge needed here
 
-                    // Collect bundles
-                    if ($carrier === 'pia') {
-                        $allBundles = $allBundles->merge($normalized['bundles'] ?? []);
-                    }
-                    // elseif ($carrier === 'flyJinnah') {
-                    //     // Fetch bundles if needed (implement in FlyJinnahService)
-                    //     $bundles = [];
-                    //     $allBundles = $allBundles->merge($bundles);
-                    // }
-                    // Emirates bundles are per-flight, so no global merge needed here
+                        // Collect errors
+                        if (!empty($normalized['errors'])) {
+                            $allErrors = $allErrors->merge($normalized['errors']);
+                        }
+                        if (!empty($normalized['extras'])) {
+                            $allExtras = $allExtras->merge($normalized['extras']);
+                        }
 
-                    // Collect errors
-                    if (!empty($normalized['errors'])) {
-                        $allErrors = $allErrors->merge($normalized['errors']);
+                        // Merge flights (index 0 = outbound, 1 = inbound)
+                        $outbound = $normalized['flights'][0] ?? collect();
+                        $inbound = $normalized['flights'][1] ?? collect();
+                        $outboundFlights = $outboundFlights->merge($outbound);
+                        $inboundFlights = $inboundFlights->merge($inbound);
                     }
-                    if (!empty($normalized['extras'])) {
-                        $allExtras = $allExtras->merge($normalized['extras']);
-                    }
-
-                    // Merge flights (index 0 = outbound, 1 = inbound)
-                    $outbound = $normalized['flights'][0] ?? collect();
-                    $inbound = $normalized['flights'][1] ?? collect();
-                    $outboundFlights = $outboundFlights->merge($outbound);
-                    $inboundFlights = $inboundFlights->merge($inbound);
-                } 
+                }
             }
 
             // Sort by price
@@ -149,6 +153,75 @@ class FlightAggregatorService
             ];
         }
     }
+    
+    /**
+     * Execute all service searches in parallel using spatie/async
+     * Falls back to sequential execution if async fails
+     */
+    private function executeServicesInParallel($services, $params, $skipCarriers, &$allErrors)
+    {
+        $results = [];
+        
+        // Try parallel execution first
+        try {
+            $pool = Pool::create();
+            
+            foreach ($services as $service) {
+                $carrier = strtolower($service->getCarrierName());
+                if (in_array($carrier, $skipCarriers, true)) {
+                    continue;
+                }
+
+                $serviceClass = get_class($service);
+                $pool->add(function () use ($serviceClass, $params, $carrier) {
+                    // Resolve service in child process using Laravel's container
+                    $service = App::make($serviceClass);
+                    return [
+                        'carrier' => $carrier,
+                        'rawFlights' => $service->searchFlights($params),
+                    ];
+                })->then(function ($result) use (&$results) {
+                    $results[] = $result;
+                })->catch(function ($exception) use (&$allErrors, $carrier) {
+                    $allErrors->push([
+                        'carrier' => $carrier,
+                        'error' => $exception->getMessage(),
+                    ]);
+                });
+            }
+            
+            $pool->wait();
+            
+        } catch (\Exception $e) {
+            // Fallback to sequential execution if async fails
+            \Log::warning('Parallel execution failed, falling back to sequential', [
+                'error' => $e->getMessage()
+            ]);
+            
+            $results = [];
+            foreach ($services as $service) {
+                $carrier = strtolower($service->getCarrierName());
+                if (in_array($carrier, $skipCarriers, true)) {
+                    continue;
+                }
+                
+                try {
+                    $results[] = [
+                        'carrier' => $carrier,
+                        'rawFlights' => $service->searchFlights($params),
+                    ];
+                } catch (\Exception $e) {
+                    $allErrors->push([
+                        'carrier' => $carrier,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+        
+        return $results;
+    }
+    
     private function normalizeFlights($rawData, $carrier)
     {
         $flightsCollection = collect();

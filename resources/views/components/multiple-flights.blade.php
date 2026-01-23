@@ -427,7 +427,10 @@
     $(document).ready(function() {
         let paxCount = @json($paxCount ?? 1);
         let selectedFlights = {}; // { legIndex: { flight: {}, bundle: {} } }
-        let totalLegs = {{ count($flightData['legs'] ?? []) }};
+        // let totalLegs = {{ count($flightData['legs'] ?? []) }};
+        // Count only legs where data exists (length > 0)
+        let legsData = @json($flightData['legs']);
+        let totalLegs = Object.values(legsData).filter(arr => Array.isArray(arr) && arr.length > 0).length;
 
         // Toggle connected flight details
         $('.connected').off('click').on('click', function() {

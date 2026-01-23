@@ -767,7 +767,7 @@ class FlightBookingService
                 'flight_booking_id' => $bookingReferences['bookingId'] ?? null,
                 'ticket_limit'      => Carbon::parse($timeLimits['ticketingTimeLimit'] ?? null),
                 'payment_limit'     => Carbon::parse($timeLimits['paymentTimeLimit'] ?? null),
-                'airline_id'        => $bookingReferences['airlineID'] ?? null,
+                'airline_id'        => $bookingReferences['bookingId'] ?? null,
                 'airline'           => $airline,
                 'transaction_id'    => $response['transaction_id'] ?? '-',
                 'price_code'        => $priceCode,

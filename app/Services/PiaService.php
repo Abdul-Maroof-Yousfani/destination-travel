@@ -124,7 +124,7 @@ class PiaService
     }
     public function searchFlights($data) // AirShopping
     {
-        try {
+        // try {
             // dd($data);
 
             // Basic validation
@@ -241,20 +241,18 @@ class PiaService
             $parser = new AirShoppingParser();
             // dd($parser->parseAirShoppingResponse($response));
             return $parser->parseAirShoppingResponse($response);
-        }
+        // } catch (\Exception $e) {
 
-        catch (\Exception $e) {
+        //     \Log::error('AirShopping Exception', [
+        //         'message' => $e->getMessage(),
+        //         'trace' => $e->getTraceAsString(),
+        //     ]);
 
-            \Log::error('AirShopping Exception', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return [
-                'error' => 'An unexpected error occurred during AirShopping.',
-                'exception' => $e->getMessage()
-            ];
-        }
+        //     return [
+        //         'error' => 'An unexpected error occurred during AirShopping.',
+        //         'exception' => $e->getMessage()
+        //     ];
+        // }
     }
     public function bookFlight($data) // OrderCreate
     {

@@ -46,9 +46,30 @@ class AirShoppingParser
                     $status = 'no_flights';
                     $message = 'No flights available for the selected route and dates.';
                 } else {
-                    $hasInbound = count($itineraries) > 1 && $itineraries[1]['direction'] === 'inbound';
+                    $itineraryCount = count($itineraries);
+                    $hasInbound = $itineraryCount > 1 && $itineraries[1]['direction'] === 'inbound';
+                    $isMultiCity = $itineraryCount > 2;
                     
-                    if (!$hasInbound) {
+                    // Check if any itinerary has multi-segment journeys
+                    $hasMultiSegment = false;
+                    foreach ($itineraries as $it) {
+                        foreach ($it['flights'] ?? [] as $flight) {
+                            if (count($flight['segments'] ?? []) > 1) {
+                                $hasMultiSegment = true;
+                                break 2;
+                            }
+                        }
+                    }
+                    
+                    if ($itineraryCount === 1) {
+                        $status = 'one_way_only';
+                        $message = $hasMultiSegment 
+                            ? 'One-way flight available with multiple segments. No fare bundles/combinations found - flights may have no remaining seats in bookable classes.'
+                            : 'Only outbound flights are available. No return options found for the selected dates.';
+                    } elseif ($isMultiCity) {
+                        $status = 'no_combinations';
+                        $message = 'No fare bundles/combinations available for the multi-city trip. The selected flights may have no remaining seats in bookable classes.';
+                    } elseif (!$hasInbound) {
                         $status = 'one_way_only';
                         $message = 'Only outbound flights are available. No return options found for the selected dates.';
                     } else {
@@ -276,9 +297,21 @@ class AirShoppingParser
         return array_unique($services);
     }
 
+    /**
+     * Extract itineraries from DataLists
+     * Supports:
+     * - One-way (single OriginDest)
+     * - Round-trip (two OriginDest entries: outbound + inbound)
+     * - Multi-city (three or more OriginDest entries)
+     * 
+     * @param array $dataLists
+     * @param array $stops
+     * @return array
+     */
     private function extractItineraries(array $dataLists, array $stops = []): array
     {
         $originDestRaw = Arr::get($dataLists, 'OriginDestList.OriginDest', []);
+        // Normalize: handle both single OriginDest (assoc array) and multiple (indexed array)
         $originDests = Arr::isAssoc($originDestRaw) ? [$originDestRaw] : $originDestRaw;
 
         $journeysRaw = Arr::get($dataLists, 'PaxJourneyList.PaxJourney', []);
@@ -298,11 +331,17 @@ class AirShoppingParser
 
             if (!$origin || !$destination || empty($journeyIds)) continue;
 
+            // Handle multiple legs (multi-city support)
             $direction = match ($index) {
                 0 => 'outbound',
                 1 => 'inbound',
                 default => 'leg_' . ($index + 1),
             };
+            
+            // For multi-city, use more descriptive names
+            if ($index >= 2) {
+                $direction = 'leg_' . ($index + 1) . '_' . $origin . '_' . $destination;
+            }
 
             $date = null;
             $firstJourneyId = $journeyIds[0] ?? null;
@@ -412,15 +451,32 @@ class AirShoppingParser
         return 'PT' . $interval->h . 'H' . $interval->i . 'M';
     }
 
+    /**
+     * Extract flight bundle combinations from offers
+     * Supports multiple legs/journeys (one-way, round-trip, multi-city)
+     * 
+     * @param array $offersGroup
+     * @param array $dataLists
+     * @param array $itineraries
+     * @return array
+     */
     private function extractFlightBundleCombinations(
         array $offersGroup,
         array $dataLists,
         array $itineraries
     ): array {
+        // Map FareBasisCode to bundle names
+        // VOW = "Value One Way" prefix
+        // VOWNBAG = No bag (ECO LIGHT)
+        // VOWSM = SMART bundle
+        // VOWFL = FREEDOM bundle (if exists)
+        // VOW1 = Base economy fare (not a bundle, but may appear in mixed bundles)
         $bundlesMap = [
-            'VNBAG'   => 'ECOLIGHT', 'VNBAGCH' => 'ECOLIGHT', 'VNBAGIN' => 'ECOLIGHT',
-            'VSM'     => 'SMART',    'VSMCH'   => 'SMART',    'VSMIN'   => 'SMART',
-            'VFL'     => 'FREEDOM',  'VFLCH'   => 'FREEDOM',  'VFLIN'   => 'FREEDOM',
+            // Actual codes from PIA NDC response
+            'VOWNBAG' => 'ECOLIGHT', 'VNBAG' => 'ECOLIGHT', 'VNBAGCH' => 'ECOLIGHT', 'VNBAGIN' => 'ECOLIGHT',
+            'VOWSM'   => 'SMART',    'VSM'   => 'SMART',    'VSMCH'   => 'SMART',    'VSMIN'   => 'SMART',
+            'VOWFL'   => 'FREEDOM',  'VFL'   => 'FREEDOM',  'VFLCH'   => 'FREEDOM',  'VFLIN'   => 'FREEDOM',
+            // VOW1 is base economy fare, not a bundle - ignore it when determining bundle
         ];
 
         // Build segment → journey map (very useful for round-trip & multi-city)
@@ -488,18 +544,37 @@ class AirShoppingParser
 
                     foreach ($fareComponents as $fc) {
                         $basis = Arr::get($fc, 'FareBasisCode');
+                        $fareType = Arr::get($fc, 'FareTypeCode', '');
                         $segId = Arr::get($fc, 'PaxSegmentRefID');
 
-                        if (!$basis || !$segId || !isset($segmentToJourney[$segId])) {
+                        if (!$segId || !isset($segmentToJourney[$segId])) {
                             continue;
                         }
 
                         $journeyId = $segmentToJourney[$segId];
 
-                        if (isset($bundlesMap[$basis])) {
+                        // Try to determine bundle from FareBasisCode first
+                        $bundleName = null;
+                        if ($basis && isset($bundlesMap[$basis])) {
                             $bundleName = $bundlesMap[$basis];
+                        } 
+                        // Fallback: try to infer from FareTypeCode if FareBasisCode doesn't match
+                        elseif ($fareType) {
+                            $fareTypeUpper = strtoupper($fareType);
+                            if (str_contains($fareTypeUpper, 'LIGHT') || str_contains($fareTypeUpper, 'ECO LIGHT')) {
+                                $bundleName = 'ECOLIGHT';
+                            } elseif (str_contains($fareTypeUpper, 'SMART')) {
+                                $bundleName = 'SMART';
+                            } elseif (str_contains($fareTypeUpper, 'FREEDOM')) {
+                                $bundleName = 'FREEDOM';
+                            }
+                        }
 
-                            // Keep the most "premium" bundle if conflict (rare but possible)
+                        // Skip VOW1 (base economy fare) - it's not a bundle
+                        // Only process actual bundle codes
+                        if ($bundleName) {
+                            // Keep the most "premium" bundle if a journey has segments with different bundles
+                            // This handles cases where some segments are VOW1 (base) and others have bundle codes
                             if (!isset($journeyBundles[$journeyId]) ||
                                 $this->bundleRank($bundleName) > $this->bundleRank($journeyBundles[$journeyId])) {
                                 $journeyBundles[$journeyId] = $bundleName;
@@ -551,24 +626,43 @@ class AirShoppingParser
             }
         }
 
-        // Final formatting for frontend
+        // Final formatting for frontend - supports multiple legs
         $result = [];
         foreach (array_values($combinations) as $combo) {
             $jKeys = array_keys($combo['journeys']);
+            $journeyCount = count($jKeys);
+
+            // Build journey mapping for all legs
+            $journeyMapping = [];
+            foreach ($jKeys as $idx => $jKey) {
+                $legName = match ($idx) {
+                    0 => 'outbound',
+                    1 => 'inbound',
+                    default => 'leg_' . ($idx + 1),
+                };
+                $journeyMapping[$legName] = [
+                    'journey_id' => $jKey,
+                    'bundle' => $combo['journeys'][$jKey] ?? null,
+                ];
+            }
 
             $formatted = [
-                'key'                  => md5(json_encode($combo['journeys'])), // or use your own
-                'outbound_journey_id'  => $jKeys[0] ?? null,
-                'outbound_bundle'      => $combo['journeys'][$jKeys[0] ?? ''] ?? null,
-                'offer_owners'         => $combo['offer_owner'] ?? null,
-                'inbound_journey_id'   => $jKeys[1] ?? null,
-                'inbound_bundle'       => $combo['journeys'][$jKeys[1] ?? ''] ?? null,
+                'key'                  => md5(json_encode($combo['journeys'])),
                 'total_price_pkr'      => $combo['cheapest_total'],
                 'recommended_offer_id' => $combo['cheapest_offer_id'], // ← this is what you want for booking!
                 'all_offer_ids'        => $combo['offer_ids'],
+                'offer_owners'         => $combo['offer_owner'] ?? null,
                 'offer_item_ids'       => $combo['offer_item_ids'] ?? [],
                 'pax_ref_ids'          => $combo['pax_ref_ids'] ?? [],
-                'journeys'             => $combo['journeys'], // keep for multi-city future-proofing
+                'journeys'             => $combo['journeys'], // Full journey mapping: journeyId => bundle
+                'journey_count'        => $journeyCount,
+                // Legacy fields for backward compatibility (one-way/round-trip)
+                'outbound_journey_id'  => $jKeys[0] ?? null,
+                'outbound_bundle'      => $combo['journeys'][$jKeys[0] ?? ''] ?? null,
+                'inbound_journey_id'   => $jKeys[1] ?? null,
+                'inbound_bundle'       => $combo['journeys'][$jKeys[1] ?? ''] ?? null,
+                // Multi-city support: structured journey mapping
+                'journey_mapping'      => $journeyMapping,
             ];
 
             $result[] = $formatted;
