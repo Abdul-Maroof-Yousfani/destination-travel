@@ -1087,6 +1087,7 @@ class FlightController extends Controller
         } elseif ($airline === 'airblue') {
             $data = [
                 'orderId' => $booking->order_id ?? null,
+                'bookingId' => $booking->id ?? null,
             ];
             $orderCancel = $this->airblueService->orderCancel($data ?? []);
             if (!empty($orderCancel['warnings'])) {

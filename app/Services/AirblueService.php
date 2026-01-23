@@ -5,6 +5,7 @@ namespace App\Services;
 use Carbon\Carbon;
 use SimpleXMLElement;
 use GuzzleHttp\Client;
+use App\Models\Booking;
 use App\Services\HelperService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
@@ -635,36 +636,66 @@ class AirblueService
     }
     public function orderCancel(array $data)
     {
-        $orderId = $data['orderId'] ?? '';;
+        $orderId = $data['orderId'] ?? '';
+        $booking = Booking::find($data['bookingId']);
+        if (!$booking) return ['error' => 'BOOKING_NOT_FOUND', 'message' => 'Booking not found'];
+        $body = '';
+        if ($booking->status == Booking::STATUS_INITIAL) {
+            $body = <<<XML
+                    <Cancel xmlns="http://zapways.com/air/ota/3.0">
+                        <cancelRQ Target="{$this->target}" Version="1.04" xmlns="http://www.opentravel.org/OTA/2003/05">
+                            <POS>
+                            <Source ERSP_UserID="{$this->clientId}/{$this->clientKey}">
+                                <RequestorID Type="{$this->agentType}" ID="{$this->agentId}" MessagePassword="{$this->agentPassword}"/>
+                            </Source>
+                            </POS>
+                            <UniqueID ID="{$orderId}"/>
+                        </cancelRQ>
+                    </Cancel>
+                XML;
+        } else {
+            $body = <<<XML
+            <AirBookModify xmlns="http://zapways.com/air/ota/3.0">
+                <airBookModifyRQ Target="{$this->target}" Version="1.04" xmlns="http://www.opentravel.org/OTA/2003/05">
+                    <POS>
+                        <Source ERSP_UserID="{$this->clientId}/{$this->clientKey}">
+                            <RequestorID Type="{$this->agentType}" ID="{$this->agentId}" MessagePassword="{$this->agentPassword}" />
+                        </Source>
+                    </POS>
+                    <AirBookModifyRQ ModificationType="1"></AirBookModifyRQ>
+                    <AirReservation>
+                        <BookingReferenceID ID="{$orderId}"/>
+                    </AirReservation>
+                </airBookModifyRQ>
+            </AirBookModify>
+            XML;
+        };
         $xml = <<<XML
         <Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
         <Header/>
             <Body>
-                <AirBookModify xmlns="http://zapways.com/air/ota/3.0">
-                    <airBookModifyRQ Target="{$this->target}" Version="1.04" xmlns="http://www.opentravel.org/OTA/2003/05">
-                        <POS>
-                            <Source ERSP_UserID="{$this->clientId}/{$this->clientKey}">
-                                <RequestorID Type="{$this->agentType}" ID="{$this->agentId}" MessagePassword="{$this->agentPassword}" />
-                            </Source>
-                        </POS>
-                        <AirBookModifyRQ ModificationType="1">
-                        </AirBookModifyRQ>
-                        <AirReservation>
-                            <BookingReferenceID ID="{$orderId}"/>
-                        </AirReservation>
-                    </airBookModifyRQ>
-                </AirBookModify>
+                {$body}
             </Body>
         </Envelope>
         XML;
+        // dd($xml);
 
         $raw = $this->sendRequest('AirBookModify', $xml);
         // dd($raw);
-        $result = $raw['Body']['AirBookModifyResponse']['AirBookModifyResult'] ?? null;
-        // dd($result);
-        // dd($this->parseReadResponse($result));
-
-        return $this->parseReadResponse($result);
+        if ($booking->status == Booking::STATUS_INITIAL) {
+            $result = $raw['Body']['CancelResponse']['CancelResult']['@attributes']['Status'] ?? null;
+            return [
+                'success' => true,
+                'message' => 'Order cancelled successfully',
+                'result' => $result,
+            ];
+        } else {
+            $result = $raw['Body']['AirBookModifyResponse']['AirBookModifyResult'] ?? null;
+            // dd($result);
+            // dd($this->parseReadResponse($result));
+    
+            return $this->parseReadResponse($result);
+        }
     }
 
 
