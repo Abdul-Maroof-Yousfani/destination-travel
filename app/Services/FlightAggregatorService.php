@@ -34,16 +34,27 @@ class FlightAggregatorService
     }
     public function searchAllFlights($params)
     {
-        $arrCode  = $params['arr'] ?? null;
-        $destCode = $params['dest'] ?? null;
+        $arrCode  = null;
+        $destCode = null;
+
+        $segments = $params['segments'] ?? [];
+
+        if (!empty($segments) && is_array($segments[0] ?? null)) {
+            $arrCode  = $segments[0]['arr']  ?? null;
+            $destCode = $segments[0]['dest'] ?? null;
+        }
 
         $skipCarriers = [];
         $isMulti = ($params['routeType'] ?? '') === 'MULTI' || count($params['segments'] ?? []) > 2;
 
         if ($arrCode && $destCode) {
-            $airports = Airport::whereIn('code', [$arrCode, $destCode])->pluck('is_local', 'code');
-            $arrIsLocal  = $airports[$arrCode] ?? null;
+            $airports = Airport::whereIn('code', [$arrCode, $destCode])
+                ->pluck('is_local', 'code')
+                ->toArray();   // ← toArray() is safer here
+        
+            $arrIsLocal  = $airports[$arrCode]  ?? null;
             $destIsLocal = $airports[$destCode] ?? null;
+        
             if ($arrIsLocal === true && $destIsLocal === true) {
                 $skipCarriers = config('flight.skip_local', []);
             }
