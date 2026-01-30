@@ -31,7 +31,7 @@ class HomeController extends Controller
                             ELSE 1 
                         END", ["%$search%"])
             ->orderBy('name')
-            ->limit(20)
+            ->limit(1)
             ->get();
 
         $results = $airports->map(function ($airport) {

@@ -251,7 +251,7 @@
                 @endphp
                 <div class="flight-card">
                     <!-- Airline Info -->
-                    <div class="row align-items-center text-center text-md-start">
+                    <div class="row align-items-center text-center text-md-start pointer {{ $key === 0 ? 'toggle-bundle' : 'toggle-bundle-rtn' }}" data-flight="{{ json_encode($flight) }}">
                         <div class="col-12 col-md-2 mb-3 mb-md-0 d-flex flex-column align-items-center">
                             <img src="{{ asset('assets/images/logos/' . $logo . '.png') }}" alt="{{ strtoupper($logo) }}"
                                 class="airline-logo mb-1">
@@ -288,8 +288,8 @@
 
                         <!-- Price Info -->
                         <div class="col-12 col-md-2 text-md-end">
-                            <button class="{{ $key === 0 ? 'price-btn' : 'price-btn-rtn' }} mb-2"
-                                data-flight="{{ json_encode($flight) }}">
+                            <button class="{{ $key === 0 ? 'price-btn' : 'price-btn-rtn' }} mb-2">
+                                {{-- data-flight="{{ json_encode($flight) }}" --}} 
                                 @php
                                     $isPiaReturn = ($flight['carrier'] ?? '') === 'pia' && $key === 1;
 
@@ -426,7 +426,8 @@
             $(this).closest(".flight-card").find(".details-section").slideToggle();
         });
 
-        $(".price-btn").click(function() {
+        // $(".price-btn").click(function() {
+        $(".toggle-bundle").click(function() {
             departureFlight = $(this).data('flight');
             selectedCarrier = departureFlight.carrier;
             if (selectedCarrier === 'pia') {
@@ -475,7 +476,8 @@
             // }
         });
 
-        $(".price-btn-rtn").click(function() {
+        // $(".price-btn-rtn").click(function() {
+        $(".toggle-bundle-rtn").click(function() {
             returnFlight = $(this).data('flight');
             returnFlightRaw = returnFlight;
             if (selectedCarrier === 'emirates') {
@@ -683,7 +685,6 @@
                 }
             });
         };
-
         function showBasicOnly(el, data, isReturn, firstFlight, firstConnectedFlight, returnFlight,
             returnConnectedFlight) {
             const $flightCard = $(el).closest(".flight-card");
@@ -842,7 +843,6 @@
                 $bundleLoop.html(finalOutput);
             }, 300);
         };
-
         $(document).on('click', '.bookBtn', function() {
             airline = $(this).data('airline');
             if (['flyjinnah', 'emirate', 'airblue'].includes(airline)) {
@@ -1386,6 +1386,5 @@
                 `);
             }, 500);
         };
-
     });
 </script>
