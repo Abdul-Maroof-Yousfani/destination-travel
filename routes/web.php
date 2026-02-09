@@ -14,8 +14,17 @@ use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\AirportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use Illuminate\Support\Facades\Artisan;
 
 // Livewire::routes();
+Route::get('clear-cache/{key}', function ($key) {
+    if ($key !== env('CACHE_CLEAR_KEY')) {
+        abort(403, 'Unauthorized');
+    }
+    Artisan::call('optimize:clear');
+
+    return 'All caches cleared successfully.';
+});
 Route::view('/', 'home.home')->name('home');
 Route::view('login', 'login')->name('login');
 Route::view('register', 'register')->name('register');

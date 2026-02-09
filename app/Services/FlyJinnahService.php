@@ -128,30 +128,34 @@ class FlyJinnahService
             //     'response' => $response->body(),
             //     'status' => $response->status(),
             // ], JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);}
-            // dd($response->body());
+            // dd($response->body(), $this->authenticate, $this->authUsername, $this->authPassword);
             if (!$response->successful()) {
-                \Log::error('Authentication Failed', [
+                \Log::error('Authentication Failed Flyjinnah', [
                     'status' => $response->status(),
                     'response' => $response->body(),
                 ]);
                 // dd('okok');
-                return 'Authentication Failed!';
+                file_put_contents($this->logPath, "Authentication Failed!" . "\n\n\n\n", FILE_APPEND);
+                return null;
             }
 
             $data = $response->json();
             $token = $data['tokenPair']['accessToken'] ?? null;
 
             if (!$token) {
-                \Log::error('No token received from API.');
-                return 'No token received from API.';
+                \Log::error('No token received from API Flyjinnah.');
+                file_put_contents($this->logPath, "No token received from API." . "\n\n\n\n", FILE_APPEND);
+                return null;
             }
 
             $decoded = $this->helperService->decodeJWTToken($token);
             $expTime = $decoded['exp'] ?? null;
 
             if ($expTime) {
-                $expiresInSeconds = $expTime - time();
-                Cache::put('flyjinnah_token', $token, $expiresInSeconds);
+                $ttl = $expTime - time() - 300;
+                if ($ttl > 0) {
+                    Cache::put('flyjinnah_token', $token, $ttl);
+                }
             }
 
             return $token;
@@ -164,19 +168,24 @@ class FlyJinnahService
     private function getToken()
     {
         $cachedToken = Cache::get('flyjinnah_token');
-        // dd($cachedToken);
-        // dd($this->authenticate());
         if ($cachedToken) {
-            $decoded = $this->helperService->decodeJWTToken($cachedToken);
-            $expTime = $decoded['exp'] ?? null;
-            // dd($expTime);
-
-            if ($expTime && $expTime - time() > 300) {
-                return $cachedToken;
-            }
+            return $cachedToken;
         }
 
         return $this->authenticate();
+        // dd($cachedToken);
+        // dd($this->authenticate());
+        // if ($cachedToken) {
+        //     $decoded = $this->helperService->decodeJWTToken($cachedToken);
+        //     $expTime = $decoded['exp'] ?? null;
+        //     // dd($expTime);
+
+        //     if ($expTime && $expTime - time() > 300) {
+        //         return $cachedToken;
+        //     }
+        // }
+
+        // return $this->authenticate();
     }
     public function searchFlights($data)
     {
@@ -302,6 +311,7 @@ class FlyJinnahService
                     'cookies' => $cookieJar
                 ])
                 ->post($this->searchUrl, $payload);
+            // dd($response->json(), $token);
             if ($this->regenerateLogs) {file_put_contents($this->logPath, "searchFlights Response:\n" . json_encode($response->json(), JSON_PRETTY_PRINT) . "\n\n\n\n", FILE_APPEND);}
             // dd($response->json(), $this->searchUrl, $payload, $headers);
             if (!$response->successful()) {
