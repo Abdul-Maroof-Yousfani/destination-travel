@@ -257,7 +257,7 @@
                                 class="airline-logo mb-1">
                             <div><strong>{{ $flight['carrier'] ?? '' }}</strong></div>
                             <div class="text-muted small flight-nums">
-                                <p>{{ $firstSegment['carrier'] }} ({{ $firstSegment['flight_number'] }})</p>
+                                <p>{{ $firstSegment['carrier'] ?? '' }} ({{ $firstSegment['flight_number'] ?? '' }})</p>
                             </div>
                         </div>
 
