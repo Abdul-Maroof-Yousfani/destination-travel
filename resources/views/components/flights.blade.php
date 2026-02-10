@@ -459,7 +459,7 @@
                 // console.log('Looking for journey_id in flightRaw:', departureFlight.flightRaw);
                 renderPiaBundles(this, false);
             }
-            if (selectedCarrier === 'flyJinnah') {
+            if (selectedCarrier === 'flyjinnah') {
                 depSelectedFlight = departureFlight.flightRaw;
                 firstFlight = getFlightData(depSelectedFlight.flightSegments[0]);
                 firstConnectedFlight = getFlightData(depSelectedFlight.flightSegments[1] || null);
@@ -505,7 +505,7 @@
             returnFlightRaw = returnFlight;
             if (selectedCarrier === 'emirates') {
                 renderEmirateBundles(returnFlight.bundles || [], this, true);
-            } else if (selectedCarrier === 'flyJinnah') {
+            } else if (selectedCarrier === 'flyjinnah') {
                 rtnSelectedFlight = returnFlightRaw.flightRaw;
                 let newReturnFlight = getFlightData(rtnSelectedFlight.flightSegments[0]);
                 returnConnectedFlight = getFlightData(rtnSelectedFlight.flightSegments[1] || null);
