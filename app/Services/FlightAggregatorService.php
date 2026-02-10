@@ -522,7 +522,7 @@ class FlightAggregatorService
                 ];
             }
             return $data;
-        } elseif ($airline === 'flyJinnah') {
+        } elseif ($airline === 'flyjinnah') {
             $data = [];
             foreach ($segments as $segment) {
                 $departure = $segment['departureDateTimeLocal'] ?? null;

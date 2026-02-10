@@ -219,7 +219,19 @@
     }
 </style>
 {{-- @dd($flightData) --}}
-@if (!empty($flightData))
+@if (!empty($flightData['errors']))
+    <div class="container mt-3">
+        @foreach ($flightData['errors'] as $error)
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Notice ({{ strtoupper($error['carrier'] ?? 'General') }}):</strong> 
+                {{ $error['error'] ?? ($error['details'] ?? 'Unable to fetch flights from this carrier.') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endforeach
+    </div>
+@endif
+
+@if (!empty($flightData) && $flightData['total_count'] > 0)
     @php
         $isReturn = $flightData['return_count'] > 0;
         $bundles = $flightData['bundles'];
@@ -306,7 +318,7 @@
                     <div class="details-section">
                         <div class=" mb-3">
                             <span
-                                class="durationBadge text-dark">{{ Carbon::parse($flight['arrival']['datetime'])->format('l d, F') }}</span>
+                                class="durationBadge text-dark">{{ isset($flight['arrival']['datetime']) ? Carbon::parse($flight['arrival']['datetime'])->format('l d, F') : 'N/A' }}</span>
                         </div>
                         @forelse ($flight['segments'] as $index => $segment)
                             <div class="card mb-3 shadow-sm">
@@ -321,28 +333,28 @@
                                     <!-- Departure -->
                                     <div class="col-6 col-md-2 mb-3 mb-md-0">
                                         <p class="fw-bold mb-1">
-                                            {{ Carbon::parse($segment['departure']['datetime'])->format('h:i A') }}
+                                            {{ isset($segment['departure']['datetime']) ? Carbon::parse($segment['departure']['datetime'])->format('h:i A') : 'N/A' }}
                                         </p>
                                         <small class="text-muted">
-                                            {{ $segment['departure']['airport'] }}
-                                            ({{ $segment['departure']['code'] }})
+                                            {{ $segment['departure']['airport'] ?? '' }}
+                                            ({{ $segment['departure']['code'] ?? '' }})
                                         </small>
                                     </div>
 
                                     <!-- Duration -->
                                     <div class="col-6 col-md-2 mb-3 mb-md-0 text-center">
                                         <div class="flight-duration">
-                                            {{ str_replace(['PT', 'H', 'M'], ['', 'h ', 'm'], $segment['duration']) }}
+                                            {{ str_replace(['PT', 'H', 'M'], ['', 'h ', 'm'], $segment['duration'] ?? '') }}
                                         </div>
                                     </div>
 
                                     <!-- Arrival -->
                                     <div class="col-6 col-md-2 mb-3 mb-md-0">
                                         <p class="fw-bold mb-1">
-                                            {{ Carbon::parse($segment['arrival']['datetime'])->format('h:i A') }}
+                                            {{ isset($segment['arrival']['datetime']) ? Carbon::parse($segment['arrival']['datetime'])->format('h:i A') : '' }}
                                         </p>
                                         <small class="text-muted">
-                                            {{ $segment['arrival']['airport'] }} ({{ $segment['arrival']['code'] }})
+                                            {{ $segment['arrival']['airport'] ?? '' }} ({{ $segment['arrival']['code'] ?? '' }})
                                         </small>
                                     </div>
 
@@ -350,7 +362,7 @@
                                     <div class="col-6 col-md-2 mb-3 mb-md-0 text-center">
                                         <p class="fw-bold mb-1">Flight No</p>
                                         <span
-                                            class="badge bg-light text-dark">{{ $segment['carrier'] }}-{{ $segment['flight_number'] }}</span>
+                                            class="badge bg-light text-dark">{{ $segment['carrier'] ?? '' }}-{{ $segment['flight_number'] ?? '' }}</span>
                                     </div>
 
                                     <!-- Cabin Class -->
@@ -404,6 +416,17 @@
     @empty
         <p class="text-center text-muted">No flights available.</p>
     @endforelse
+@else
+    <div class="container mt-5">
+        <div class="text-center p-5 bg-white shadow-sm rounded-3">
+            <div class="mb-4">
+                <i class="fa-solid fa-plane-slash fa-4x text-secondary"></i>
+            </div>
+            <h3>No Flights Found</h3>
+            <p class="text-muted">We couldn't find any flights for your selected route and dates. Please try different dates or destinations.</p>
+            <a href="{{ route('home') }}" class="btn btn-primary mt-3 px-4">Search Again</a>
+        </div>
+    </div>
 @endif
 <script>
     $(document).ready(function() {
