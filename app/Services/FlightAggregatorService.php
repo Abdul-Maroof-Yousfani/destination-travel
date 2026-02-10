@@ -319,7 +319,7 @@ class FlightAggregatorService
             $flightsCollection->push($outbound);
             $flightsCollection->push($inbound);
             
-        } elseif ($carrier === 'flyJinnah') {
+        } elseif ($carrier === 'flyjinnah') {
             $outboundFlights = $rawData ?? [];
             foreach ($outboundFlights as $flights) {
                 $data = collect();
