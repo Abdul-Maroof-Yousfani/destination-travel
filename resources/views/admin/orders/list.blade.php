@@ -52,6 +52,7 @@
                                 <select class="form-select form-select-sm" id="filterProduct">
                                     <option value="">Select Product</option>
                                     <option value="flight">Flight</option>
+                                    <option value="hotel">Hotel</option>
                                     <option value="bus">Bus</option>
                                 </select>
                             </th>
@@ -61,12 +62,15 @@
                                 <select class="form-select form-select-sm" id="filterStatus">
                                     <option value="">Select Status</option>
                                     <option value="initial">Initiated</option>
+                                    <option value="pending">Pending Payment</option>
                                     <option value="issued">Ticket Issued</option>
+                                    <option value="confirmed">Confirmed</option>
                                     <option value="pending">Pending</option>
                                     <option value="expired">Expired</option>
                                     <option value="error">Error</option>
                                     <option value="changed">Changed</option>
                                     <option value="cancel">Cancel</option>
+                                    <option value="cancelled">Cancelled</option>
                                 </select>
                             </th>
                             <th>
@@ -75,6 +79,7 @@
                                     <option value="oneway">Oneway</option>
                                     <option value="return">Return</option>
                                     <option value="multi">Multi-City</option>
+                                    <option value="hotel">Hotel</option>
                                 </select>
                             </th>
                             <th>
@@ -84,6 +89,7 @@
                                     <option value="flyjinnah">Fly Jinnah</option>
                                     <option value="pia">PIA</option>
                                     <option value="airblue">Airblue</option>
+                                    <option value="tasspro">TassPro (Hotel)</option>
                                 </select>
                             </th>
                             <th><input type="text" class="form-control form-control-sm" id="filterAgent"
@@ -127,6 +133,7 @@
             const canViewBooking = @json(auth()->user()->can('view bookings'));
             let currentPage = 1;
             const orderDetailsUrl = '{{ route('admin.orders.details', ':booking') }}';
+            const hotelDetailsUrl = '{{ route('admin.orders.hotel.details', ':booking') }}';
 
             function fetchBookings(page = 1) {
                 const data = {
@@ -155,15 +162,13 @@
                                 '<tr><td colspan="15" class="text-center">No bookings found.</td></tr>';
                         } else {
                             response.data.forEach(function(booking) {
-                                let url = orderDetailsUrl.replace(':booking', booking.id);
+                                let url = booking.product_type === 'hotel' ?
+                                    hotelDetailsUrl.replace(':booking', booking.id) :
+                                    orderDetailsUrl.replace(':booking', booking.id);
 
                                 // Determine type display
-                                let typeDisplay = 'RETURN';
-                                if (booking.type) {
-                                    typeDisplay = booking.type.toUpperCase();
-                                } else {
-                                    typeDisplay = booking.is_oneway ? 'ONEWAY' : 'RETURN';
-                                }
+                                let typeDisplay = booking.type ? booking.type.toUpperCase() :
+                                    'N/A';
 
                                 // Format airline display
                                 let airlineDisplay = booking.airline ? booking.airline.charAt(0)
@@ -181,11 +186,11 @@
                                             summaryHtml +=
                                                 `<strong class="text-primary">${line}</strong><br>`;
                                         } else if (index === 1) {
-                                            // Second line is airline code
+                                            // Second line is airline code or hotel name
                                             summaryHtml +=
                                                 `<small class="text-muted">${line}</small><br>`;
                                         } else {
-                                            // Routes
+                                            // Routes or Location
                                             summaryHtml +=
                                                 `<span class="badge bg-dark-subtle text-dark me-1">${line}</span>`;
                                         }
@@ -195,12 +200,18 @@
                                     summaryHtml = '-';
                                 }
 
+                                let statusBadge = 'danger';
+                                if (['issued', 'confirmed'].includes(booking.status))
+                                    statusBadge = 'success';
+                                if (['pending'].includes(booking.status))
+                                    statusBadge = 'warning';
+
                                 html += `<tr>
                                 <td><a href="${url}" class="text-decoration-underline">${booking.id}</a></td>
                                 <td>${booking.order_id}</td>
                                 <td>${booking.product}</td>
                                 <td>${booking.flight_booking_id ?? booking.order_id ?? ''}</td>
-                                <td><span class="badge bg_${booking.status === 'issued' ? 'success' : 'danger'}">${booking.status.toUpperCase()}</span></td>
+                                <td><span class="badge bg-${statusBadge}">${booking.status.toUpperCase()}</span></td>
                                 <td><span class="badge bg-secondary">${typeDisplay}</span></td>
                                 <td><span class="badge bg-body text-dark">${airlineDisplay}</span></td>
                                 <td>${booking.agent_name ?? 'Unassigned'}</td>

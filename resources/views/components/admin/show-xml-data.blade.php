@@ -1,8 +1,10 @@
 <div class="modal-body">
     @php
+        $isHotel = $booking instanceof \App\Models\HotelBooking;
         $bookingRequest = $booking->bookingRequest ?? null;
-        $xmlBody = $bookingRequest && isset($bookingRequest->xml_body) ? json_decode($bookingRequest->xml_body, true) : null;
-        $airline = strtolower($booking->airline);
+        $xmlBody =
+            $bookingRequest && isset($bookingRequest->xml_body) ? json_decode($bookingRequest->xml_body, true) : null;
+        $airline = $isHotel ? 'hotel' : strtolower($booking->airline ?? '');
     @endphp
     @if ($bookingRequest)
         @if ($airline === 'emirates')
@@ -10,11 +12,13 @@
                 <!-- General Booking Information -->
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="generalInfoHeading">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#generalInfo" aria-expanded="true" aria-controls="generalInfo">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#generalInfo" aria-expanded="true" aria-controls="generalInfo">
                             General Booking Information Emirates
                         </button>
                     </h2>
-                    <div id="generalInfo" class="accordion-collapse collapse show" aria-labelledby="generalInfoHeading" data-bs-parent="#bookingAccordion">
+                    <div id="generalInfo" class="accordion-collapse collapse show" aria-labelledby="generalInfoHeading"
+                        data-bs-parent="#bookingAccordion">
                         <div class="accordion-body">
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item"><strong>ID:</strong> {{ $bookingRequest->id ?? 'N/A' }}</li>
@@ -1271,17 +1275,17 @@
             @if ($bookingRequest && is_array($xmlBody) && (!empty($xmlBody['data']) || !empty($xmlBody)))
                 @php
                     // Check if it's the new structure
-                    $isNewStructure = isset($xmlBody['itinerary']) || isset($xmlBody['fare_breakdown']);
-                    
-                    // Common Data
-                    $data = $xmlBody['data'] ?? $xmlBody ?? [];
+$isNewStructure = isset($xmlBody['itinerary']) || isset($xmlBody['fare_breakdown']);
+
+// Common Data
+$data = $xmlBody['data'] ?? ($xmlBody ?? []);
                 @endphp
 
-                @if($isNewStructure)
-                     {{-- NEW STRUCTURE VIEW --}}
+                @if ($isNewStructure)
+                    {{-- NEW STRUCTURE VIEW --}}
                     <div class="accordion" id="bookingAccordion">
                         <!-- General Booking Information -->
-                         <div class="accordion-item">
+                        <div class="accordion-item">
                             <h2 class="accordion-header" id="generalInfoHeading">
                                 <button class="accordion-button" type="button" data-bs-toggle="collapse"
                                     data-bs-target="#generalInfo" aria-expanded="true" aria-controls="generalInfo">
@@ -1292,14 +1296,19 @@
                                 aria-labelledby="generalInfoHeading" data-bs-parent="#bookingAccordion">
                                 <div class="accordion-body">
                                     <ul class="list-group list-group-flush">
-                                        <li class="list-group-item"><strong>Booking ID:</strong> {{ $data['booking']['id'] ?? 'N/A' }}</li>
-                                        <li class="list-group-item"><strong>Instance:</strong> {{ $data['booking']['instance'] ?? 'N/A' }}</li>
-                                        <li class="list-group-item"><strong>Status:</strong> <span class="badge bg-{{ ($data['status'] ?? '') == 'OK' ? 'success' : 'warning' }}">{{ $data['status'] ?? 'N/A' }}</span></li>
-                                        <li class="list-group-item"><strong>Ticket Time Limit:</strong> 
+                                        <li class="list-group-item"><strong>Booking ID:</strong>
+                                            {{ $data['booking']['id'] ?? 'N/A' }}</li>
+                                        <li class="list-group-item"><strong>Instance:</strong>
+                                            {{ $data['booking']['instance'] ?? 'N/A' }}</li>
+                                        <li class="list-group-item"><strong>Status:</strong> <span
+                                                class="badge bg-{{ ($data['status'] ?? '') == 'OK' ? 'success' : 'warning' }}">{{ $data['status'] ?? 'N/A' }}</span>
+                                        </li>
+                                        <li class="list-group-item"><strong>Ticket Time Limit:</strong>
                                             {{ !empty($data['ticket_time_limit']) ? \Carbon\Carbon::parse($data['ticket_time_limit'])->format('d M Y, H:i') : 'N/A' }}
                                         </li>
-                                        <li class="list-group-item"><strong>Total Fare:</strong> 
-                                            {{ $data['total_fare']['code'] ?? 'PKR' }} {{ number_format($data['total_fare']['amount'] ?? 0, 2) }}
+                                        <li class="list-group-item"><strong>Total Fare:</strong>
+                                            {{ $data['total_fare']['code'] ?? 'PKR' }}
+                                            {{ number_format($data['total_fare']['amount'] ?? 0, 2) }}
                                         </li>
                                     </ul>
                                 </div>
@@ -1310,44 +1319,50 @@
                         @if (!empty($data['passengers']) && is_array($data['passengers']))
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="passengersHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#passengers" aria-expanded="false" aria-controls="passengers">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#passengers" aria-expanded="false"
+                                        aria-controls="passengers">
                                         Passengers
                                     </button>
                                 </h2>
-                                <div id="passengers" class="accordion-collapse collapse" aria-labelledby="passengersHeading"
-                                    data-bs-parent="#bookingAccordion">
+                                <div id="passengers" class="accordion-collapse collapse"
+                                    aria-labelledby="passengersHeading" data-bs-parent="#bookingAccordion">
                                     <div class="accordion-body">
                                         @foreach ($data['passengers'] as $index => $pax)
                                             <div class="card mb-3">
                                                 <div class="card-header d-flex justify-content-between">
                                                     <span>
-                                                        Passenger {{ $index + 1 }} 
+                                                        Passenger {{ $index + 1 }}
                                                         ({{ $pax['type'] ?? 'ADT' }})
                                                     </span>
                                                     <span class="badge bg-info">{{ $pax['rph'] ?? '' }}</span>
                                                 </div>
                                                 <div class="card-body">
                                                     <ul class="list-group list-group-flush">
-                                                        <li class="list-group-item"><strong>Name:</strong> 
-                                                            {{ $pax['title'] ?? '' }} {{ $pax['first_name'] ?? '' }} {{ $pax['last_name'] ?? '' }}
+                                                        <li class="list-group-item"><strong>Name:</strong>
+                                                            {{ $pax['title'] ?? '' }} {{ $pax['first_name'] ?? '' }}
+                                                            {{ $pax['last_name'] ?? '' }}
                                                         </li>
-                                                        <li class="list-group-item"><strong>Birth Date:</strong> {{ $pax['birth_date'] ?? 'N/A' }}</li>
-                                                        
-                                                        @if(!empty($pax['phone']))
-                                                            <li class="list-group-item"><strong>Phone:</strong> 
-                                                                +{{ $pax['phone']['CountryAccessCode'] ?? '' }} {{ $pax['phone']['PhoneNumber'] ?? '' }}
+                                                        <li class="list-group-item"><strong>Birth Date:</strong>
+                                                            {{ $pax['birth_date'] ?? 'N/A' }}</li>
+
+                                                        @if (!empty($pax['phone']))
+                                                            <li class="list-group-item"><strong>Phone:</strong>
+                                                                +{{ $pax['phone']['CountryAccessCode'] ?? '' }}
+                                                                {{ $pax['phone']['PhoneNumber'] ?? '' }}
                                                             </li>
                                                         @endif
-                                                        
-                                                        <li class="list-group-item"><strong>Email:</strong> {{ $pax['email'] ?? 'N/A' }}</li>
 
-                                                        @if(!empty($pax['document']))
+                                                        <li class="list-group-item"><strong>Email:</strong>
+                                                            {{ $pax['email'] ?? 'N/A' }}</li>
+
+                                                        @if (!empty($pax['document']))
                                                             <li class="list-group-item">
                                                                 <strong>Document:</strong> <br>
-                                                                Type: {{ $pax['document']['DocType'] ?? 'N/A' }} | 
-                                                                ID: {{ $pax['document']['DocID'] ?? 'N/A' }} | 
-                                                                Issues: {{ $pax['document']['DocIssueCountry'] ?? 'N/A' }} | 
+                                                                Type: {{ $pax['document']['DocType'] ?? 'N/A' }} |
+                                                                ID: {{ $pax['document']['DocID'] ?? 'N/A' }} |
+                                                                Issues:
+                                                                {{ $pax['document']['DocIssueCountry'] ?? 'N/A' }} |
                                                                 Exp: {{ $pax['document']['ExpireDate'] ?? 'N/A' }}
                                                             </li>
                                                         @endif
@@ -1362,38 +1377,48 @@
 
                         <!-- Itinerary -->
                         @if (!empty($data['itinerary']) && is_array($data['itinerary']))
-                             <div class="accordion-item">
+                            <div class="accordion-item">
                                 <h2 class="accordion-header" id="itineraryHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#itinerary" aria-expanded="false" aria-controls="itinerary">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#itinerary" aria-expanded="false"
+                                        aria-controls="itinerary">
                                         Itinerary / Segments
                                     </button>
                                 </h2>
-                                <div id="itinerary" class="accordion-collapse collapse" aria-labelledby="itineraryHeading"
-                                    data-bs-parent="#bookingAccordion">
+                                <div id="itinerary" class="accordion-collapse collapse"
+                                    aria-labelledby="itineraryHeading" data-bs-parent="#bookingAccordion">
                                     <div class="accordion-body">
                                         @foreach ($data['itinerary'] as $legIndex => $leg)
                                             <div class="mb-3">
-                                                <h6 class="text-primary">Leg {{ $leg['leg_id'] ?? ($legIndex + 1) }}</h6>
-                                                @if(!empty($leg['segments']))
-                                                    @foreach($leg['segments'] as $segIndex => $seg)
+                                                <h6 class="text-primary">Leg {{ $leg['leg_id'] ?? $legIndex + 1 }}
+                                                </h6>
+                                                @if (!empty($leg['segments']))
+                                                    @foreach ($leg['segments'] as $segIndex => $seg)
                                                         <div class="card mb-2">
                                                             <div class="card-body">
                                                                 <div class="row">
                                                                     <div class="col-md-3">
-                                                                        <strong>{{ $seg['operating_airline'] ?? 'XX' }} {{ $seg['flight_number'] ?? '' }}</strong><br>
-                                                                        <small class="text-muted">{{ $seg['aircraft'] ?? '' }} ({{ $seg['cabin'] ?? '' }})</small>
+                                                                        <strong>{{ $seg['operating_airline'] ?? 'XX' }}
+                                                                            {{ $seg['flight_number'] ?? '' }}</strong><br>
+                                                                        <small
+                                                                            class="text-muted">{{ $seg['aircraft'] ?? '' }}
+                                                                            ({{ $seg['cabin'] ?? '' }})
+                                                                        </small>
                                                                     </div>
                                                                     <div class="col-md-4">
-                                                                        <strong>{{ $seg['from'] ?? '' }}</strong> <i class="fas fa-arrow-right"></i> <strong>{{ $seg['to'] ?? '' }}</strong><br>
-                                                                        <small>{{ \Carbon\Carbon::parse($seg['departure'])->format('d M Y H:i') }} - {{ \Carbon\Carbon::parse($seg['arrival'])->format('d M Y H:i') }}</small>
+                                                                        <strong>{{ $seg['from'] ?? '' }}</strong> <i
+                                                                            class="fas fa-arrow-right"></i>
+                                                                        <strong>{{ $seg['to'] ?? '' }}</strong><br>
+                                                                        <small>{{ \Carbon\Carbon::parse($seg['departure'])->format('d M Y H:i') }}
+                                                                            -
+                                                                            {{ \Carbon\Carbon::parse($seg['arrival'])->format('d M Y H:i') }}</small>
                                                                     </div>
                                                                     <div class="col-md-3">
-                                                                         Status: {{ $seg['status'] ?? 'N/A' }}<br>
-                                                                         Class: {{ $seg['booking_class'] ?? '' }}
+                                                                        Status: {{ $seg['status'] ?? 'N/A' }}<br>
+                                                                        Class: {{ $seg['booking_class'] ?? '' }}
                                                                     </div>
                                                                     <div class="col-md-2">
-                                                                         RPH: {{ $seg['rph'] ?? '' }}
+                                                                        RPH: {{ $seg['rph'] ?? '' }}
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1411,13 +1436,14 @@
                         @if (!empty($data['fare_breakdown']) && is_array($data['fare_breakdown']))
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="fareBreakdownHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#fareBreakdown" aria-expanded="false" aria-controls="fareBreakdown">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#fareBreakdown"
+                                        aria-expanded="false" aria-controls="fareBreakdown">
                                         Fare Breakdown
                                     </button>
                                 </h2>
-                                <div id="fareBreakdown" class="accordion-collapse collapse" aria-labelledby="fareBreakdownHeading"
-                                    data-bs-parent="#bookingAccordion">
+                                <div id="fareBreakdown" class="accordion-collapse collapse"
+                                    aria-labelledby="fareBreakdownHeading" data-bs-parent="#bookingAccordion">
                                     <div class="accordion-body">
                                         <table class="table table-bordered table-sm">
                                             <thead>
@@ -1435,7 +1461,8 @@
                                                     <tr>
                                                         <td>{{ $fare['type'] ?? 'ADT' }}</td>
                                                         <td>{{ $fare['quantity'] ?? 1 }}</td>
-                                                        <td>{{ number_format($fare['base'] ?? 0) }} {{ $fare['currency'] ?? '' }}</td>
+                                                        <td>{{ number_format($fare['base'] ?? 0) }}
+                                                            {{ $fare['currency'] ?? '' }}</td>
                                                         <td>{{ number_format($fare['taxes'] ?? 0) }}</td>
                                                         <td>{{ number_format($fare['fees'] ?? 0) }}</td>
                                                         <td>{{ number_format($fare['total_per_pax'] ?? 0) }}</td>
@@ -1449,7 +1476,6 @@
                         @endif
 
                     </div>
-
                 @else
                     {{-- OLD STRUCTURE VIEW (Existing Code) --}}
                     @php
@@ -1510,13 +1536,14 @@
                         @if (!empty($xmlBody['user']) && is_array($xmlBody['user']))
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="userInfoHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#userInfo" aria-expanded="false" aria-controls="userInfo">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#userInfo" aria-expanded="false"
+                                        aria-controls="userInfo">
                                         User Information
                                     </button>
                                 </h2>
-                                <div id="userInfo" class="accordion-collapse collapse" aria-labelledby="userInfoHeading"
-                                    data-bs-parent="#bookingAccordion">
+                                <div id="userInfo" class="accordion-collapse collapse"
+                                    aria-labelledby="userInfoHeading" data-bs-parent="#bookingAccordion">
                                     <div class="accordion-body">
                                         <ul class="list-group list-group-flush">
                                             <li class="list-group-item"><strong>Full Name:</strong>
@@ -1540,9 +1567,9 @@
                         @if (!empty($xmlBody['passengers']) && is_array($xmlBody['passengers']))
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="passengerInfoHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#passengerInfo" aria-expanded="false"
-                                        aria-controls="passengerInfo">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#passengerInfo"
+                                        aria-expanded="false" aria-controls="passengerInfo">
                                         Passenger Information
                                     </button>
                                 </h2>
@@ -1552,7 +1579,8 @@
                                         @foreach ($xmlBody['passengers'] as $index => $passenger)
                                             <div class="card mb-3">
                                                 <div class="card-header">
-                                                    Passenger {{ $index + 1 }} ({{ $passenger['type'] ?? 'N/A' }})
+                                                    Passenger {{ $index + 1 }}
+                                                    ({{ $passenger['type'] ?? 'N/A' }})
                                                 </div>
                                                 <div class="card-body">
                                                     <ul class="list-group list-group-flush">
@@ -1582,9 +1610,9 @@
                         @if (!empty($travelers) && is_array($travelers))
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="travelersInfoHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#travelersInfo" aria-expanded="false"
-                                        aria-controls="travelersInfo">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#travelersInfo"
+                                        aria-expanded="false" aria-controls="travelersInfo">
                                         Travelers Information
                                     </button>
                                 </h2>
@@ -1620,9 +1648,11 @@
                                                             <li class="list-group-item"><strong>Document Type:</strong>
                                                                 {{ $traveler['document']['type'] ?? 'N/A' }}</li>
                                                             <li class="list-group-item"><strong>Issue Country:</strong>
-                                                                {{ $traveler['document']['issue_country'] ?? 'N/A' }}</li>
+                                                                {{ $traveler['document']['issue_country'] ?? 'N/A' }}
+                                                            </li>
                                                             <li class="list-group-item"><strong>Nationality:</strong>
-                                                                {{ $traveler['document']['nationality'] ?? 'N/A' }}</li>
+                                                                {{ $traveler['document']['nationality'] ?? 'N/A' }}
+                                                            </li>
                                                             <li class="list-group-item"><strong>Expire Date:</strong>
                                                                 {{ !empty($traveler['document']['expire_date']) ? \Carbon\Carbon::parse($traveler['document']['expire_date'])->format('d M Y') : 'N/A' }}
                                                             </li>
@@ -1630,9 +1660,7 @@
                                                         @if (!empty($traveler['segments']))
                                                             <li class="list-group-item">
                                                                 <strong>Flight Segments:</strong>
-                                                                {{ is_array($traveler['segments'])
-                                                                    ? implode(', ', $traveler['segments'])
-                                                                    : $traveler['segments'] }}
+                                                                {{ is_array($traveler['segments']) ? implode(', ', $traveler['segments']) : $traveler['segments'] }}
                                                             </li>
                                                         @endif
                                                     </ul>
@@ -1648,13 +1676,14 @@
                         @if (!empty($flights) && is_array($flights))
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="segmentsHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#segments" aria-expanded="false" aria-controls="segments">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#segments" aria-expanded="false"
+                                        aria-controls="segments">
                                         Flight Segments
                                     </button>
                                 </h2>
-                                <div id="segments" class="accordion-collapse collapse" aria-labelledby="segmentsHeading"
-                                    data-bs-parent="#bookingAccordion">
+                                <div id="segments" class="accordion-collapse collapse"
+                                    aria-labelledby="segmentsHeading" data-bs-parent="#bookingAccordion">
                                     <div class="accordion-body">
                                         @foreach ($flights as $flight)
                                             <div class="card mb-3">
@@ -1706,8 +1735,9 @@
                         @if (!empty($seats) && is_array($seats))
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="seatsInfoHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#seatsInfo" aria-expanded="false" aria-controls="seatsInfo">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#seatsInfo" aria-expanded="false"
+                                        aria-controls="seatsInfo">
                                         Seat Selections
                                     </button>
                                 </h2>
@@ -1746,9 +1776,9 @@
                         @if (!empty($ancillaries) && is_array($ancillaries))
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="ancillariesInfoHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#ancillariesInfo" aria-expanded="false"
-                                        aria-controls="ancillariesInfo">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#ancillariesInfo"
+                                        aria-expanded="false" aria-controls="ancillariesInfo">
                                         Ancillaries (Add-ons)
                                     </button>
                                 </h2>
@@ -1797,8 +1827,9 @@
                         @if (!empty($priceBreakdown) && is_array($priceBreakdown))
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="pricingInfoHeading">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#pricingInfo" aria-expanded="false" aria-controls="pricingInfo">
+                                    <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#pricingInfo" aria-expanded="false"
+                                        aria-controls="pricingInfo">
                                         Pricing Information
                                     </button>
                                 </h2>
@@ -1808,7 +1839,8 @@
                                         @foreach ($priceBreakdown as $breakdown)
                                             <div class="card mb-3">
                                                 <div class="card-header">
-                                                    Passenger Type: {{ $breakdown['passenger_type'] ?? 'N/A' }} (Quantity:
+                                                    Passenger Type: {{ $breakdown['passenger_type'] ?? 'N/A' }}
+                                                    (Quantity:
                                                     {{ $breakdown['quantity'] ?? 'N/A' }})
                                                 </div>
                                                 <div class="card-body">
@@ -1823,7 +1855,8 @@
                                                                     <ul class="list-group list-group-flush">
                                                                         <li class="list-group-item"><strong>Fare
                                                                                 Basis:</strong>
-                                                                            {{ $segmentFare['fare_basis'] ?? 'N/A' }}</li>
+                                                                            {{ $segmentFare['fare_basis'] ?? 'N/A' }}
+                                                                        </li>
                                                                         <li class="list-group-item"><strong>Base
                                                                                 Fare:</strong> PKR
                                                                             {{ !empty($segmentFare['base_fare']) ? number_format($segmentFare['base_fare'], 2) : '0.00' }}
@@ -1929,7 +1962,10 @@
                                         @foreach ($fareBreakdowns as $fare)
                                             @if (!empty($fare['FareInfo']) && is_array($fare['FareInfo']))
                                                 @php
-                                                    $fareInfos = is_array($fare['FareInfo']) && isset($fare['FareInfo'][0]) ? $fare['FareInfo'] : [$fare['FareInfo']];
+                                                    $fareInfos =
+                                                        is_array($fare['FareInfo']) && isset($fare['FareInfo'][0])
+                                                            ? $fare['FareInfo']
+                                                            : [$fare['FareInfo']];
                                                 @endphp
                                                 @foreach ($fareInfos as $fareInfo)
                                                     @if (!empty($fareInfo['RuleInfo']['ChargesRules']))
@@ -1945,9 +1981,27 @@
                                                                     <h6>Change Fees</h6>
                                                                     <ul class="list-group list-group-flush">
                                                                         @php
-                                                                            $changePenalties = is_array($fareInfo['RuleInfo']['ChargesRules']['VoluntaryChanges']['Penalty']) && isset($fareInfo['RuleInfo']['ChargesRules']['VoluntaryChanges']['Penalty'][0])
-                                                                                ? $fareInfo['RuleInfo']['ChargesRules']['VoluntaryChanges']['Penalty']
-                                                                                : [$fareInfo['RuleInfo']['ChargesRules']['VoluntaryChanges']['Penalty']];
+                                                                            $changePenalties =
+                                                                                is_array(
+                                                                                    $fareInfo['RuleInfo'][
+                                                                                        'ChargesRules'
+                                                                                    ]['VoluntaryChanges']['Penalty'],
+                                                                                ) &&
+                                                                                isset(
+                                                                                    $fareInfo['RuleInfo'][
+                                                                                        'ChargesRules'
+                                                                                    ]['VoluntaryChanges']['Penalty'][0],
+                                                                                )
+                                                                                    ? $fareInfo['RuleInfo'][
+                                                                                        'ChargesRules'
+                                                                                    ]['VoluntaryChanges']['Penalty']
+                                                                                    : [
+                                                                                        $fareInfo['RuleInfo'][
+                                                                                            'ChargesRules'
+                                                                                        ]['VoluntaryChanges'][
+                                                                                            'Penalty'
+                                                                                        ],
+                                                                                    ];
                                                                         @endphp
                                                                         @foreach ($changePenalties as $penalty)
                                                                             <li class="list-group-item">
@@ -1961,9 +2015,27 @@
                                                                     <h6 class="mt-3">Cancellation / Refund Fees</h6>
                                                                     <ul class="list-group list-group-flush">
                                                                         @php
-                                                                            $refundPenalties = is_array($fareInfo['RuleInfo']['ChargesRules']['VoluntaryRefunds']['Penalty']) && isset($fareInfo['RuleInfo']['ChargesRules']['VoluntaryRefunds']['Penalty'][0])
-                                                                                ? $fareInfo['RuleInfo']['ChargesRules']['VoluntaryRefunds']['Penalty']
-                                                                                : [$fareInfo['RuleInfo']['ChargesRules']['VoluntaryRefunds']['Penalty']];
+                                                                            $refundPenalties =
+                                                                                is_array(
+                                                                                    $fareInfo['RuleInfo'][
+                                                                                        'ChargesRules'
+                                                                                    ]['VoluntaryRefunds']['Penalty'],
+                                                                                ) &&
+                                                                                isset(
+                                                                                    $fareInfo['RuleInfo'][
+                                                                                        'ChargesRules'
+                                                                                    ]['VoluntaryRefunds']['Penalty'][0],
+                                                                                )
+                                                                                    ? $fareInfo['RuleInfo'][
+                                                                                        'ChargesRules'
+                                                                                    ]['VoluntaryRefunds']['Penalty']
+                                                                                    : [
+                                                                                        $fareInfo['RuleInfo'][
+                                                                                            'ChargesRules'
+                                                                                        ]['VoluntaryRefunds'][
+                                                                                            'Penalty'
+                                                                                        ],
+                                                                                    ];
                                                                         @endphp
                                                                         @foreach ($refundPenalties as $penalty)
                                                                             <li class="list-group-item">
@@ -1988,6 +2060,109 @@
             @else
                 <div class="alert alert-warning">No booking request data available for Airblue.</div>
             @endif
+        @elseif ($airline === 'hotel')
+            <div class="accordion" id="hotelAccordion">
+                <!-- General Information -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="hotelGeneralHeading">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#hotelGeneral" aria-expanded="true">
+                            General Booking Information (Hotel)
+                        </button>
+                    </h2>
+                    <div id="hotelGeneral" class="accordion-collapse collapse show">
+                        <div class="accordion-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><strong>Hotel Name:</strong> {{ $booking->hotel_name }}
+                                </li>
+                                <li class="list-group-item"><strong>City:</strong> {{ $booking->city }}</li>
+                                <li class="list-group-item"><strong>Check-in:</strong> {{ $booking->check_in }}</li>
+                                <li class="list-group-item"><strong>Check-out:</strong> {{ $booking->check_out }}
+                                </li>
+                                <li class="list-group-item"><strong>Reference:</strong>
+                                    {{ $booking->reference ?? 'N/A' }}</li>
+                                <li class="list-group-item"><strong>PNR:</strong> {{ $booking->pnr ?? 'N/A' }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rooms & Guests -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="hotelRoomsHeading">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#hotelRooms" aria-expanded="false">
+                            Rooms & Guest Breakdown
+                        </button>
+                    </h2>
+                    <div id="hotelRooms" class="accordion-collapse collapse">
+                        <div class="accordion-body">
+                            @foreach ($booking->rooms as $room)
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        Room {{ $loop->iteration }}: {{ $room->room_type }}
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Guests:</h6>
+                                        <ul class="list-group list-group-flush mb-3">
+                                            @foreach ($room->passengers as $guest)
+                                                <li class="list-group-item">
+                                                    {{ $guest->title }} {{ $guest->first_name }}
+                                                    {{ $guest->last_name }}
+                                                    ({{ ucfirst($guest->type) }})
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                        <p><strong>Meal Plan:</strong> {{ $room->meal_plan ?? 'N/A' }}</p>
+                                        <p><strong>Net Price:</strong> {{ $booking->currency }}
+                                            {{ number_format($room->net_price, 2) }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- XML Request Data -->
+                @if ($xmlBody)
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="hotelRequestHeading">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#hotelRequest" aria-expanded="false">
+                                API Request Payload (XML structure in JSON)
+                            </button>
+                        </h2>
+                        <div id="hotelRequest" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <pre class="bg-light p-3 border rounded small">{{ json_encode($xmlBody, JSON_PRETTY_PRINT) }}</pre>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Error Logs -->
+                @if ($booking->errorLogs->isNotEmpty())
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="hotelErrorsHeading">
+                            <button class="accordion-button collapsed text-danger" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#hotelErrors" aria-expanded="false">
+                                Error Logs ({{ $booking->errorLogs->count() }})
+                            </button>
+                        </h2>
+                        <div id="hotelErrors" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                @foreach ($booking->errorLogs as $log)
+                                    <div class="alert alert-danger py-2 px-3 small mb-2">
+                                        <strong>{{ $log->error_type }}:</strong> {{ $log->error_message }}
+                                        <div class="text-muted mt-1">{{ $log->created_at->format('d M Y H:i') }}
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
         @endif
     @else
         <div class="alert alert-danger">No booking request data available.</div>

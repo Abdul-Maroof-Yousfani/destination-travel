@@ -19,6 +19,14 @@ class HelperService
         ->withOptions(['verify' => false, 'cookies' => $cookieJar])
         ->withBody($body, 'text/xml')->post($url);
     }
+    function postJson($url, $headers, $body)
+    {
+        $cookieJar = new CookieJar();
+        return Http::withHeaders($headers)
+        ->timeout(120)
+        ->withOptions(['verify' => false, 'cookies' => $cookieJar])
+        ->post($url, $body);
+    }
     function decodeJWTToken($token)
     {
         $parts = explode('.', $token);

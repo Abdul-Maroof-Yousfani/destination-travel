@@ -1,4 +1,4 @@
-@props(['payment' => null])
+@props(['payment' => null, 'booking' => null])
 <div class="row p-4 g-2">
     <div class="col-md-4">
         <label class="form-label">Payment Method</label>
@@ -18,7 +18,7 @@
     </div>
     <div class="col-md-4">
         <label class="form-label">Base Price Code</label>
-        <input required name="base_price_code" type="text" class="form-control" value="{{ old('base_price_code', $payment->base_price_code ?? 'PKR') }}">
+        <input required name="base_price_code" type="text" class="form-control" value="{{ old('base_price_code', $payment->base_price_code ?? $booking->currency ?? 'PKR') }}">
     </div>
     <div class="col-md-4">
         <label class="form-label">Base Price</label>

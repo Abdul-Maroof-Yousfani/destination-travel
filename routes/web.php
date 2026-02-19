@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Livewire\Admin\BookingList;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\HotelController;
 use Filament\Notifications\Notification;
 use App\Http\Controllers\FlightController;
 use App\Http\Controllers\Admin\RoleController;
@@ -59,6 +60,20 @@ Route::post('confirm-booking', [FlightController::class, 'confirmBooking'])->nam
 Route::post('order-cancel', [FlightController::class, 'orderCancel'])->name('cancel.booking');
 Route::post('fetch-flight-details', [FlightController::class, 'fetchDetails'])->name('fetch.flight.details');
 
+// Hotel Routes
+Route::prefix('hotels')->name('hotels.')->group(function () {
+    Route::get('/', [HotelController::class, 'index'])->name('index');
+    Route::get('/search', [HotelController::class, 'search'])->name('search');
+    Route::get('/suggestions', [HotelController::class, 'searchSuggestions'])->name('suggestions');
+    Route::match(['get', 'post'], '/show', [HotelController::class, 'show'])->name('show');
+    Route::match(['get', 'post'], '/checkout', [HotelController::class, 'checkout'])->name('checkout');
+    Route::post('/save-booking', [HotelController::class, 'saveBooking'])->name('saveBooking');
+    Route::get('/payment/{id}', [HotelController::class, 'payment'])->name('payment');
+    Route::get('/booking', [HotelController::class, 'bookingFlow'])->name('booking');
+    Route::post('/confirm-booking/{id}', [HotelController::class, 'confirmBooking'])->name('confirmBooking');
+    Route::get('/confirmation-partial/{id}', [HotelController::class, 'confirmationPartial'])->name('confirmationPartial');
+});
+
 // Profile
 Route::post('update/client/{client}', [HomeController::class, 'updateClient'])->name('update.client');
 
@@ -82,9 +97,9 @@ Route::middleware(['auth:web'])->prefix('admin')->name('admin.')->group(function
         Route::post('log/add', [OrderController::class, 'logStore'])->name('log.add');
         Route::get('booking/{booking}/logs', [OrderController::class, 'logHistory'])->name('booking.logs');
         Route::put('booking/{booking}/update', [OrderController::class, 'update'])->name('booking.update')->middleware('permission:booking actions');
-        
+
         Route::delete('{booking}', [OrderController::class, 'destroy'])->name('booking.destroy')->middleware('permission:delete bookings');
-        
+
         Route::middleware(['permission:manage payment'])->prefix('payment')->name('payment.')->group(function () {
             Route::post('store', [OrderController::class, 'paymentStore'])->name('store');
             Route::put('{payment}', [OrderController::class, 'paymentUpdate'])->name('update');
@@ -92,6 +107,14 @@ Route::middleware(['auth:web'])->prefix('admin')->name('admin.')->group(function
         });
 
         Route::post('ticket/create', [OrderController::class, 'ticketStore'])->name('ticket.create');
+
+        // Hotel Admin Routes
+        Route::get('hotel/{booking}', [OrderController::class, 'hotelDetails'])->name('hotel.details');
+        Route::put('hotel/{booking}/update', [OrderController::class, 'hotelUpdate'])->name('hotel.update');
+        Route::delete('hotel/{booking}/delete', [OrderController::class, 'hotelDestroy'])->name('hotel.destroy');
+        Route::post('hotel/{booking}/confirm', [OrderController::class, 'confirmHotel'])->name('hotel.confirm');
+        Route::post('hotel/{booking}/prebook', [OrderController::class, 'preBookHotel'])->name('hotel.prebook'); // Pre-book check
+        Route::post('hotel/{booking}/cancel', [OrderController::class, 'cancelHotel'])->name('hotel.cancel');
     });
 
     Route::middleware(['permission:manage agents'])->prefix('agents')->name('agents.')->group(function () {
@@ -120,13 +143,24 @@ Route::middleware(['auth:web'])->prefix('admin')->name('admin.')->group(function
         Route::get('download', [SettingController::class, 'downloadFile'])->name('download');
     });
 
+    Route::middleware(['permission:manage setting'])->prefix('country-hotels')->name('country-hotels.')->group(function () {
+        Route::post('preview', [SettingController::class, 'previewCountryInfo'])->name('preview');
+        Route::post('store-bulk', [SettingController::class, 'storeBulkHotels'])->name('store-bulk');
+        Route::post('search', [SettingController::class, 'searchHotels'])->name('search');
+        Route::get('list', [SettingController::class, 'listHotels'])->name('list');
+        Route::get('{id}/edit', [SettingController::class, 'editHotel'])->name('edit');
+        Route::post('{id}/update', [SettingController::class, 'updateHotel'])->name('update');
+        Route::delete('{id}', [SettingController::class, 'destroyHotel'])->name('destroy');
+    });
+
     Route::resource('clients', ClientController::class)->middleware('permission:manage users');
     Route::post('clients/{client}/toggle-status', [ClientController::class, 'toggleStatus'])->name('clients.toggle-status')->middleware('permission:manage users');
 });
 Route::post('admin/logout', 'App\Http\Controllers\Admin\AdminAuthController@logout')->name('admin.logout');
 // -------------------------------------ADMIN----------------------------------------------
 
-Route::get('send-notification', 
+Route::get(
+    'send-notification',
     function () {
         $recipient = User::find(1);
         // dd($recipient);

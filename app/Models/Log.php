@@ -16,6 +16,7 @@ class Log extends Model
         'changes',
         'image',
         'booking_id',
+        'hotel_booking_id',
         'user_id',
     ];
 
@@ -26,6 +27,11 @@ class Log extends Model
     public function booking()
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    public function hotelBooking()
+    {
+        return $this->belongsTo(HotelBooking::class);
     }
 
     // Log may belong to a user (nullable)

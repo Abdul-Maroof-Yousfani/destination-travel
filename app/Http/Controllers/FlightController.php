@@ -174,6 +174,7 @@ class FlightController extends Controller
             'isRoundTrip' => isset($validated['return']),
             'data'        => $data,
             'routeType'   => $routeType,
+            'request'     => $request,
         ]);
     }
     public function getBundles(Request $request)

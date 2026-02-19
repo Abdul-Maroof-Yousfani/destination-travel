@@ -21,6 +21,7 @@ class BookingRequestBody extends Model
         'status',
         'client_id',
         'booking_id',
+        'hotel_booking_id',
     ];
 
     protected $casts = [
@@ -38,5 +39,10 @@ class BookingRequestBody extends Model
     public function booking()
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    public function hotelBooking()
+    {
+        return $this->belongsTo(HotelBooking::class);
     }
 }

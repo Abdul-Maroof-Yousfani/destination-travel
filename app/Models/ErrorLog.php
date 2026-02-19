@@ -8,6 +8,7 @@ class ErrorLog extends Model
 {
     protected $fillable = [
         'booking_id',
+        'hotel_booking_id',
         'client_id',
         'details',
         'error_type',
@@ -21,6 +22,11 @@ class ErrorLog extends Model
     public function booking()
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    public function hotelBooking()
+    {
+        return $this->belongsTo(HotelBooking::class, 'hotel_booking_id');
     }
     public function client()
     {

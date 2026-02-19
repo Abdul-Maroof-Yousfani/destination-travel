@@ -13,6 +13,7 @@ class CancelResponse extends Model
     protected $fillable = [
         'xml_body',
         'booking_id',
+        'hotel_booking_id',
     ];
 
     // protected $casts = [
@@ -24,5 +25,10 @@ class CancelResponse extends Model
     public function booking()
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    public function hotelBooking()
+    {
+        return $this->belongsTo(HotelBooking::class);
     }
 }

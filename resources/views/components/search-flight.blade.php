@@ -1,4 +1,4 @@
-{{-- @dd('okok') --}}
+{{-- @dd(request()->all()) --}}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <!-- Font Awesome & Select2 -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" />
@@ -10,6 +10,7 @@
 <style>
     .flys{position:relative;}
     .flys input{width:100%;}
+    .fly ul {gap: 40px;}
     .dropdown-list{position:absolute;top:100%;left:0;right:0;z-index:100;background:#fff;border:1px solid #ccc;max-height:200px;overflow-y:auto;display:none;}
     .dropdown-list div{padding:10px;cursor:pointer;}
     .dropdown-list div:hover{background-color:#f0f0f0;}
@@ -78,9 +79,126 @@
     .multi-city-actions{display:flex;justify-content:space-between;align-items:center;margin-top:15px;padding-top:15px;border-top:1px solid #e0e0e0;}
     .add-segment-btn{background: #02798b;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px;transition:background 0.3s ease;}
     .add-segment-btn:hover{background:#000;}
+    .select2-container {
+    width: 100% !important;}
+    .btn-outline-primary {
+    --bs-btn-color: #127f9f;
+    --bs-btn-border-color: #127f9f;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #127f9f;
+    --bs-btn-hover-border-color: #127f9f;
+    --bs-btn-focus-shadow-rgb: 13, 110, 253;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #127f9f;
+    --bs-btn-active-border-color: #127f9f;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #127f9f;
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: #127f9f;
+    --bs-gradient: none;
+}
+.btn-outline-primary {
+    color: #127f9f;
+    border-color: #127f9f;
+}
+.btn-outline-primary:hover {
+    color: #fff;
+    background-color: #127f9f;
+    border-color: #127f9f;
+}
+.btn-outline-primary:active {
+    color: #fff;
+    background-color: #127f9f;
+    border-color: #127f9f;
+}
+.btn-outline-primary:focus {
+    color: #fff;
+    background-color: #127f9f;
+    border-color: #127f9f;
+}
+.btn-outline-primary:disabled {
+    color: #fff;
+    background-color: #127f9f;
+    border-color: #127f9f;
+}
+.btn-outline-primary:disabled:hover {
+    color: #fff;
+    background-color: #127f9f;
+    border-color: #127f9f;
+}
+.btn-outline-primary:disabled:active {
+    color: #fff;
+    background-color: #127f9f;
+    border-color: #127f9f;
+}
+.btn-outline-primary:disabled:focus {
+    color: #fff;
+    background-color: #127f9f;
+    border-color: #127f9f;
+}
+/* Container */
+.hotelOccupancyDetails {
+    display: inline-block;
+    width: 220px; /* container fixed width */
+}
+
+/* Select field */
+.hotelOccupancyDetails select {
+    width: 100%; /* container ke equal */
+    min-width: 220px;
+    max-width: 220px;
+    height: 40px;
+
+    padding: 6px 30px 6px 10px;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    border: 1px solid #ccc;
+    border-radius: 6px;
+
+    background-color: #fff;
+    color: #333;
+
+    box-sizing: border-box;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    cursor: pointer;
+
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+/* Optional: arrow icon custom */
+.hotelOccupancyDetails {
+    position: relative;
+}
+
+/* .hotelOccupancyDetails::after {
+    content: "▼";
+    font-size: 12px;
+    color: #555;
+
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    pointer-events: none;
+} */
+
+
+
     @media (max-width:768px){.multi-city-actions{flex-direction:column;gap:10px;}
     .add-segment-btn{width:100%;justify-content:center;}
     }
+
+
+
 
 </style>
 @if (session('error'))
@@ -122,21 +240,21 @@
 </script>
 <div class="banner">
     <div class="row align-items-center">
-        <div class="col-md-12 col-lg-5">
+        <div class="col-md-12 col-lg-3">
             <div class="tab-links">
                 <ul class="tab-product  wow fadeInRight">
                     <li data-targetit="box-1" class="current">
                         <a class="pointer" data-toggle="tab"><i class="fa-solid fa-plane-departure"></i> Flights</a>
                     </li>
-                    <li data-targetit="box-2">
+                    <!-- <li data-targetit="box-2">
                         <a class="pointer" data-toggle="tab"><i class="fa-solid fa-globe"></i> Tours</a>
-                    </li>
+                    </li> -->
                     <li data-targetit="box-3">
                         <a class="pointer" data-toggle="tab"><i class="fa-solid fa-hotel"></i> Hotels</a>
                     </li>
-                    <li data-targetit="box-4">
+                    <!-- <li data-targetit="box-4">
                         <a class="pointer" data-toggle="tab"><i class="fa-solid fa-passport"></i> Visa </a>
-                    </li>
+                    </li> -->
                 </ul>
             </div>
             <div class="tab-links tab-links-mob">
@@ -156,7 +274,7 @@
                 </ul>
             </div>
         </div>
-        <div class="col-md-12 col-lg-7">
+        <div class="col-md-12 col-lg-9">
             <div class="tab-head">
                 <h2>Explore beautiful places in the world </h2>
             </div>
@@ -321,27 +439,82 @@
             </div>
         </div>
     </div>
-    <!-- <div class="box-2 tab-content"></div>-->
+    <div class="box-3 tab-content">
+        <div class="fly">
+            <ul>
+                <li style="flex: 2;">
+                    <a href="#">
+                        <div class="select2-icon-wrapper">
+                            <i class="fa-solid fa-hotel select2-inner-icon"></i>
+                            <select id="hotel_destination" class="form-control" data-placeholder="Going To (City or Hotel)"></select>
+                        </div>
+                    </a>
+                    <input type="hidden" id="hotel_country_code">
+                    <input type="hidden" id="hotel_nationality">
+                </li>
+                <li>
+                    <div class="calendar-container flys">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
+                            <input id="checkIn" name="checkIn" type="text" class="form-control" placeholder="Check In">
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="calendar-container flys">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-calendar-days"></i></span>
+                            <input id="checkOut" name="checkOut" type="text" class="form-control" placeholder="Check Out">
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <!-- Occupancy Dropdown -->
+                    <div class="dropdowns">
+                        <div class="dropdown">
+                            <div class="dropdown-toggle" id="hotelOccupancyToggle">
+                                <span class="hotelOccupancyDetails"><i class="fa-solid fa-users"></i> 1 Room, 1 Adult</span>
+                            </div>
+                            <div class="dropdown-menu" id="hotelOccupancyMenu" style="min-width: 250px;">
+                                <div id="hotelRoomsContainer">
+                                    <!-- Room 1 -->
+                                    <div class="room-block mb-3" data-room="1">
+                                        <h6 class="fw-bold">Room 1</h6>
+                                        <div class="dropdown-item quantity d-flex justify-content-between align-items-center">
+                                            <span>Adults</span>
+                                            <div>
+                                                <button class="hotelDecrement" data-type="adult">-</button>
+                                                <span class="count adult-count">1</span>
+                                                <button class="hotelIncrement" data-type="adult">+</button>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown-item quantity d-flex justify-content-between align-items-center">
+                                            <span>Children</span>
+                                            <div>
+                                                <button class="hotelDecrement" data-type="child">-</button>
+                                                <span class="count child-count">0</span>
+                                                <button class="hotelIncrement" data-type="child">+</button>
+                                            </div>
+                                        </div>
+                                        <div class="child-ages-container mt-2"></div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" id="addHotelRoomBtn">+ Add Room</button>
+                                <p id="hotel-error-message" class="error-limit"></p>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="search-container">
+                        <a class="pointer" id="searchHotelsBtn"><i class="fa-solid fa-magnifying-glass"></i></a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="box-2 tab-content"></div>
 </div>
-<script>
-    /* ==========================
-    DROPDOWN MENU HANDLER
-    ========================== */
-    document.querySelectorAll('.dropdown-toggle').forEach((toggle) => {
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const menu = toggle.nextElementSibling;
-            document.querySelectorAll('.dropdown-menu').forEach((m) => {
-                if (m !== menu) m.classList.remove('active');
-            });
-            menu.classList.toggle('active');
-        });
-    });
-
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.dropdown-menu').forEach((m) => m.classList.remove('active'));
-    });
-</script>
 
 <script>
     /* ==========================
@@ -965,6 +1138,298 @@
 
         setupAirportSelect('#from');
         setupAirportSelect('#to');
+
+        // Hotels Search Logic
+        $('#hotel_destination').select2({
+            theme: 'classic',
+            placeholder: $('#hotel_destination').data('placeholder'),
+            ajax: {
+                url: '{{ route("hotels.suggestions") }}',
+                dataType: 'json',
+                delay: 250,
+                data: params => ({ term: params.term }),
+                processResults: data => ({ results: data.results }),
+                cache: true
+            }
+        }).on('select2:select', function (e) {
+            const data = e.params.data;
+            $('#hotel_country_code').val(data.country);
+            $('#hotel_nationality').val(data.nationality || data.country);
+        });
+
+        const requestData = @json(request()->all());
+
+        function initializeHotelsFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Priority: URL Params > Request Data (POST)
+            const destCode = urlParams.get('destination_code') || requestData.destination_code;
+            const destName = urlParams.get('destination_name') || requestData.destination_name || '';
+            let checkIn = urlParams.get('check_in') || requestData.check_in;
+            let checkOut = urlParams.get('check_out') || requestData.check_out;
+            const countryCode = urlParams.get('country_code') || requestData.country_code;
+            const nationality = urlParams.get('nationality') || requestData.nationality;
+
+            if (destCode) {
+                // Switch to Hotel Tab
+                $('.tab-product li[data-targetit="box-3"]').click();
+                
+                // Set Destination
+                if (destCode) {
+                    const text = destName || destCode;
+                    const option = new Option(text, destCode, true, true);
+                    $('#hotel_destination').append(option).trigger('change');
+                }
+
+                // Set Dates
+                if (checkIn) setPickerFromISO(flatpickr("#checkIn", { dateFormat: "d M Y" }), checkIn.split('T')[0]);
+                if (checkOut) setPickerFromISO(checkOutPicker, checkOut.split('T')[0]);
+
+                // Set Hidden Fields
+                $('#hotel_country_code').val(countryCode);
+                $('#hotel_nationality').val(nationality || countryCode);
+
+                // Initialize Rooms/Occupancy
+                let rooms = [];
+                let roomIdx = 0;
+
+                // Try to get rooms from URL or Request Data
+                while (urlParams.has(`rooms[Room][${roomIdx}][Adult]`) || (requestData.rooms && requestData.rooms.Room && requestData.rooms.Room[roomIdx])) {
+                    let rData = (requestData.rooms && requestData.rooms.Room) ? requestData.rooms.Room[roomIdx] : null;
+                    
+                    let adultsCount = parseInt(urlParams.get(`rooms[Room][${roomIdx}][Adult]`) || (rData ? rData.Adult : 1));
+                    
+                    // Handle children (handle both URL and Request object structure)
+                    let childrenCount = 0;
+                    let childrenAges = [];
+
+                    if (urlParams.has(`rooms[Room][${roomIdx}][Children][Count]`)) {
+                        childrenCount = parseInt(urlParams.get(`rooms[Room][${roomIdx}][Children][Count]`));
+                        for (let cIdx = 0; cIdx < childrenCount; cIdx++) {
+                            let age = parseInt(urlParams.get(`rooms[Room][${roomIdx}][Children][ChildAge][${cIdx}][Text]`) || 8);
+                            childrenAges.push(age);
+                        }
+                    } else if (rData && rData.Children) {
+                        childrenCount = parseInt(rData.Children.Count || 0);
+                        if (rData.Children.ChildAge) {
+                            // rData.Children.ChildAge could be an array or object depending on serialization
+                            Object.values(rData.Children.ChildAge).forEach(child => {
+                                childrenAges.push(parseInt(child.Text || 8));
+                            });
+                        }
+                    }
+
+                    rooms.push({
+                        roomNum: roomIdx + 1,
+                        adults: adultsCount,
+                        children: childrenAges
+                    });
+                    roomIdx++;
+                }
+
+                if (rooms.length > 0) {
+                    hotelRooms = rooms;
+                    $('#hotelRoomsContainer').empty();
+                    hotelRooms.forEach((room, idx) => {
+                        const roomHtml = `
+                            <div class="room-block mb-3 ${idx > 0 ? 'border-top pt-2' : ''}" data-room="${room.roomNum}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="fw-bold">Room ${room.roomNum}</h6>
+                                    ${idx > 0 ? '<button type="button" class="btn btn-link btn-sm text-danger remove-room-btn">Remove</button>' : ''}
+                                </div>
+                                <div class="dropdown-item quantity d-flex justify-content-between align-items-center">
+                                    <span>Adults</span>
+                                    <div>
+                                        <button class="hotelDecrement" data-type="adult">-</button>
+                                        <span class="count adult-count">${room.adults}</span>
+                                        <button class="hotelIncrement" data-type="adult">+</button>
+                                    </div>
+                                </div>
+                                <div class="dropdown-item quantity d-flex justify-content-between align-items-center">
+                                    <span>Children</span>
+                                    <div>
+                                        <button class="hotelDecrement" data-type="child">-</button>
+                                        <span class="count child-count">${room.children.length}</span>
+                                        <button class="hotelIncrement" data-type="child">+</button>
+                                    </div>
+                                </div>
+                                <div class="child-ages-container mt-2"></div>
+                            </div>
+                        `;
+                        $('#hotelRoomsContainer').append(roomHtml);
+                        const roomBlock = $(`.room-block[data-room="${room.roomNum}"]`);
+                        renderChildAges(roomBlock, idx);
+                    });
+                    updateHotelOccupancySummary();
+                }
+            }
+        }
+
+        const checkOutPicker = flatpickr("#checkOut", {
+            dateFormat: "d M Y",
+            minDate: "today"
+        });
+
+        flatpickr("#checkIn", {
+            dateFormat: "d M Y",
+            minDate: "today",
+            onChange: function(selectedDates) {
+                if (selectedDates.length > 0) {
+                    const nextDay = new Date(selectedDates[0]);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    checkOutPicker.set('minDate', nextDay);
+                }
+            }
+        });
+
+        let hotelRooms = [{ roomNum: 1, adults: 1, children: [] }];
+
+        function updateHotelOccupancySummary() {
+            let totalRooms = hotelRooms.length;
+            let totalAdults = hotelRooms.reduce((sum, room) => sum + room.adults, 0);
+            let totalChildren = hotelRooms.reduce((sum, room) => sum + room.children.length, 0);
+            let summary = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalAdults} Adult${totalAdults > 1 ? 's' : ''}`;
+            if (totalChildren > 0) {
+                summary += `, ${totalChildren} Child${totalChildren > 1 ? 'ren' : ''}`;
+            }
+            $('.hotelOccupancyDetails').html(`<i class="fa-solid fa-users"></i> ${summary}`);
+        }
+
+        $(document).on('click', '.hotelIncrement, .hotelDecrement', function(e) {
+            e.preventDefault();
+            const roomBlock = $(this).closest('.room-block');
+            const roomIndex = roomBlock.data('room') - 1;
+            const type = $(this).data('type');
+            const isIncrement = $(this).hasClass('hotelIncrement');
+
+            if (type === 'adult') {
+                if (isIncrement && hotelRooms[roomIndex].adults < 4) hotelRooms[roomIndex].adults++;
+                if (!isIncrement && hotelRooms[roomIndex].adults > 1) hotelRooms[roomIndex].adults--;
+                roomBlock.find('.adult-count').text(hotelRooms[roomIndex].adults);
+            } else if (type === 'child') {
+                if (isIncrement && hotelRooms[roomIndex].children.length < 3) {
+                    hotelRooms[roomIndex].children.push(8); // Default age
+                    renderChildAges(roomBlock, roomIndex);
+                }
+                if (!isIncrement && hotelRooms[roomIndex].children.length > 0) {
+                    hotelRooms[roomIndex].children.pop();
+                    renderChildAges(roomBlock, roomIndex);
+                }
+                roomBlock.find('.child-count').text(hotelRooms[roomIndex].children.length);
+            }
+            updateHotelOccupancySummary();
+        });
+
+        function renderChildAges(roomBlock, roomIndex) {
+            const container = roomBlock.find('.child-ages-container');
+            container.empty();
+            hotelRooms[roomIndex].children.forEach((age, childIdx) => {
+                const ageHtml = `
+                    <div class="mt-1">
+                        <label style="font-size: 11px;">Child ${childIdx + 1} Age</label>
+                        <select class="form-select form-select-sm child-age-select" data-room="${roomIndex}" data-child="${childIdx}">
+                            ${Array.from({length: 18}, (_, i) => `<option value="${i}" ${i === age ? 'selected' : ''}>${i}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                container.append(ageHtml);
+            });
+        }
+
+        $(document).on('change', '.child-age-select', function() {
+            const roomIdx = $(this).data('room');
+            const childIdx = $(this).data('child');
+            hotelRooms[roomIdx].children[childIdx] = parseInt($(this).val());
+        });
+
+        $('#addHotelRoomBtn').click(function() {
+            if (hotelRooms.length < 4) {
+                const roomNum = hotelRooms.length + 1;
+                hotelRooms.push({ roomNum, adults: 1, children: [] });
+                const roomHtml = `
+                    <div class="room-block mb-3 border-top pt-2" data-room="${roomNum}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="fw-bold">Room ${roomNum}</h6>
+                            <button type="button" class="btn btn-link btn-sm text-danger remove-room-btn">Remove</button>
+                        </div>
+                        <div class="dropdown-item quantity d-flex justify-content-between align-items-center">
+                            <span>Adults</span>
+                            <div>
+                                <button class="hotelDecrement" data-type="adult">-</button>
+                                <span class="count adult-count">1</span>
+                                <button class="hotelIncrement" data-type="adult">+</button>
+                            </div>
+                        </div>
+                        <div class="dropdown-item quantity d-flex justify-content-between align-items-center">
+                            <span>Children</span>
+                            <div>
+                                <button class="hotelDecrement" data-type="child">-</button>
+                                <span class="count child-count">0</span>
+                                <button class="hotelIncrement" data-type="child">+</button>
+                            </div>
+                        </div>
+                        <div class="child-ages-container mt-2"></div>
+                    </div>
+                `;
+                $('#hotelRoomsContainer').append(roomHtml);
+                updateHotelOccupancySummary();
+            }
+        });
+
+        $(document).on('click', '.remove-room-btn', function() {
+            const roomBlock = $(this).closest('.room-block');
+            const roomNum = roomBlock.data('room');
+            hotelRooms = hotelRooms.filter(r => r.roomNum !== roomNum);
+            roomBlock.remove();
+            // Renumber
+            $('#hotelRoomsContainer .room-block').each(function(idx) {
+                const newNum = idx + 1;
+                $(this).data('room', newNum);
+                $(this).find('h6').text(`Room ${newNum}`);
+                hotelRooms[idx].roomNum = newNum;
+            });
+            updateHotelOccupancySummary();
+        });
+
+        $('#searchHotelsBtn').click(function(e) {
+            e.preventDefault();
+            const dest = $('#hotel_destination').val();
+            const destName = $('#hotel_destination').text();
+            const checkIn = formatDateToISO($('#checkIn').val());
+            const checkOut = formatDateToISO($('#checkOut').val());
+
+            if (!dest || !checkIn || !checkOut) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            const form = $('<form action="{{ route("hotels.search") }}" method="GET"></form>');
+            // form.append(`<input type="hidden" name="_token" value="{{ csrf_token() }}">`);
+            form.append(`<input type="hidden" name="destination_code" value="${dest}">`);
+            form.append(`<input type="hidden" name="destination_name" value="${destName}">`);
+            form.append(`<input type="hidden" name="country_code" value="${$('#hotel_country_code').val()}">`);
+            form.append(`<input type="hidden" name="nationality" value="${$('#hotel_nationality').val() || $('#hotel_country_code').val()}">`);
+            form.append(`<input type="hidden" name="check_in" value="${checkIn}T00:00:00">`);
+            form.append(`<input type="hidden" name="check_out" value="${checkOut}T00:00:00">`);
+            
+            hotelRooms.forEach((room, idx) => {
+                form.append(`<input type="hidden" name="rooms[Room][${idx}][RoomIdentifier]" value="${idx + 1}">`);
+                form.append(`<input type="hidden" name="rooms[Room][${idx}][Adult]" value="${room.adults}">`);
+                if (room.children.length > 0) {
+                    form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][Count]" value="${room.children.length}">`);
+                    room.children.forEach((age, cIdx) => {
+                        form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][ChildAge][${cIdx}][Identifier]" value="${cIdx + 1}">`);
+                        form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][ChildAge][${cIdx}][Text]" value="${age}">`);
+                    });
+                }
+            });
+
+            $('body').append(form);
+            form.submit();
+        });
+
+        // Initialize from URL after all handlers and pickers are set up
+        initializeHotelsFromURL();
     });
 
     // date & years
@@ -998,39 +1463,36 @@
         return `${day} ${month} ${year}`;
     }
     /* ==========================
-    DROPDOWN SCRIPT
+    DROPDOWN SCRIPT (Unified)
     ========================== */
     document.addEventListener("DOMContentLoaded", function() {
-        const wrapper = document.querySelector(".dropdowns");
-        if (!wrapper) return;
+        const toggles = document.querySelectorAll(".dropdown-toggle");
+        const menus   = document.querySelectorAll(".dropdown-menu");
 
-        const dropdownToggles = wrapper.querySelectorAll(".dropdown-toggle");
-
-        dropdownToggles.forEach(toggle => {
+        toggles.forEach(toggle => {
             toggle.addEventListener("click", function(e) {
+                e.preventDefault();
                 e.stopPropagation();
                 const menu = this.nextElementSibling;
 
-                // Close all other menus except current
-                wrapper.querySelectorAll(".dropdown-menu").forEach(m => {
+                // Close all other menus
+                menus.forEach(m => {
                     if (m !== menu) m.classList.remove("show");
                 });
 
-                // Always toggle current menu
-                menu.classList.toggle("show");
+                // Toggle this one
+                if (menu) {
+                    menu.classList.toggle("show");
+                }
             });
         });
 
-        // Click anywhere outside the wrapper → close all dropdowns
-        document.addEventListener("click", function() {
-            wrapper.querySelectorAll(".dropdown-menu").forEach(menu => menu.classList.remove("show"));
-        });
-
-        // Clicking inside menu → stop propagation
-        wrapper.querySelectorAll(".dropdown-menu").forEach(menu => {
-            menu.addEventListener("click", function(e) {
-                e.stopPropagation();
-            });
+        // Close dropdowns when clicking outside
+        document.addEventListener("click", function(e) {
+            // If click is outside any .dropdown, close all menus
+            if (!e.target.closest('.dropdown')) {
+                menus.forEach(m => m.classList.remove("show"));
+            }
         });
     });
 

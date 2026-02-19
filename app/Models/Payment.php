@@ -25,6 +25,7 @@ class Payment extends Model
         'transaction_id',
         'client_id',
         'booking_id',
+        'hotel_booking_id',
     ];
 
     protected $casts = [
@@ -41,5 +42,10 @@ class Payment extends Model
     public function booking()
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    public function hotelBooking()
+    {
+        return $this->belongsTo(HotelBooking::class);
     }
 }

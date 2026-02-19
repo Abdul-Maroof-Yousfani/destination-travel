@@ -83,7 +83,7 @@
         </div>
     @endcan
 
-    <!-- Modal -->
+    <!-- HOTEL Modal -->
     <div class="modal fade" id="airportModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -149,9 +149,141 @@
             </div>
         </div>
     </div>
-
-
-
+    @can('manage setting')
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg">
+                <div class="card-header bg_primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Manage Country Hotels</h4>
+                    <button class="btn btn-light btn-sm" id="fetchCountryInfoBtn">+ Fetch TassPro Info</button>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Search Hotel</label>
+                        <select id="hotelSearch" class="form-select" data-placeholder="Search city or code"></select>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="hotelTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>City</th>
+                                    <th>Code</th>
+                                    <th>Country</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($countryHotels as $hotel)
+                                <tr>
+                                    <td>{{ $hotel->city }}</td>
+                                    <td>{{ $hotel->destinationcode }}</td>
+                                    <td>{{ $hotel->country }}</td>
+                                    <td>
+                                        @if($hotel->status)
+                                            <span class="badge bg-success">Active</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactive</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning editHotelBtn" data-id="{{ $hotel->id }}">Edit</button>
+                                        <button class="btn btn-sm btn-danger deleteHotelBtn" data-id="{{ $hotel->id }}">Delete</button>
+                                    </td>
+                                </tr>
+                                @endforeach
+                                @if($countryHotels->isEmpty())
+                                <tr><td colspan="5" class="text-center text-muted">No hotels found</td></tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endcan
+    <div class="modal fade" id="fetchHotelModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg_primary text-white">
+                    <h5 class="modal-title">Fetch TassPro Country Info</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label">Country Code</label>
+                            <input type="text" id="fetch_country_code" class="form-control" placeholder="e.g. IN">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" id="btnPreviewInfo">Fetch Preview</button>
+                        </div>
+                    </div>
+                    
+                    <div id="previewContainer" style="display:none;">
+                        <h5>Preview: <span id="previewCount"></span> cities found</h5>
+                        <div class="table-responsive" style="max-height: 400px;">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Code (Key)</th>
+                                        <th>City (Value)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="previewBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-success" id="confirmFetchBtn" style="display:none;">Confirm & Insert</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="editHotelModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg_primary text-white">
+                    <h5 class="modal-title">Edit Country Hotel</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editHotelForm">
+                        @csrf
+                        <input type="hidden" id="edit_hotel_id">
+                        <div class="mb-3">
+                            <label class="form-label">City</label>
+                            <input type="text" id="edit_city" name="city" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Destination Code</label>
+                            <input type="text" id="edit_destinationcode" name="destinationcode" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Country</label>
+                            <input type="text" id="edit_country" name="country" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nationality</label>
+                            <input type="text" id="edit_nationality" name="nationality" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select id="edit_status" name="status" class="form-control">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" id="updateHotelBtn">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
 @endsection
@@ -358,16 +490,155 @@ $(function(){
             .fail(err => _alert('Error: ' + err.responseJSON.message, 'error'));
     });
 
-    $(document).on('click', '.deleteBtn', function(){
-        if (!confirm('Delete this airport?')) return;
+    // ------------------------ TassPro Hotel Management ------------------------
+    const fetchModal = new bootstrap.Modal(document.getElementById('fetchHotelModal'));
+    const editHotelModal = new bootstrap.Modal(document.getElementById('editHotelModal'));
+    let previewData = [];
+
+    $('#fetchCountryInfoBtn').on('click', function() {
+        $('#fetch_country_code').val('');
+        $('#previewContainer').hide();
+        $('#confirmFetchBtn').hide();
+        fetchModal.show();
+    });
+
+    $('#btnPreviewInfo').on('click', function() {
+        const countryCode = $('#fetch_country_code').val();
+        if (!countryCode) {
+            _alert('Please enter a country code', 'warning');
+            return;
+        }
+
+        $(this).prop('disabled', true).text('Loading...');
+
+        $.post('{{ route("admin.country-hotels.preview") }}', {
+            _token: '{{ csrf_token() }}',
+            country_code: countryCode
+        }, function(response) {
+            $('#btnPreviewInfo').prop('disabled', false).text('Fetch Preview');
+            if (response.success) {
+                previewData = response.data;
+                $('#previewCount').text(previewData.length);
+                let html = '';
+                previewData.forEach(item => {
+                    html += `<tr><td>${item.key}</td><td>${item.value}</td></tr>`;
+                });
+                $('#previewBody').html(html);
+                $('#previewContainer').show();
+                $('#confirmFetchBtn').show();
+            } else {
+                _alert(response.message, 'error');
+            }
+        }).fail(() => {
+            $('#btnPreviewInfo').prop('disabled', false).text('Fetch Preview');
+            _alert('Error fetching data', 'error');
+        });
+    });
+
+    $('#confirmFetchBtn').on('click', function() {
+        const countryCode = $('#fetch_country_code').val();
+        $(this).prop('disabled', true).text('Saving...');
+
+        $.ajax({
+            url: '{{ route("admin.country-hotels.store-bulk") }}',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                _token: '{{ csrf_token() }}',
+                country_code: countryCode,
+                hotels: previewData
+            }),
+            success: function(response) {
+                $('#confirmFetchBtn').prop('disabled', false).text('Confirm & Insert');
+                if (response.success) {
+                    fetchModal.hide();
+                    _alert(response.message);
+                    location.reload();
+                } else {
+                    _alert(response.message, 'error');
+                }
+            },
+            error: function() {
+                $('#confirmFetchBtn').prop('disabled', false).text('Confirm & Insert');
+                _alert('Error saving data', 'error');
+            }
+        });
+    });
+
+    $(document).on('click', '.editHotelBtn', function() {
+        const id = $(this).data('id');
+        $.get('{{ route("admin.country-hotels.edit", ":id") }}'.replace(':id', id), function(hotel) {
+            $('#edit_hotel_id').val(hotel.id);
+            $('#edit_city').val(hotel.city);
+            $('#edit_destinationcode').val(hotel.destinationcode);
+            $('#edit_country').val(hotel.country);
+            $('#edit_nationality').val(hotel.nationality);
+            $('#edit_status').val(hotel.status == true ? 1 : 0);
+            editHotelModal.show();
+        });
+    });
+
+    $('#hotelSearch').select2({
+        theme: 'classic',
+        placeholder: $('#hotelSearch').data('placeholder'),
+        ajax: {
+            url: '{{ route("admin.country-hotels.search") }}',
+            type: 'POST',
+            dataType: 'json',
+            delay: 300,
+            data: params => ({ _token: '{{ csrf_token() }}', term: params.term }),
+            processResults: data => ({ results: data.results }),
+        }
+    }).on('select2:select', function (e) {
+        const id = e.params.data.id;
+        $.get('{{ route("admin.country-hotels.edit", ":id") }}'.replace(':id', id), function(hotel) {
+            if (hotel && hotel.id) {
+                $('#edit_hotel_id').val(hotel.id);
+                $('#edit_city').val(hotel.city);
+                $('#edit_destinationcode').val(hotel.destinationcode);
+                $('#edit_country').val(hotel.country);
+                $('#edit_nationality').val(hotel.nationality);
+                $('#edit_status').val(hotel.status == true ? 1 : 0);
+                editHotelModal.show();
+                $('#hotelSearch').val(null).trigger('change');
+            } else {
+                _alert('Hotel not found', 'error');
+            }
+        }).fail(() => {
+            _alert('Error fetching hotel details.', 'error');
+        });
+    });
+
+    $('#updateHotelBtn').on('click', function() {
+        const id = $('#edit_hotel_id').val();
+        const data = {
+            _token: '{{ csrf_token() }}',
+            city: $('#edit_city').val(),
+            destinationcode: $('#edit_destinationcode').val(),
+            country: $('#edit_country').val(),
+            nationality: $('#edit_nationality').val(),
+            status: $('#edit_status').val()
+        };
+
+        $.post('{{ route("admin.country-hotels.update", ":id") }}'.replace(':id', id), data, function(response) {
+            if (response.success) {
+                editHotelModal.hide();
+                _alert('Hotel updated successfully');
+                location.reload();
+            }
+        });
+    });
+
+    $(document).on('click', '.deleteHotelBtn', function() {
+        if (!confirm('Delete this record?')) return;
         const id = $(this).data('id');
         $.ajax({
-            url: '{{ route("admin.airports.destroy", ":id") }}'.replace(':id', id),
+            url: '{{ route("admin.country-hotels.destroy", ":id") }}'.replace(':id', id),
             type: 'DELETE',
             data: { _token: '{{ csrf_token() }}' },
-            success: function(){
-                _alert('Airport deleted successfully.');
-                loadAirports();
+            success: function() {
+                _alert('Record deleted successfully');
+                location.reload();
             }
         });
     });

@@ -22,15 +22,23 @@ class Passenger extends Model
         'passport_no',
         'passport_exp',
         'client_id',
+        'hotel_booking_room_id',
+        'is_lead_pax',
     ];
 
     protected $casts = [
         'dob' => 'date',
         'passport_exp' => 'date',
+        'is_lead_pax' => 'boolean',
     ];
 
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(HotelBookingRoom::class, 'hotel_booking_room_id');
     }
 }

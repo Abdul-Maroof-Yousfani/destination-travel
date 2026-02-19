@@ -85,4 +85,11 @@ return [
         'cert'          => env('AIRBLUE_CERT_PATH'),
         'ssl_key'       => env('AIRBLUE_KEY_PATH'),
     ],
+
+    'tasspro' => [
+        'url'           => env('TASS_PRO_URL'),
+        'apikey'        => env('TASS_PRO_API_KEY'),
+        'customer_code' => env('TASS_PRO_CUSTOMER_CODE'),
+        'region_id'     => env('TASS_PRO_REGION_ID'),
+    ],
 ];
