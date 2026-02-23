@@ -216,9 +216,29 @@
 
     @php
         $rooms = $hotel['rooms']['room'] ?? [];
-        $groupedRooms = collect($rooms)->groupBy(function ($item) {
-            return $item['roomCombinationId'] ?? $item['rateKey'];
+
+        // Build a lookup: roomIdentifier => requested room data
+        $requestedRoomIdentifiers = collect($requestRooms['Room'] ?? [])
+            ->pluck('RoomIdentifier')
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        // Filter API rooms to only those matching requested RoomIdentifiers
+        $filteredRooms = collect($rooms)->filter(function ($room) use ($requestedRoomIdentifiers) {
+            return in_array((int) ($room['roomIdentifier'] ?? 0), $requestedRoomIdentifiers);
         });
+
+        // Group by roomCombinationId — each group is a valid combination for all requested rooms
+        $groupedRooms = $filteredRooms
+            ->groupBy(function ($item) {
+                return $item['roomCombinationId'];
+            })
+            ->filter(function ($group) use ($requestedRoomIdentifiers) {
+                // Only show combinations that have exactly one room per requested RoomIdentifier
+                $groupIdentifiers = $group->pluck('roomIdentifier')->map(fn($id) => (int) $id)->sort()->values()->all();
+                $expected = collect($requestedRoomIdentifiers)->sort()->values()->all();
+                return $groupIdentifiers === $expected;
+            });
     @endphp
 
     @forelse($groupedRooms as $combinationId => $roomGroup)
@@ -287,7 +307,103 @@
                                     <div class="mt-2 text-info fw-bold"><i class="fa-solid fa-shield-check me-1"></i>
                                         {{ $room['rateType'] }}</div>
                                 </div>
-                            </div>
+
+                                    @if (!empty($room['remarks']['remark']))
+                                        @php
+                                            $remarks = $room['remarks']['remark'];
+                                            if (isset($remarks['type'])) {
+                                                $remarks = [$remarks];
+                                            }
+                                            $inclusions = collect($remarks)->where('type', 'Inclusion')->pluck('text');
+                                            $supplements = collect($remarks)
+                                                ->where('type', 'Supplements')
+                                                ->pluck('text')
+                                                ->first();
+                                            $hasDetails = $inclusions->isNotEmpty() || !empty($supplements);
+                                            $remarkId = 'room-remarks-' . $combinationId . '-' . $index;
+                                        @endphp
+                                        @if ($hasDetails)
+                                            <a href="javascript:void(0)"
+                                                class="room-remarks-toggle small text-primary mt-2 d-inline-flex align-items-center gap-1"
+                                                data-target="#{{ $remarkId }}" style="text-decoration:none;">
+                                                <i class="fa-solid fa-circle-info mr-1"></i> Show details
+                                            </a>
+                                            <div id="{{ $remarkId }}" class="room-remarks-body mt-2"
+                                                style="display:none;">
+                                                {{-- Inclusions --}}
+                                                @if ($inclusions->isNotEmpty())
+                                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                                        @foreach ($inclusions as $inc)
+                                                            <span
+                                                                class="badge bg-success-subtle text-success border border-success fw-normal">
+                                                                <i class="fa-solid fa-check me-1"></i> {{ $inc }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                {{-- Supplements --}}
+                                                @if ($supplements)
+                                                    @php
+                                                        $entries = preg_split('/n?Type\s*:/i', $supplements);
+                                                        $fees = collect($entries)->map(fn($e) => trim($e))->filter();
+                                                    @endphp
+                                                    <div class="text-muted small fw-bold mb-1">
+                                                        <i class="fa-solid fa-receipt me-1"></i> Supplements / Fees:
+                                                    </div>
+                                                    <ul class="list-unstyled mb-0 small text-muted ps-1">
+                                                        @foreach ($fees as $fee)
+                                                            @php
+                                                                preg_match(
+                                                                    '/Description\s*:\s*([^,]+)/i',
+                                                                    $fee,
+                                                                    $descMatch,
+                                                                );
+                                                                preg_match(
+                                                                    '/Price\s*:\s*([\d.]+)/i',
+                                                                    $fee,
+                                                                    $priceMatch,
+                                                                );
+                                                                preg_match('/Currency\s*:\s*(\w+)/i', $fee, $currMatch);
+                                                                preg_match('/^([^,]+)/i', $fee, $typeMatch);
+                                                                $feeType = isset($typeMatch[1])
+                                                                    ? trim($typeMatch[1])
+                                                                    : '';
+                                                                $feeDesc = isset($descMatch[1])
+                                                                    ? trim($descMatch[1])
+                                                                    : $fee;
+                                                                $feePrice = isset($priceMatch[1])
+                                                                    ? trim($priceMatch[1])
+                                                                    : '';
+                                                                $feeCurr = isset($currMatch[1])
+                                                                    ? trim($currMatch[1])
+                                                                    : '';
+                                                                $isAtProp = stripos($feeType, 'AtProperty') !== false;
+                                                            @endphp
+                                                            <li
+                                                                class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                                                                <span>
+                                                                    <i
+                                                                        class="fa-solid fa-{{ $isAtProp ? 'building' : 'circle-dot' }} me-1 text-{{ $isAtProp ? 'warning' : 'secondary' }}"></i>
+                                                                    {{ $feeDesc }}
+                                                                    @if ($isAtProp)
+                                                                        <span
+                                                                            class="badge bg-warning-subtle text-warning border border-warning ms-1"
+                                                                            style="font-size:10px;">At Property</span>
+                                                                    @endif
+                                                                </span>
+                                                                @if ($feePrice)
+                                                                    <span
+                                                                        class="fw-semibold text-dark ms-2 text-nowrap">{{ $feeCurr }}
+                                                                        {{ $feePrice }}</span>
+                                                                @endif
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
                         @endforeach
                     </div>
                 </div>
@@ -319,3 +435,19 @@
         </div>
     @endforelse
 </div>
+
+<script>
+    $(document).on('click', '.room-remarks-toggle', function() {
+        var $toggle = $(this);
+        var $body = $($toggle.data('target'));
+
+        $body.slideToggle(250, function() {
+            var isOpen = $body.is(':visible');
+            $toggle.html(
+                isOpen ?
+                '<i class="fa-solid fa-circle-xmark mr-1"></i> Hide details' :
+                '<i class="fa-solid fa-circle-info mr-1"></i> Show details'
+            );
+        });
+    });
+</script>

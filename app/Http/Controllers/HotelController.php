@@ -104,7 +104,8 @@ class HotelController extends Controller
             return view('home.partials.hotel-details-step', [
                 'hotel'   => $results['hotel'],
                 'general' => $results['generalInfo'],
-                'monetary' => $results['monetary']
+                'monetary' => $results['monetary'],
+                'requestRooms' => $rooms
             ]);
         }
 
