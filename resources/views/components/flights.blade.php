@@ -230,7 +230,6 @@
         @endforeach
     </div>
 @endif
-
 @if (!empty($flightData) && $flightData['total_count'] > 0)
     @php
         $isReturn = $flightData['return_count'] > 0;
@@ -431,8 +430,8 @@
 <script>
     $(document).ready(function() {
         let paxCount = @json($paxCount);
-        let isReturn = @json($isReturn);
-        let bundles = @json($bundles);
+        let isReturn = @json($isReturn ?? false);
+        let bundles = @json($bundles ?? false);
         const bookingPage = "{{ route('flightBooking') }}";
         let selectedDepartureBundlePrice = 0; // Track selected departure bundle price for PIA
         let selectedTotalPricePkr = 0; // Track total_price_pkr from selected combination
