@@ -583,7 +583,7 @@ class FlightController extends Controller
                 $cabinClass = session('cabinClass', 'Y');
                 $bookFlight = $this->airblueService->bookFlight($data ?? null);
                 if (!empty($bookFlight['error'])) {
-                    return response()->json(['status'  => 'error', 'message' => $bookFlight['error'], 'details' => $bookFlight['details'] ?? null], 400);
+                    return response()->json(['status'  => 'error', 'message' => $bookFlight['details'], 'details' => $bookFlight['error'] ?? null], 400);
                 }
                 return response()->json($bookFlight);
             } elseif($request->status === 'create') {
