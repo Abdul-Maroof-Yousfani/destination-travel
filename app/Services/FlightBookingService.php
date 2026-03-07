@@ -1001,7 +1001,8 @@ class FlightBookingService
         $flightsData = $data['flights'] ?? [];
         $isOneWay = count($flightsData) === 1;
         $flightCount = count($flightsData);
-        $bookingType = $flightCount === 1 ? 'oneway' : ($flightCount === 2 ? 'return' : 'multi');
+        // $bookingType = $flightCount == 1 ? 'oneway' : ($flightCount == 2 ? 'return' : 'multi');
+        $bookingType = 'oneway';
         $tax = config('variables.tax') ?? 400;
         $taxCode = config('variables.tax_code') ?? 'PKR';
 
@@ -1211,7 +1212,8 @@ class FlightBookingService
         $flightsData = $data['flights'] ?? [];
         $isOneWay = count($flightsData) === 1;
         $flightCount = count($flightsData);
-        $bookingType = $flightCount === 1 ? 'oneway' : ($flightCount === 2 ? 'return' : 'multi');
+        // $bookingType = $flightCount == 1 ? 'oneway' : ($flightCount == 2 ? 'return' : 'multi');
+        $bookingType = 'oneway';
         $booking = Booking::findOrFail($bookingId);
 
         $ticketTimeLimit = Carbon::parse($data['ticket_time_limit'] ?? $booking->ticket_limit);
