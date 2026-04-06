@@ -886,10 +886,11 @@
             const datePicker = flatpickr(dateInput[0], {
                 dateFormat: "d M Y",
                 minDate: minDate,
-                onChange: function(selectedDates) {
+                onChange: function(selectedDates, dateStr, instance) {
                     // Update minDate for next segments
                     if (selectedDates.length > 0) {
-                        const nextSegmentIndex = segmentIndex + 1;
+                        const currentSegment = $(instance.element).attr('data-segment');
+                        const nextSegmentIndex = parseInt(currentSegment) + 1;
                         const nextDateInput = $(
                             `.multi-city-date[data-segment="${nextSegmentIndex}"]`);
                         if (nextDateInput.length && nextDateInput[0]._flatpickr) {
@@ -925,9 +926,18 @@
                 const newIndex = segmentCounter;
                 $(this).attr('data-segment-index', newIndex);
                 $(this).find('.multi-city-segment-title').text(`Flight ${newIndex}`);
-                $(this).find('select, input').attr('data-segment', newIndex);
+                
+                // Update all elements with data-segment
+                $(this).find('[data-segment]').attr('data-segment', newIndex);
+                
+                // Update error text if present
+                $(this).find('.multi-city-error').text(`Departure and Destination airports cannot be the same for Flight ${newIndex}.`);
+
                 if (newIndex === 1) {
                     $(this).find('.remove-segment-btn').remove();
+                } else {
+                    // Update onclick handler
+                    $(this).find('.remove-segment-btn').attr('onclick', `removeSegment(${newIndex})`);
                 }
             });
         }
