@@ -12,27 +12,28 @@
 
                 <div class="form-group">
                     <label for="name">Full Name</label>
-                    <input type="text" id="name" name="name" placeholder="Enter your Fullname">
+                    <input type="text" id="name" name="name" autocomplete="name" placeholder="Enter your Full Name" oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')" required>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your Email">
+                    <input type="email" id="email" name="email" autocomplete="email" placeholder="Enter Your Email" oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')" required>
                 </div>
 
                 <div class="form-group">
                     <label for="code">Phone Code</label>
-                    <input type="text" id="code" name="code" placeholder="e.g. +1">
+                    <input type="text" id="code" name="code" autocomplete="tel" placeholder="e.g. +1"oninput="this.value = this.value.replace(/[^0-9+]/g, '')" required> 
                 </div>
 
                 <div class="form-group">
                     <label for="phone">Phone Number</label>
-                    <input type="number" id="phone" name="phone" placeholder="Enter your Phone">
+                    <!-- <input type="number" id="phone" name="phone" placeholder="Enter Your Phone"> -->
+                    <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="Enter Your Phone" inputmode="numeric" pattern="[0-9]*"oninput="this.value = this.value.replace(/[^0-9+]/g, '')" required>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Enter your Password">
+                    <input type="password" id="password" name="password" autocomplete="new-password" placeholder="Enter Your Password" required>
                 </div>
 
                 <button class="loginBtn active">Register</button>

@@ -98,13 +98,13 @@
                     <p>edestinations.pk, based in Karachi, Pakistan, is a leading travel platform dedicated to empowering travelers with instant bookings and a wide range of comprehensive choices. With a focus on delivering exceptional value, edestinations offers a variety of travel products, including domestic and international flights, hotels, buses, cars, and various services like cutting-edge technology and 24/7 dedicated customer support to enhance the travel experience for our customers. edestinations operates under the umbrella of THIRD EYE TECHNOLOGY SERVICES PTE LTD, a Singapore-based company specializing in online services for Travel Services and Software Development.</p>
                 </div>
                 <div class="hero-image">
-                    <img src="https://edestinations.pk/assets/images/" alt="Travel illustration">
+                    <img src="{{ asset('assets/images/travel_dreams_in_vibrant_destinations.png') }}" alt="Travel illustration">
                 </div>
             </div>
             
             <div class="customer-support">
                 <div class="support-info">
-                    <img src="https://edestinations.pk/assets/images/customersupport.webp" alt="Support agent" class="support-avatar">
+                    <img src="{{ asset('assets/images/customersupport.webp') }}" alt="Support agent" class="support-avatar">
                     <div class="support-text">
                         <h3>24/7 Customer Support</h3>
                         <p>Expert in travel or general travel support</p>
@@ -195,25 +195,25 @@
             <h2>Our <span class="highlight">Management</span></h2>
             <div class="management-grid">
                 <div class="team-member">
-                    <img src="https://edestinations.pk/assets/images/" alt="Anonymous 1">
-                    <h3>Anonymous q</h3>
-                    <p>Anonymous q</p>
+                    <img src="{{ asset('assets/images/dummy.png') }}" alt="Anonymous 1">
+                    <h3>Anonymous 1</h3>
+                    <p>Anonymous 1</p>
                     <button class="contact-btn">📧</button>
                 </div>
                 <div class="team-member">
-                    <img src="https://edestinations.pk/assets/images/" alt="Anonymous 2">
+                    <img src="{{ asset('assets/images/dummy.png') }}" alt="Anonymous 2">
                     <h3>Anonymous 2</h3>
                     <p>Anonymous 2</p>
                     <button class="contact-btn">📧</button>
                 </div>
                 <div class="team-member">
-                    <img src="https://edestinations.pk/assets/images/" alt="Anonymous 3">
+                    <img src="{{ asset('assets/images/dummy.png') }}" alt="Anonymous 3">
                     <h3>Anonymous 3</h3>
                     <p> Anonymous 3</p>
                     <button class="contact-btn">📧</button>
                 </div>
                 <div class="team-member">
-                    <img src="https://edestinations.pk/assets/images/" alt=" Anonymous 4">
+                    <img src="{{ asset('assets/images/dummy.png') }}" alt=" Anonymous 4">
                     <h3>Anonymous 4</h3>
                     <p>Anonymous 4</p>
                     <button class="contact-btn">📧</button>
@@ -223,7 +223,7 @@
     </section>
 
     <!-- Culture -->
-    <section class="culture-section">
+    <!-- <section class="culture-section">
         <div class="container">
             <h2>Our <span class="highlight">Culture</span></h2>
             <div class="culture-gallery">
@@ -233,18 +233,18 @@
                 <img src="https://edestinations.pk/assets/images/" alt="Office culture 3">
             </div>
         </div>
-    </section>
+    </section> -->
 
     <!-- Corporate Partners -->
     <section class="partners-section">
         <div class="container">
             <h2>Our <span class="highlight">Corporate Partners</span></h2>
             <div class="partners-grid">
-                <img src="https://edestinations.pk/assets/images/" alt="Partners 1">
-                <img src="https://edestinations.pk/assets/images/" alt="Partners 2">
-                <img src="https://edestinations.pk/assets/images/" alt="Partners 3">
-                <img src="https://edestinations.pk/assets/images/" alt="Partners 4">
-                <img src="https://edestinations.pk/assets/images/" alt="Partners 5">
+                <img src="{{ asset('assets/images/partner-jazzcash.png') }}" alt="Partners 1">
+                <img src="{{ asset('assets/images/easypaisa.png') }}" alt="Partners 2">
+                <img src="{{ asset('assets/images/hbllogo.svg') }}" alt="Partners 3">
+                <img src="{{ asset('assets/images/pia-logo.png') }}" alt="Partners 4">
+                <img src="{{ asset('assets/images/Fly_Jinnah_logo.png') }}" alt="Partners 5">
             </div>
         </div>
     </section>
