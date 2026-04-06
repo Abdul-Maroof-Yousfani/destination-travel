@@ -113,10 +113,6 @@
 </style>
 @if (session('error'))
     <script>
-
-
-
-
         window.onload = function() {
             let error = @json(session('error'));
             if (typeof _alert === "function") {
@@ -334,6 +330,9 @@
                     </div>
                 </li>
             </ul>
+            <div id="standard-airport-error" class="error-limit" style="display: none; padding-left: 20px; margin-bottom: 10px;">
+                Departure and Destination airports cannot be the same.
+            </div>
         </div>
 
         <!-- Multi City Search Form -->
@@ -855,6 +854,9 @@
                                 </div>
                             </li>
                         </ul>
+                        <div class="multi-city-error error-limit" data-segment="${segmentIndex}" style="display: none; padding-left: 20px; margin-bottom: 10px;">
+                            Departure and Destination airports cannot be the same for Flight ${segmentIndex}.
+                        </div>
                     </div>
                 </div>
             `;
@@ -986,7 +988,13 @@
                 const date = formatDateToISO(dateInput.val());
 
                 if (!from || !to || !date) {
-                    alert(`Please fill all fields for Flight ${segmentIndex}.`);
+                    _alert(`Please fill all fields for Flight ${segmentIndex}.`, "warning");
+                    return false;
+                }
+
+                if (from === to) {
+                    const errorDiv = $(`.multi-city-error[data-segment="${segmentIndex}"]`);
+                    errorDiv.show();
                     return false;
                 }
 
@@ -999,7 +1007,7 @@
             });
 
             if (segments.length === 0) {
-                alert("Please add at least one flight segment.");
+                _alert("Please add at least one flight segment.", "warning");
                 return;
             }
 
@@ -1028,7 +1036,12 @@
             let routeType = $('input[name="searchOptions"]:checked').val();
 
             if (!from || !destination || !departureDate) {
-                alert("Please fill all required fields.");
+                _alert("Please fill all required fields.", "warning");
+                return;
+            }
+
+            if (from === destination) {
+                $('#standard-airport-error').show();
                 return;
             }
 
@@ -1053,6 +1066,35 @@
 
         setupAirportSelect('#from');
         setupAirportSelect('#to');
+
+        // Immediate Validation: Prevent same airport in From/To
+        $('#from, #to').on('select2:select', function (e) {
+            let from = $('#from').val();
+            let to = $('#to').val();
+            const errorDiv = $('#standard-airport-error');
+            
+            if (from && to && from === to) {
+                errorDiv.show();
+                $(this).val(null).trigger('change');
+            } else {
+                errorDiv.hide();
+            }
+        });
+
+        // Immediate Validation for Multi-City
+        $(document).on('select2:select', '.multi-city-from, .multi-city-to', function (e) {
+            let segmentIndex = $(this).data('segment');
+            let from = $(`.multi-city-from[data-segment="${segmentIndex}"]`).val();
+            let to = $(`.multi-city-to[data-segment="${segmentIndex}"]`).val();
+            const errorDiv = $(`.multi-city-error[data-segment="${segmentIndex}"]`);
+
+            if (from && to && from === to) {
+                errorDiv.show();
+                $(this).val(null).trigger('change');
+            } else {
+                errorDiv.hide();
+            }
+        });
 
         // Hotels Search Logic
         $('#hotel_destination').select2({
@@ -1314,7 +1356,7 @@
             const checkOut = formatDateToISO($('#checkOut').val());
 
             if (!dest || !checkIn || !checkOut) {
-                alert('Please fill all required fields');
+                _alert('Please fill all required fields', "warning");
                 return;
             }
 

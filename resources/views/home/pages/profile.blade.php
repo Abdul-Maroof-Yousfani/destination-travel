@@ -141,9 +141,9 @@
             </table>
           </div>
         </div>
-        <!-- Passengers list -->
+        <!-- Travelers list -->
         <div class="mt-3 card-section p-3">
-          <h5 class="mb-3">Passengers</h5>
+          <h5 class="mb-3">Travelers</h5>
           <div class="table-responsive profile-destinations">
             <table class="table table-sm">
               <thead>

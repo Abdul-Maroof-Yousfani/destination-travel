@@ -166,7 +166,7 @@ label.form-label.small.fw-bold {
                     <input type="hidden" name="check_out" value="{{ $request['check_out'] ?? '' }}">
                     <input type="hidden" name="group_code" value="{{ $request['group_code'] }}">
                     <input type="hidden" name="destination_code" value="{{ $request['destination_code'] ?? 'AE' }}">
-                    <input type="hidden" name="nationality" value="{{ $request['nationality'] ?? 'AE' }}">
+                    {{-- <input type="hidden" name="nationality" value="{{ $request['nationality'] ?? 'AE' }}"> --}}
                     <input type="hidden" name="currency" value="{{ $currency }}">
                     <input type="hidden" name="total_net" value="{{ $totalNet }}">
                     <input type="hidden" name="total_gross" value="{{ $totalGross }}">
@@ -192,6 +192,15 @@ label.form-label.small.fw-bold {
                             <div class="col-md-12 col-lg-4">
                                 <label class="form-label small fw-bold ">Lead Guest Last Name</label>
                                 <input type="text" name="last_name" class="form-control " required placeholder="Last Name">
+                            </div>
+                            <div class="col-md-12 col-lg-4">
+                                <label class="form-label small fw-bold ">Nationality</label>
+                                <select name="nationality" class="form-control " required>
+                                    <option value="">Select Nationality</option>
+                                    @foreach(config('variables.nationalities') as $key => $value)
+                                        <option value="{{ $key }}">{{ $value['name'] }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="col-md-12 col-lg-4"></div>
                             <div class="col-md-12 col-lg-4"></div>
