@@ -1318,7 +1318,10 @@
                     <div class="mt-1">
                         <label style="font-size: 11px;">Child ${childIdx + 1} Age</label>
                         <select class="form-select form-select-sm child-age-select" data-room="${roomIndex}" data-child="${childIdx}">
-                            ${Array.from({length: 18}, (_, i) => `<option value="${i}" ${i === age ? 'selected' : ''}>${i}</option>`).join('')}
+                            ${Array.from({length: 10}, (_, i) => {
+                                const val = i + 2;
+                                return `<option value="${val}" ${val === age ? 'selected' : ''}>${val}</option>`;
+                            }).join('')}
                         </select>
                     </div>
                 `;
