@@ -14,5 +14,28 @@
             <span>support@edestination.com</span></a>
         </div>
     </div>
-        <button class="btn btn-share  mt-2 "><i class="fa-regular fa-share-from-square"></i> Share</button>
+    <button onclick="sharePage()" class="btn btn-share  mt-2 "><i class="fa-regular fa-share-from-square"></i> Share</button>
 </div>
+
+<script>
+    function sharePage() {
+        if (navigator.share) {
+            navigator.share({
+                title: document.title,
+                url: window.location.href
+            }).then(() => {
+                console.log('Thanks for sharing!');
+            }).catch((err) => {
+                console.error('Error sharing:', err);
+            });
+        } else {
+            // Fallback for browsers that don't support Web Share API
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch((err) => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy link. Please copy manually.');
+            });
+        }
+    }
+</script>
