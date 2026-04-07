@@ -193,15 +193,15 @@
     <div class="box-1 showfirst  tab-content">
         <div class="radio-container">
             <div>
-                <input type="radio" id="oneWaySearch" name="searchOptions" value="ONEWAY" checked>
+                <input type="radio" id="oneWaySearch" name="searchOptions" value="ONEWAY" autocomplete="off" checked>
                 <label for="oneWaySearch">One Way</label>
             </div>
             <div>
-                <input type="radio" id="returnSearch" name="searchOptions" value="ROUND">
+                <input type="radio" id="returnSearch" name="searchOptions" value="ROUND" autocomplete="off">
                 <label for="returnSearch">Return</label>
             </div>
             <div>
-                <input type="radio" id="multiCitySearch" name="searchOptions" value="MULTI">
+                <input type="radio" id="multiCitySearch" name="searchOptions" value="MULTI" autocomplete="off">
                 <label for="multiCitySearch">Multi City</label>
             </div>
             {{-- <div>
@@ -656,16 +656,18 @@
 
         if (routeType === 'MULTI') {
             $('#multiCitySearch').prop('checked', true);
-            $("#standardSearchForm").hide();
-            $("#multiCitySearchForm").show();
             initializeMultiCityFromURL();
         } else if (routeType === 'ROUND') {
             $("#returnSearch").prop("checked", true);
-            $("#returnDate").prop("disabled", false);
+            // Try to get return date from URL (d2 parameter)
+            const d2 = getURLParam("d2");
+            if (d2) {
+                setPickerFromISO(returnPicker, d2);
+                $("#returnDate").prop("disabled", false);
+            }
             initializeFromURLSegments();
         } else if (routeType === 'ONEWAY') {
             $("#oneWaySearch").prop("checked", true);
-            $("#returnDate").prop("disabled", true).val(null);
             initializeFromURLSegments();
         } else {
             // Fallback: check for s1/d1 format or old URL format
@@ -676,24 +678,16 @@
 
             if (s1 && d1) {
                 if (s2 && d2) {
-                    // Round trip or multi
                     const s3 = getURLParam("s3");
                     if (s3) {
-                        // Multi city
                         $('#multiCitySearch').prop('checked', true);
-                        $("#standardSearchForm").hide();
-                        $("#multiCitySearchForm").show();
                         initializeMultiCityFromURL();
                     } else {
-                        // Round trip
                         $("#returnSearch").prop("checked", true);
-                        $("#returnDate").prop("disabled", false);
                         initializeFromURLSegments();
                     }
                 } else {
-                    // One way
                     $("#oneWaySearch").prop("checked", true);
-                    $("#returnDate").prop("disabled", true).val(null);
                     initializeFromURLSegments();
                 }
             } else {
@@ -702,7 +696,6 @@
                 setInitialAirportValue('#to', getURLParam("dest"));
 
                 if (!$("#returnDate").val()) {
-                    $("#returnDate").prop("disabled", true);
                     $("#oneWaySearch").prop("checked", true);
                 } else {
                     $("#returnSearch").prop("checked", true);
@@ -710,37 +703,62 @@
             }
         }
 
-        $('#oneWaySearch').change(function() {
-            if (this.checked) {
-                $("#returnDate").prop("disabled", true).val(null);
-                $("#standardSearchForm").show();
-                $("#multiCitySearchForm").hide();
-            }
-        });
+        // Function to sync UI based on current search option state
+        function syncSearchOptionsUI() {
+            // Get mode from URL first, then fall back to radio state, then default to ONEWAY
+            const urlMode = getURLParam("routeType");
+            const checkedOption = $('input[name="searchOptions"]:checked').val();
+            const selectedOption = urlMode || checkedOption || 'ONEWAY';
+            
+            // Explicitly set the checked property to ensure CSS selectors like :checked + label work correctly
+            $(`input[name="searchOptions"][value="${selectedOption}"]`).prop('checked', true);
 
-        $('#returnSearch').change(function() {
-            if (this.checked) {
-                $("#returnDate").prop("disabled", false);
-                // Try to get return date from URL (d2 parameter)
-                const d2 = getURLParam("d2");
-                if (d2) {
-                    setPickerFromISO(returnPicker, d2);
-                }
-                $("#standardSearchForm").show();
-                $("#multiCitySearchForm").hide();
-            }
-        });
-
-        $('#multiCitySearch').change(function() {
-            if (this.checked) {
+            if (selectedOption === 'MULTI') {
                 $("#standardSearchForm").hide();
                 $("#multiCitySearchForm").show();
                 // Only initialize from URL if segments don't exist
                 if ($('#multiCitySegments .multi-city-segment').length === 0) {
                     initializeMultiCityFromURL();
                 }
+            } else {
+                $("#standardSearchForm").show();
+                $("#multiCitySearchForm").hide();
+                
+                if (selectedOption === 'ROUND') {
+                    $("#returnDate").prop("disabled", false);
+                } else {
+                    $("#returnDate").prop("disabled", true).val(null);
+                }
             }
+        }
+
+        // Initialize UI
+        syncSearchOptionsUI();
+
+        // Handle trip type changes with History API
+        $(document).on('change', 'input[name="searchOptions"]', function() {
+            const mode = $(this).val();
+            
+            // Update URL search param without a page reload
+            const url = new URL(window.location);
+            url.searchParams.set('routeType', mode);
+            
+            // Push to history so "Back" button reverses the selection
+            history.pushState({ searchMode: mode }, '', url);
+            
+            syncSearchOptionsUI();
         });
+
+        // Listen for browser navigation (Back/Forward)
+        window.addEventListener('popstate', function(event) {
+            syncSearchOptionsUI();
+        });
+
+        // Handle BFCache (specifically for back button restore in Safari/Chrome)
+        window.addEventListener('pageshow', function(event) {
+            syncSearchOptionsUI();
+        });
+
 
         let adults = parseInt(getURLParam("adt")) || 1;
         let children = parseInt(getURLParam("chd")) || 0;
