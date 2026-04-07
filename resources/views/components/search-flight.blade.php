@@ -1050,6 +1050,11 @@
                 return;
             }
 
+            if (routeType === 'ROUND' && !returnDateVal) {
+                _alert("Please select a return date.", "warning");
+                return;
+            }
+
             if (from === destination) {
                 $('#standard-airport-error').show();
                 return;
