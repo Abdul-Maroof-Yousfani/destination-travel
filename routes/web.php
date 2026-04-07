@@ -31,6 +31,8 @@ Route::view('login', 'login')->name('login');
 Route::view('register', 'register')->name('register');
 Route::view('terms-and-conditions', 'home.pages.terms-and-conditions')->name('terms-and-conditions');
 Route::view('about-us', 'home.pages.about-us')->name('about-us');
+Route::view('contact-us', 'home.pages.contact-us')->name('contact-us');
+Route::view('company', 'home.pages.company')->name('company');
 Route::get('profile', [HomeController::class, 'profile'])->name('profile')->middleware('auth:client');
 Route::post('profile/passenger/{passenger}/update', [HomeController::class, 'updatePassenger'])->name('passenger.update')->middleware('auth:client');
 Route::view('search-booking', 'home.pages.search-booking')->name('search.booking');

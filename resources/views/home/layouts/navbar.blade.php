@@ -58,9 +58,9 @@
                     <div class="menuWrap">
                         <ul class="menu">
                             <li class="active"><a href="{{route('home')}}">Home</a></li>
-                            <li><a href="#">Company</a></li>
-                            <li><a href="#">Products</a></li>
-                            <li><a href="#">Contact Us</a></li>
+                            <li><a href="{{ route('company') }}">Company</a></li>
+                            <li><a href="{{ route('about-us') }}">About Us</a></li>
+                            <li><a href="{{ route('contact-us') }}">Contact Us</a></li>
                             <li><a href="{{ route('search.booking') }}"><i class="fa-solid fa-magnifying-glass"></i> Search Booking</a></li>
                             <li><a href="tel:{{ config('variables.contact.phone') }}">
                                     <div class="main-flex">

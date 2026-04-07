@@ -15,7 +15,7 @@
                       <a href="#">Legal</a>
                    </li>
                    <li>
-                      <a href="#">Contact</a>
+                      <a href="{{ route('contact-us') }}">Contact</a>
                    </li>
                    <li>
                       <a href="#">Affiliate Program</a>

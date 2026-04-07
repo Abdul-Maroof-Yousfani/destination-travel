@@ -100,16 +100,13 @@
 .hotelOccupancyDetails{position:relative;}
 /* .hotelOccupancyDetails::after{content:"▼";font-size:12px;color:#555;position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;}
 */
+.swap-btn i{transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);cursor:pointer;}
+.swap-btn.rotate i{transform:rotate(180deg);}
+.numInputWrapper{display:none !important;}
+.add-segment-btn{width:100%;justify-content:center;}
 .hotel-btn-disabled{opacity:0.3;pointer-events:none;cursor:not-allowed;}
 @media (max-width:768px){.multi-city-actions{flex-direction:column;gap:10px;}
-.add-segment-btn{width:100%;justify-content:center;}
-
-
-
-
-
 }
-
 
 </style>
 @if (session('error'))
@@ -294,9 +291,9 @@
                     </a>
                 </li>
                 <li>
-                    <div class="mob-hid">
-                        <i class="fa-solid fa-right-left"></i>
-                    </div>
+               <div class="mob-hid swap-btn">
+                    <i class="fa-solid fa-right-left"></i>
+                </div>
                 </li>
                 <li>
                     <a href="#">
@@ -430,6 +427,40 @@
     </div>
     <div class="box-2 tab-content"></div>
 </div>
+
+
+<script>
+    $(document).on('click', '.swap-btn', function () {
+
+        let btn = $(this);
+        btn.addClass('rotate');
+
+        // Get full selected data
+        let fromData = $('#from').select2('data');
+        let toData = $('#to').select2('data');
+
+        if (fromData.length && toData.length) {
+
+            let fromId = fromData[0].id;
+            let fromText = fromData[0].text;
+
+            let toId = toData[0].id;
+            let toText = toData[0].text;
+
+            // Manually set option (IMPORTANT for Select2 AJAX cases)
+            let newFromOption = new Option(toText, toId, true, true);
+            let newToOption = new Option(fromText, fromId, true, true);
+
+            $('#from').append(newFromOption).trigger('change');
+            $('#to').append(newToOption).trigger('change');
+        }
+
+        setTimeout(() => {
+            btn.removeClass('rotate');
+        }, 400);
+
+    });
+</script>
 
 <script>
     /* ==========================
