@@ -100,7 +100,8 @@
 .hotelOccupancyDetails{position:relative;}
 /* .hotelOccupancyDetails::after{content:"▼";font-size:12px;color:#555;position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;}
 */
- @media (max-width:768px){.multi-city-actions{flex-direction:column;gap:10px;}
+.hotel-btn-disabled{opacity:0.3;pointer-events:none;cursor:not-allowed;}
+@media (max-width:768px){.multi-city-actions{flex-direction:column;gap:10px;}
 .add-segment-btn{width:100%;justify-content:center;}
 
 
@@ -410,6 +411,7 @@
                                             </div>
                                         </div>
                                         <div class="child-ages-container mt-2"></div>
+                                        <p class="room-error-message text-danger mt-1" style="font-size: 11px; visibility: hidden;"></p>
                                     </div>
                                 </div>
                                 <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" id="addHotelRoomBtn">+ Add Room</button>
@@ -1244,11 +1246,13 @@
                                     </div>
                                 </div>
                                 <div class="child-ages-container mt-2"></div>
+                                <p class="room-error-message text-danger mt-1" style="font-size: 11px; display: none;"></p>
                             </div>
                         `;
                         $('#hotelRoomsContainer').append(roomHtml);
                         const roomBlock = $(`.room-block[data-room="${room.roomNum}"]`);
                         renderChildAges(roomBlock, idx);
+                        syncRoomOccupancyUI(roomBlock, idx);
                     });
                     updateHotelOccupancySummary();
                 }
@@ -1285,10 +1289,34 @@
             $('.hotelOccupancyDetails').html(`<i class="fa-solid fa-users"></i> ${summary}`);
         }
 
+        function syncRoomOccupancyUI(roomBlock, roomIndex) {
+            const room = hotelRooms[roomIndex];
+            if (!room) return;
+            const adultCount = room.adults;
+            const childCount = room.children.length;
+            const errorMsg = roomBlock.find('.room-error-message');
+
+            // Set button states using CSS classes to avoid browser layout shifts
+            roomBlock.find('.hotelIncrement[data-type="adult"]').toggleClass('hotel-btn-disabled', adultCount >= 4);
+            roomBlock.find('.hotelDecrement[data-type="adult"]').toggleClass('hotel-btn-disabled', adultCount <= 1);
+            roomBlock.find('.hotelIncrement[data-type="child"]').toggleClass('hotel-btn-disabled', childCount >= 3);
+            roomBlock.find('.hotelDecrement[data-type="child"]').toggleClass('hotel-btn-disabled', childCount <= 0);
+
+            // Handle validation messages - avoid display:none to prevent layout jitter
+            if (adultCount >= 4) {
+                errorMsg.text('Maximum 4 adults per room allowed.').css('visibility', 'visible').fadeIn(100);
+            } else if (childCount >= 3) {
+                errorMsg.text('Maximum 3 children per room allowed.').css('visibility', 'visible').fadeIn(100);
+            } else {
+                errorMsg.fadeOut(100, function() { $(this).css('visibility', 'hidden').text(''); });
+            }
+        }
+
         $(document).on('click', '.hotelIncrement, .hotelDecrement', function(e) {
             e.preventDefault();
+            e.stopPropagation(); // Keep dropdown open
             const roomBlock = $(this).closest('.room-block');
-            const roomIndex = roomBlock.data('room') - 1;
+            const roomIndex = parseInt(roomBlock.attr('data-room')) - 1;
             const type = $(this).data('type');
             const isIncrement = $(this).hasClass('hotelIncrement');
 
@@ -1300,13 +1328,13 @@
                 if (isIncrement && hotelRooms[roomIndex].children.length < 3) {
                     hotelRooms[roomIndex].children.push(8); // Default age
                     renderChildAges(roomBlock, roomIndex);
-                }
-                if (!isIncrement && hotelRooms[roomIndex].children.length > 0) {
+                } else if (!isIncrement && hotelRooms[roomIndex].children.length > 0) {
                     hotelRooms[roomIndex].children.pop();
                     renderChildAges(roomBlock, roomIndex);
                 }
                 roomBlock.find('.child-count').text(hotelRooms[roomIndex].children.length);
             }
+            syncRoomOccupancyUI(roomBlock, roomIndex);
             updateHotelOccupancySummary();
         });
 
@@ -1329,13 +1357,16 @@
             });
         }
 
-        $(document).on('change', '.child-age-select', function() {
+        $(document).on('change', '.child-age-select', function(e) {
+            e.stopPropagation(); // Prevent menu close from select interaction
             const roomIdx = $(this).data('room');
             const childIdx = $(this).data('child');
             hotelRooms[roomIdx].children[childIdx] = parseInt($(this).val());
         });
 
-        $('#addHotelRoomBtn').click(function() {
+        $('#addHotelRoomBtn').click(function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Keep dropdown open
             if (hotelRooms.length < 4) {
                 const roomNum = hotelRooms.length + 1;
                 hotelRooms.push({ roomNum, adults: 1, children: [] });
@@ -1362,14 +1393,17 @@
                             </div>
                         </div>
                         <div class="child-ages-container mt-2"></div>
+                        <p class="room-error-message text-danger mt-1" style="font-size: 11px; display: none;"></p>
                     </div>
                 `;
                 $('#hotelRoomsContainer').append(roomHtml);
+                syncRoomOccupancyUI($(`.room-block[data-room="${roomNum}"]`), hotelRooms.length - 1);
                 updateHotelOccupancySummary();
             }
         });
 
-        $(document).on('click', '.remove-room-btn', function() {
+        $(document).on('click', '.remove-room-btn', function(e) {
+            e.stopPropagation(); // Keep dropdown open
             const roomBlock = $(this).closest('.room-block');
             const roomNum = roomBlock.data('room');
             hotelRooms = hotelRooms.filter(r => r.roomNum !== roomNum);
@@ -1377,7 +1411,7 @@
             // Renumber
             $('#hotelRoomsContainer .room-block').each(function(idx) {
                 const newNum = idx + 1;
-                $(this).data('room', newNum);
+                $(this).attr('data-room', newNum);
                 $(this).find('h6').text(`Room ${newNum}`);
                 hotelRooms[idx].roomNum = newNum;
             });
@@ -1423,6 +1457,9 @@
 
         // Initialize from URL after all handlers and pickers are set up
         initializeHotelsFromURL();
+        
+        // Initial sync for standard Room 1
+        syncRoomOccupancyUI($('.room-block[data-room="1"]'), 0);
     });
 
     // date & years
