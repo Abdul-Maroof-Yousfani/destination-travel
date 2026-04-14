@@ -77,11 +77,11 @@ class HotelController extends Controller
         if (!is_array($hotelsArray)) {
             $hotelsArray = [$hotelsArray];
         }
-        
+
         $hotelsCollection = collect($hotelsArray);
         $perPage = 10;
         $currentPage = Paginator::resolveCurrentPage('page');
-        
+
         $pagedHotels = new LengthAwarePaginator(
             $hotelsCollection->forPage($currentPage, $perPage)->values(), // Add values() to reset keys
             $hotelsCollection->count(),

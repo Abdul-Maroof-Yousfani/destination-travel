@@ -157,6 +157,55 @@
     button.comb-hotl {
         font-size: 14px;
     }
+
+    .room-filter-bar {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .room-filter-inner {
+        padding: 20px;
+    }
+
+    .room-filter-bar .form-select {
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        padding: 10px 15px;
+        font-size: 14px;
+        background-color: #fff;
+    }
+
+    .room-filter-bar label {
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    #no-rooms-filter-msg {
+        background: #fff;
+        border: 2px dashed #e2e8f0;
+        border-radius: 20px;
+        padding: 60px 20px;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    #no-rooms-filter-msg i {
+        font-size: 16px;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    #no-rooms-filter-msg h5 {
+        font-weight: 700;
+        color: #1e293b;
+    }
 </style>
 <div class="booking-step-content" data-step="1">
     <!-- Hotel Header -->
@@ -212,7 +261,60 @@
     </div>
 
     <!-- Room Selection -->
-    <h4 class="room-options-title mb-4"><i class="fa-solid fa-bed"></i> Available Room Options</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="room-options-title m-0"><i class="fa-solid fa-bed"></i> Available Room Options</h4>
+        <div id="room-filter-toggle" class="btn btn-sm btn-light border ripple">
+            <i class="fa-solid fa-sliders me-1"></i> Filter Rooms
+        </div>
+    </div>
+
+    <!-- Room Filter Bar -->
+    <div id="room-filters-container" class="mb-4 room-filter-bar shadow-sm" style="display:none;">
+        <div class="room-filter-inner">
+            <div class="row g-3">
+            @php
+                $allBeds = [];
+                $allMeals = [];
+                $allRates = [];
+                foreach($hotel['rooms']['room'] ?? [] as $r) {
+                    if(isset($r['bedTypes']['bedType'])) $allBeds[] = $r['bedTypes']['bedType'];
+                    if(isset($r['meal'])) $allMeals[] = $r['meal'];
+                    if(isset($r['rateType'])) $allRates[] = $r['rateType'];
+                }
+                $allBeds = array_unique($allBeds);
+                $allMeals = array_unique($allMeals);
+                $allRates = array_unique($allRates);
+            @endphp
+            <div class="col-md-4">
+                <label class="small fw-bold text-muted mb-1">Bed Type</label>
+                <select class="form-select room-detail-filter" data-filter="bed-type">
+                    <option value="all">All Bed Types</option>
+                    @foreach($allBeds as $bed)
+                        <option value="{{ $bed }}">{{ preg_replace('/(?<!^)([A-Z])/', ' $1', $bed) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold text-muted mb-1">Meal Plan</label>
+                <select class="form-select room-detail-filter" data-filter="meal">
+                    <option value="all">All Meal Plans</option>
+                    @foreach($allMeals as $meal)
+                        <option value="{{ $meal }}">{{ $meal }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold text-muted mb-1">Rate Type</label>
+                <select class="form-select room-detail-filter" data-filter="rate">
+                    <option value="all">All Rate Types</option>
+                    @foreach($allRates as $rate)
+                        <option value="{{ $rate }}">{{ $rate }}</option>
+                    @endforeach
+                </select>
+            </div>
+            </div>
+        </div>
+    </div>
 
     @php
         $rooms = $hotel['rooms']['room'] ?? [];
@@ -268,7 +370,17 @@
             });
         @endphp
 
-        <div class="room-card mb-4 border shadow-sm rounded-4 overflow-hidden bg-white">
+        @php
+            // Extract attributes for filtering
+            $roomBeds = $roomGroup->pluck('bedTypes.bedType')->unique()->implode(',');
+            $roomMeals = $roomGroup->pluck('meal')->unique()->implode(',');
+            $roomRates = $roomGroup->pluck('rateType')->unique()->implode(',');
+        @endphp
+
+        <div class="room-card mb-4 border shadow-sm rounded-4 overflow-hidden bg-white" 
+             data-bed-type="{{ $roomBeds }}" 
+             data-meal="{{ $roomMeals }}" 
+             data-rate="{{ $roomRates }}">
             <div class="row g-0">
                 <div class="col-md-3 bg-light d-flex align-items-center justify-content-center border-end"
                     style="min-height: 200px;">
@@ -434,6 +546,24 @@
                 or search parameters.</p>
         </div>
     @endforelse
+
+    <!-- No rooms found after filter -->
+    <div id="no-rooms-filter-msg" style="display:none; margin-top: 20px;">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="fa-solid fa-filter-circle-xmark fa-4x text-muted" style="opacity: 0.3;"></i>
+                </div>
+                <h5 class="fw-bold text-dark">No Matching Rooms Found</h5>
+                <p class="text-muted mx-auto mb-4" style="max-width: 400px;">
+                    We couldn't find any rooms matching your selected filters. Try resetting the filters to see all available options.
+                </p>
+                <button class="btn btn-primary rounded-pill px-5 py-2 fw-bold" onclick="resetRoomFilters()">
+                    <i class="fa-solid fa-rotate-left mb-0"></i> Reset Filters
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -450,4 +580,45 @@
             );
         });
     });
+
+    // Room Level Filtering logic
+    $(document).on('click', '#room-filter-toggle', function() {
+        $('#room-filters-container').stop().slideToggle(400);
+    });
+
+    $(document).on('change', '.room-detail-filter', function() {
+        var bed = $('[data-filter="bed-type"]').val();
+        var meal = $('[data-filter="meal"]').val();
+        var rate = $('[data-filter="rate"]').val();
+
+        $('.room-card').each(function() {
+            var $card = $(this);
+            var cardBeds = $card.attr('data-bed-type').split(',');
+            var cardMeals = $card.attr('data-meal').split(',');
+            var cardRates = $card.attr('data-rate').split(',');
+
+            var matchBed = (bed === 'all' || cardBeds.includes(bed));
+            var matchMeal = (meal === 'all' || cardMeals.includes(meal));
+            var matchRate = (rate === 'all' || cardRates.includes(rate));
+
+            if (matchBed && matchMeal && matchRate) {
+                $card.show(300);
+            } else {
+                $card.hide(300);
+            }
+        });
+        
+        // Handle "No rooms found after filter"
+        setTimeout(function() {
+            if ($('.room-card:visible').length === 0) {
+                $('#no-rooms-filter-msg').fadeIn(300);
+            } else {
+                $('#no-rooms-filter-msg').fadeOut(100);
+            }
+        }, 350);
+    });
+
+    window.resetRoomFilters = function() {
+        $('.room-detail-filter').val('all').trigger('change');
+    };
 </script>
