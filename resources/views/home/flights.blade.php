@@ -270,12 +270,17 @@
                         </div>
                     </div>
                     @elseif(isset($data['hotels']))
-                    <div class="row">
-                        <div class="col-12">
-                            <h3 class="mb-4" style="color: #1a1a1a; font-weight: 700; font-family: 'Poppins', sans-serif;">
+                    <div class="row mt-4">
+                        <div class="col-12 d-flex justify-content-between align-items-center mb-4">
+                            <h3 style="color: #1a1a1a; font-weight: 800; font-family: 'Poppins', sans-serif; margin: 0;">
                                 <i class="fa-solid fa-hotel me-2" style="color: #00788a;"></i> 
                                 Hotels in {{ $request['destination_name'] ?? 'your destination' }}
                             </h3>
+                            @if(isset($data['hotels']['hotel']) && $data['hotels']['hotel'] instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                                <span class="badge" style="background: #00788a; padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: 14px;">
+                                    {{ $data['hotels']['hotel']->total() }} Hotels Found
+                                </span>
+                            @endif
                         </div>
                     </div>
                     @endif

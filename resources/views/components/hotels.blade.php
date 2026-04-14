@@ -15,10 +15,11 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
         margin-bottom: 25px;
         overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid #edf0f5;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: 1px solid #f0f2f5;
         display: flex;
         flex-direction: row;
+        position: relative;
     }
 
     @media (max-width: 768px) {
@@ -28,8 +29,9 @@
     }
 
     .hotel-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        border-color: rgba(0, 120, 138, 0.2);
     }
 
     .hotel-image-wrapper {
@@ -37,6 +39,7 @@
         height: 220px;
         position: relative;
         flex-shrink: 0;
+        overflow: hidden;
     }
 
     @media (max-width: 768px) {
@@ -50,6 +53,11 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    .hotel-card:hover .hotel-image {
+        transform: scale(1.1);
     }
 
     .hotel-rating-badge {
@@ -83,6 +91,12 @@
         color: #1a1a1a;
         margin-bottom: 6px;
         line-height: 1.2;
+        font-family: 'Poppins', sans-serif;
+        transition: color 0.3s ease;
+    }
+
+    .hotel-card:hover .hotel-name {
+        color: #00788a;
     }
 
     .hotel-location {
@@ -91,6 +105,12 @@
         display: flex;
         align-items: center;
         gap: 6px;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .hotel-location:hover {
+        color: #00788a;
     }
 
     .hotel-location i {
@@ -101,6 +121,8 @@
         color: #ffc107;
         margin-bottom: 15px;
         font-size: 14px;
+        display: flex;
+        gap: 2px;
     }
 
     .hotel-footer {
@@ -145,12 +167,14 @@
         transition: all 0.3s ease;
         text-decoration: none;
         display: inline-block;
+        box-shadow: 0 4px 15px rgba(0, 120, 138, 0.2);
     }
 
     .hotel-booking-btn:hover {
-        background-color: #005f6d;
+        background: linear-gradient(135deg, #008fa3 0%, #00788a 100%);
         color: #fff;
-        transform: scale(1.02);
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(0, 120, 138, 0.3);
     }
 
     .no-hotel-results {
@@ -162,9 +186,57 @@
     }
 
     .no-hotel-results i {
-        font-size: 48px;
-        color: #cbd5e0;
-        margin-bottom: 20px;
+        font-size: 64px;
+        color: #cbd5e1;
+        margin-bottom: 25px;
+    }
+
+    /* Paginator Styling */
+    .hotels-pagination {
+        margin-top: 40px;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .hotels-pagination .pagination {
+        gap: 8px;
+    }
+
+    .hotels-pagination .page-item .page-link {
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-weight: 600;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+
+    .hotels-pagination .page-item.active .page-link {
+        background-color: #00788a;
+        border-color: #00788a;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 120, 138, 0.25);
+    }
+
+    .hotels-pagination .page-item:not(.active):hover .page-link {
+        background-color: #f8fafc;
+        border-color: #cbd5e1;
+        color: #00788a;
+    }
+
+    .hotel-type-tag {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(4px);
     }
 </style>
 
@@ -175,7 +247,7 @@
                 $info = $hotel['hotelInfo'] ?? [];
                 $name = $info['name'] ?? 'Hotel Name Not Available';
                 $image = (!empty($info['image'])) ? $info['image'] : 'https://placehold.co/600x400?text=Hotel+Image+Coming+Soon';
-                $rating = (int)($info['starRating'] ?? 0);
+                $rating = (float)($info['starRating'] ?? 0);
                 $address = $info['add1'] ?? '';
                 $city = $info['city'] ?? '';
                 $price = $hotel['minPrice'] ?? 'N/A';
@@ -183,7 +255,7 @@
                 $lat = $info['lat'] ?? '';
                 $lng = $info['lon'] ?? '';
                 
-                // Get session ID and format rooms from the results or search request
+                // Get session ID from the results
                 $sessionId = $hotelsData['generalInfo']['sessionId'] ?? '';
                 
                 // Helper to format rooms exactly as the API expects
@@ -200,11 +272,11 @@
                     ];
                 }
             @endphp
-            <div class="hotel-card">
+            <div class="hotel-card wow fadeInUp" data-wow-delay="{{ $loop->index * 0.05 }}s">
                 <div class="hotel-image-wrapper">
                     <img src="{{ $image }}" alt="{{ $name }}" class="hotel-image" onerror="this.src='https://placehold.co/600x400?text=Hotel+Image'">
                     @if($rating > 0)
-                        <div class="hotel-rating-badge">{{ $rating }}.0 <i class="fa-solid fa-star"></i></div>
+                        <div class="hotel-rating-badge">{{ number_format($rating, 1) }} <i class="fa-solid fa-star"></i></div>
                     @endif
                 </div>
                 <div class="hotel-content">
@@ -217,13 +289,13 @@
                         </div>
                         <a href="https://www.google.com/maps?q={{ $lat }},{{ $lng }}" target="_blank" class="hotel-location">
                             <i class="fa-solid fa-location-dot"></i>
-                            {{ $address }}{{ $address && $city ? ', ' : '' }}{{ $city }}
+                            <span>{{ $address }}{{ $address && $city ? ', ' : '' }}{{ $city }}</span>
                         </a>
                     </div>
                     
                     <div class="hotel-footer">
                         <div class="hotel-price-box">
-                            <span class="hotel-price-label">Starting from</span>
+                            <span class="hotel-price-label">Price per night</span>
                             <div class="hotel-price-value">
                                 <span class="hotel-currency">{{ $currency }}</span> {{ is_numeric($price) ? number_format($price, 2) : $price }}
                             </div>
@@ -240,12 +312,20 @@
                             ]));
                         @endphp
                         <button data-url="{{ $bookingUrl }}" data-hotel-id="{{ $hotel['code'] }}" data-session-id="{{ $sessionId }}" data-hotel-name="{{ $name }}" data-hotel-address="{{ $address }}" data-hotel-city="{{ $city }}" data-hotel-image="{{ !empty($info['image']) ? $info['image'] : '' }}" data-hotel-rating="{{ $rating }}" class="hotel-booking-btn">
-                            View Details
+                            View Details <i class="fa-solid fa-arrow-right-long ms-1"></i>
                         </button>
                     </div>
                 </div>
             </div>
         @endforeach
+
+        {{-- Pagination Links --}}
+        @if($hotels instanceof \Illuminate\Pagination\LengthAwarePaginator)
+            <div class="hotels-pagination">
+                {!! $hotels->links() !!}
+            </div>
+        @endif
+        
     @else
         <div class="no-hotel-results">
             <i class="fa-solid fa-hotel"></i>

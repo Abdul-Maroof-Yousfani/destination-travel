@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+
 class HotelController extends Controller
 {
     protected $tassProService;
@@ -68,7 +71,27 @@ class HotelController extends Controller
         if (!$results) {
             return back()->with('error', 'Unable to fetch hotels at this time.');
         }
-        // dd($request->all(), $results);
+
+        // Manual Pagination logic
+        $hotelsArray = $results['hotels']['hotel'] ?? [];
+        if (!is_array($hotelsArray)) {
+            $hotelsArray = [$hotelsArray];
+        }
+        
+        $hotelsCollection = collect($hotelsArray);
+        $perPage = 10;
+        $currentPage = Paginator::resolveCurrentPage('page');
+        
+        $pagedHotels = new LengthAwarePaginator(
+            $hotelsCollection->forPage($currentPage, $perPage)->values(), // Add values() to reset keys
+            $hotelsCollection->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $results['hotels']['hotel'] = $pagedHotels;
+
         return view('home.flights', [
             'request'     => $request,
             'data'        => $results,
