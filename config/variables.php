@@ -8,7 +8,7 @@ return [
     'tax_code' => 'PKR',
     'contact' => [
         'name' => env('AGENCY_NAME'),
-        'phone' => '+92 3232004690',
+        'phone' => '+92 1234567890',
         'address' => 'Office No. 1113, Plot 111, KS Trade Tower, Shahrah-e-Liaquat, New Chali Road, Karachi, Pakistan',
     ],
     'setting' => [

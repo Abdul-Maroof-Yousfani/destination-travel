@@ -69,10 +69,10 @@
                                     </div>
                                 </a>
                             </li>
-                            <li><a href="tel:+923232004690">
+                            <li><a href="tel:{{ config('variables.contact.phone') }}">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-brands fa-whatsapp"></i></div>
-                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>+923232004690</strong></div>
+                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>{{ config('variables.contact.phone') }}</strong></div>
                                     </div>
                                 </a>
                             </li>
@@ -99,10 +99,10 @@
                                     </div>
                                 </a>
                             </li>
-                            <li><a href="tel:+923232004690">
+                            <li><a href="tel:{{ config('variables.contact.phone') }}">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-brands fa-whatsapp"></i></div>
-                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>+923232004690</strong></div>
+                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>{{ config('variables.contact.phone') }}</strong></div>
                                     </div>
                                 </a>
                             </li>

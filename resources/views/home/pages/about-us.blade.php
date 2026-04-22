@@ -113,11 +113,11 @@
                 <div class="support-contact">
                     <div class="contact-item">
                        <div class="icon-head"><i class="fa-solid fa-phone"></i></div>
-                        <a href="tel:92 01234567 0"><strong>(021) 32460260–61</strong></a>
+                        <a href="tel:{{ config('variables.contact.phone') }}"><strong>{{ config('variables.contact.phone') }}</strong></a>
                     </div>
                     <div class="contact-item">
                         <div class="icon-head"><i class="fa-brands fa-whatsapp"></i></div>
-                       <a  href="tel:92 01234567 0"> <strong>+923232004690</strong></a>
+                       <a  href="tel:{{ config('variables.contact.phone') }}"> <strong>{{ config('variables.contact.phone') }}</strong></a>
                     </div>
                 </div>
             </div>

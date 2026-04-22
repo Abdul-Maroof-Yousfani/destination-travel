@@ -58,8 +58,8 @@
                         <h2>GET IN TOUCH</h2>
                         <h4>FOR MORE INFORMATION</h4>
                         <p>We’re here to help. Contact us for expert guidance and assistance</p>
-                        <a href="tel:+923232004690"><h3><i class="fa-solid fa-phone"></i> +923232004690</h3></a>
-                        <a href="https://wa.me/923232004690" target="_blank"><span>whatsapp 24/7</span><h3><i class="fa-brands fa-whatsapp"></i> +923232004690</h3></a>
+                        <a href="tel:{{ config('variables.contact.phone') }}"><h3><i class="fa-solid fa-phone"></i> {{ config('variables.contact.phone') }}</h3></a>
+                        <a href="https://wa.me/{{ config('variables.contact.phone') }}" target="_blank"><span>whatsapp 24/7</span><h3><i class="fa-brands fa-whatsapp"></i> {{ config('variables.contact.phone') }}</h3></a>
                         <a href="mailto:support@edestination.com"><h3><i class="fa-solid fa-envelope"></i> support@edestination.com</h3></a>
                         <h3><i class="fa-solid fa-map-marker"></i> Office No. 1113, Plot 111, KS Trade Tower, Shahrah-e-Liaquat, New Chali Road, Karachi, Pakistan</h3>
                     </div>

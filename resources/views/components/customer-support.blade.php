@@ -2,12 +2,12 @@
     <div class="support-box">
         <h4>24/7 Customer Support</h4>
         <div class="support-item">
-            <a href="tel:+92 3232004690"> <i class="fa fa-phone"></i>
-            <span>(021) 3232004690</span></a>
+            <a href="tel:{{ config('variables.contact.phone') }}"> <i class="fa fa-phone"></i>
+            <span>{{ config('variables.contact.phone') }}</span></a>
         </div>
         <div class="support-item">
-            <a href="tel:+92 3232004690"> <i class="fa fa-mobile"></i>
-            <span>+92 3232004690</span></a>
+            <a href="tel:{{ config('variables.contact.phone') }}"> <i class="fa fa-mobile"></i>
+            <span>{{ config('variables.contact.phone') }}</span></a>
         </div>
         <div class="support-item">
             <a href="mailto:support@edestination.com"> <i class="fa fa-envelope"></i>
