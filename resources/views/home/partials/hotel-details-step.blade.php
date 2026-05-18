@@ -128,7 +128,7 @@ button.comb-hotl{font-size:14px;}
         <div class="row mt-5 align-items-start hotel-info-section">
 
             <!-- About Hotel -->
-            <div class="col-lg-8 mb-4 mb-lg-0">
+            <div class="col-lg-6 mb-4 mb-lg-0">
                 <div class="about-hotel-box">
                     <h4 class="section-title">About the Hotel</h4>
 
@@ -139,7 +139,7 @@ button.comb-hotl{font-size:14px;}
             </div>
 
             <!-- Amenities -->
-            <div class="col-lg-4">
+            <div class="col-lg-6">
                 <div class="amenities-box">
                     <h4 class="section-title">Hotel Amenities</h4>
 
