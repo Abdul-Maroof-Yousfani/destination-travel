@@ -61,6 +61,7 @@ button.comb-hotl{font-size:14px;}
 /* Tablet */
 @media (max-width:991px){.about-hotel-box,.amenities-box{padding:22px;}
 .section-title{font-size:22px;}
+.hotel-gallery-single.mt-4 img{width:inherit !important;height:inherit !important;}
 }
 /* Mobile */
 @media (max-width:576px){.amenities-grid{grid-template-columns:1fr;}
@@ -70,12 +71,12 @@ button.comb-hotl{font-size:14px;}
 .amenity-item{padding:12px;}
 .amenity-icon{width:40px;height:40px;min-width:40px;font-size:16px;}
 .amenity-item span{font-size:14px;}
+.hotel-gallery-single.mt-4 img{width:inherit !important;height:inherit !important;}
+
 }
 
-.hotel-gallery-single.mt-4 img {
-    width: 500px !important;
-    height: 500px !important;
-}
+.hotel-gallery-single.mt-4 img{width:500px !important;height:500px !important;}
+
 </style>
 <div class="booking-step-content" data-step="1">
     <!-- Hotel Header -->
