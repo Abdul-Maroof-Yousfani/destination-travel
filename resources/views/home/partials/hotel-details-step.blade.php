@@ -72,7 +72,10 @@ button.comb-hotl{font-size:14px;}
 .amenity-item span{font-size:14px;}
 }
 
-
+.hotel-gallery-single.mt-4 img {
+    width: 500px !important;
+    height: 500px !important;
+}
 </style>
 <div class="booking-step-content" data-step="1">
     <!-- Hotel Header -->
