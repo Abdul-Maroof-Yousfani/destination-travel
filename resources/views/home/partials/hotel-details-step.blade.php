@@ -42,68 +42,34 @@ button.comb-hotl{font-size:14px;}
 
 
 
-.amenities-wrapper{
-    margin-top: 10px;
+.hotel-info-section{padding-top:10px;}
+/* Section Titles */
+.section-title{font-size:24px;font-weight:700;margin-bottom:20px;color:#111827;}
+/* About Box */
+.about-hotel-box{background:#fff;border-radius:18px;padding:28px;border:1px solid #ececec;height:100%;}
+.hotel-description{color:#6b7280;line-height:1.9;font-size:16px;margin:0;}
+/* Amenities Box */
+.amenities-box{background:#fff;border-radius:18px;padding:28px;border:1px solid #ececec;}
+/* Grid */
+.amenities-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+/* Item */
+.amenity-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f9fafb;border:1px solid #f0f0f0;transition:all 0.3s ease;}
+.amenity-item:hover{transform:translateY(-2px);border-color:#2563eb;background:#fff;box-shadow:0 8px 18px rgba(0,0,0,0.05);}
+/* Icon */
+.amenity-icon{width:46px;height:46px;min-width:46px;border-radius:12px;background:rgba(37,99,235,0.1);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.amenity-item span{font-size:15px;font-weight:600;color:#1f2937;line-height:1.4;}
+/* Tablet */
+@media (max-width:991px){.about-hotel-box,.amenities-box{padding:22px;}
+.section-title{font-size:22px;}
 }
-
-.amenity-card{
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #fff;
-    border: 1px solid #e8e8e8;
-    border-radius: 14px;
-    padding: 14px 16px;
-    height: 100%;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-}
-
-.amenity-card:hover{
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-    border-color: #0d6efd;
-}
-
-.amenity-card i{
-    width: 42px;
-    height: 42px;
-    min-width: 42px;
-    border-radius: 12px;
-    background: rgba(13, 110, 253, 0.1);
-    color: #0d6efd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-}
-
-.amenity-card span{
-    font-size: 15px;
-    font-weight: 500;
-    color: #222;
-    line-height: 1.4;
-}
-
-/* Mobile Responsive */
-@media (max-width: 576px){
-
-    .amenity-card{
-        padding: 12px;
-        gap: 10px;
-        border-radius: 12px;
-    }
-
-    .amenity-card i{
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        font-size: 15px;
-    }
-
-    .amenity-card span{
-        font-size: 14px;
-    }
+/* Mobile */
+@media (max-width:576px){.amenities-grid{grid-template-columns:1fr;}
+.about-hotel-box,.amenities-box{padding:18px;border-radius:14px;}
+.section-title{font-size:20px;}
+.hotel-description{font-size:14px;line-height:1.8;}
+.amenity-item{padding:12px;}
+.amenity-icon{width:40px;height:40px;min-width:40px;font-size:16px;}
+.amenity-item span{font-size:14px;}
 }
 
 
@@ -138,7 +104,7 @@ button.comb-hotl{font-size:14px;}
                 onerror="this.src='https://placehold.co/1200x600?text=Hotel+Image'">
         </div>
 
-        <div class="row mt-4">
+        <!-- <div class="row mt-4">
             <div class="col-lg-8">
                 <h5 class="fw-bold mb-3">About the Hotel</h5>
                 <p class="text-muted" style="line-height: 1.7;">
@@ -147,7 +113,7 @@ button.comb-hotl{font-size:14px;}
             </div>
             <div class="col-lg-4">
                 <h5 class="fw-bold mb-3">Hotel Amenities</h5>
-                <!-- <div class="row g-2">
+                <div class="row g-2">
                     <div class="col-6"><span class="amenity-badge w-100 p-2"><i class="fa-solid fa-wifi me-2"></i> Free
                             WiFi</span></div>
                     <div class="col-6"><span class="amenity-badge w-100 p-2"><i class="fa-solid fa-p me-2"></i>
@@ -156,37 +122,61 @@ button.comb-hotl{font-size:14px;}
                             Front Desk</span></div>
                     <div class="col-6"><span class="amenity-badge w-100 p-2"><i class="fa-solid fa-snowflake me-2"></i>
                             AC</span></div>
-                </div> -->
-                <div class="row g-3 amenities-wrapper">
-                    <div class="col-6 col-md-4">
-                        <div class="amenity-card">
-                            <i class="fa-solid fa-wifi"></i>
+                </div>
+            </div>
+        </div> -->
+        <div class="row mt-5 align-items-start hotel-info-section">
+
+            <!-- About Hotel -->
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <div class="about-hotel-box">
+                    <h4 class="section-title">About the Hotel</h4>
+
+                    <p class="hotel-description">
+                        {{ $hotel['hotelInfo']['description'] ?: "Located in the heart of {$hotel['hotelInfo']['city']}, {$hotel['hotelInfo']['name']} offers a premium experience with comfortable accommodations and world-class service." }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Amenities -->
+            <div class="col-lg-4">
+                <div class="amenities-box">
+                    <h4 class="section-title">Hotel Amenities</h4>
+
+                    <div class="amenities-grid">
+
+                        <div class="amenity-item">
+                            <div class="amenity-icon">
+                                <i class="fa-solid fa-wifi"></i>
+                            </div>
                             <span>Free WiFi</span>
                         </div>
-                    </div>
 
-                    <div class="col-6 col-md-4">
-                        <div class="amenity-card">
-                            <i class="fa-solid fa-square-parking"></i>
+                        <div class="amenity-item">
+                            <div class="amenity-icon">
+                                <i class="fa-solid fa-square-parking"></i>
+                            </div>
                             <span>Parking</span>
                         </div>
-                    </div>
 
-                    <div class="col-6 col-md-4">
-                        <div class="amenity-card">
-                            <i class="fa-solid fa-clock"></i>
+                        <div class="amenity-item">
+                            <div class="amenity-icon">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
                             <span>24h Front Desk</span>
                         </div>
-                    </div>
 
-                    <div class="col-6 col-md-4">
-                        <div class="amenity-card">
-                            <i class="fa-solid fa-snowflake"></i>
+                        <div class="amenity-item">
+                            <div class="amenity-icon">
+                                <i class="fa-solid fa-snowflake"></i>
+                            </div>
                             <span>Air Conditioning</span>
                         </div>
+
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
