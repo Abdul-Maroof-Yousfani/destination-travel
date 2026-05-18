@@ -5,207 +5,108 @@
 @endphp
 
 <style>
-    .btn-outline-primary {
-        --bs-btn-color: #127f9f;
-        --bs-btn-border-color: #127f9f;
-        --bs-btn-hover-color: #fff;
-        --bs-btn-hover-bg: #127f9f;
-        --bs-btn-hover-border-color: #127f9f;
-        --bs-btn-focus-shadow-rgb: 13, 110, 253;
-        --bs-btn-active-color: #fff;
-        --bs-btn-active-bg: #127f9f;
-        --bs-btn-active-border-color: #127f9f;
-        --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-        --bs-btn-disabled-color: #127f9f;
-        --bs-btn-disabled-bg: transparent;
-        --bs-btn-disabled-border-color: #127f9f;
-        --bs-gradient: none;
+ .btn-outline-primary{--bs-btn-color:#127f9f;--bs-btn-border-color:#127f9f;--bs-btn-hover-color:#fff;--bs-btn-hover-bg:#127f9f;--bs-btn-hover-border-color:#127f9f;--bs-btn-focus-shadow-rgb:13,110,253;--bs-btn-active-color:#fff;--bs-btn-active-bg:#127f9f;--bs-btn-active-border-color:#127f9f;--bs-btn-active-shadow:inset 0 3px 5px rgba(0,0,0,0.125);--bs-btn-disabled-color:#127f9f;--bs-btn-disabled-bg:transparent;--bs-btn-disabled-border-color:#127f9f;--bs-gradient:none;}
+.btn-outline-primary{color:#127f9f;border-color:#127f9f;}
+.btn-outline-primary:hover{color:#fff;background-color:#127f9f;border-color:#127f9f;}
+.btn-outline-primary:active{color:#fff;background-color:#127f9f;border-color:#127f9f;}
+.btn-outline-primary:focus{color:#fff;background-color:#127f9f;border-color:#127f9f;}
+.btn-outline-primary:disabled{color:#fff;background-color:#127f9f;border-color:#127f9f;}
+.btn-outline-primary:disabled:hover{color:#fff;background-color:#127f9f;border-color:#127f9f;}
+.btn-outline-primary:disabled:active{color:#fff;background-color:#127f9f;border-color:#127f9f;}
+.btn-outline-primary:disabled:focus{color:#fff;background-color:#127f9f;border-color:#127f9f;}
+.hotel-name-large{margin-bottom:6px;}
+.hotel-stars-large{margin-bottom:10px;}
+.col-6{margin-bottom:16px;}
+.bg-primary{background-color:#00788a !important;}
+.badge{color:#fff;}
+.btn-primary{color:#fff;background-color:#00788a;border-color:#00788a;}
+.btn-primary:hover{color:#fff;background-color:#00788a;border-color:#00788a;}
+.btn-primary:active{color:#fff;background-color:#00788a;border-color:#00788a;}
+.btn-primary:focus{color:#fff;background-color:#00788a;border-color:#00788a;}
+.btn-primary:disabled{color:#fff;background-color:#00788a;border-color:#00788a;}
+.btn-primary:disabled:hover{color:#fff;background-color:#00788a;border-color:#00788a;}
+.btn-primary:disabled:active{color:#fff;background-color:#00788a;border-color:#00788a;}
+.btn-primary:disabled:focus{color:#fff;background-color:#00788a;border-color:#00788a;}
+.text-primary{color:#00788a !important;}
+h4.heading-hotl{color:#000 !important;font-size:18px;font-weight:800;margin-bottom:10px;}
+h6.parag-hotl{margin-bottom:5px !important;}
+button.comb-hotl{font-size:14px;}
+.room-filter-bar{background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;}
+.room-filter-inner{padding:20px;}
+.room-filter-bar .form-select{border-radius:10px;border:1px solid #cbd5e1;padding:10px 15px;font-size:14px;background-color:#fff;}
+.room-filter-bar label{color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:block;}
+#no-rooms-filter-msg{background:#fff;border:2px dashed #e2e8f0;border-radius:20px;padding:60px 20px;text-align:center;margin-top:20px;}
+#no-rooms-filter-msg i{font-size:16px;color:#cbd5e1;margin-bottom:20px;}
+#no-rooms-filter-msg h5{font-weight:700;color:#1e293b;}
+
+
+
+
+.amenities-wrapper{
+    margin-top: 10px;
+}
+
+.amenity-card{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 14px;
+    padding: 14px 16px;
+    height: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.amenity-card:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    border-color: #0d6efd;
+}
+
+.amenity-card i{
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 12px;
+    background: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.amenity-card span{
+    font-size: 15px;
+    font-weight: 500;
+    color: #222;
+    line-height: 1.4;
+}
+
+/* Mobile Responsive */
+@media (max-width: 576px){
+
+    .amenity-card{
+        padding: 12px;
+        gap: 10px;
+        border-radius: 12px;
     }
 
-    .btn-outline-primary {
-        color: #127f9f;
-        border-color: #127f9f;
+    .amenity-card i{
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        font-size: 15px;
     }
 
-    .btn-outline-primary:hover {
-        color: #fff;
-        background-color: #127f9f;
-        border-color: #127f9f;
-    }
-
-    .btn-outline-primary:active {
-        color: #fff;
-        background-color: #127f9f;
-        border-color: #127f9f;
-    }
-
-    .btn-outline-primary:focus {
-        color: #fff;
-        background-color: #127f9f;
-        border-color: #127f9f;
-    }
-
-    .btn-outline-primary:disabled {
-        color: #fff;
-        background-color: #127f9f;
-        border-color: #127f9f;
-    }
-
-    .btn-outline-primary:disabled:hover {
-        color: #fff;
-        background-color: #127f9f;
-        border-color: #127f9f;
-    }
-
-    .btn-outline-primary:disabled:active {
-        color: #fff;
-        background-color: #127f9f;
-        border-color: #127f9f;
-    }
-
-    .btn-outline-primary:disabled:focus {
-        color: #fff;
-        background-color: #127f9f;
-        border-color: #127f9f;
-    }
-
-    .hotel-name-large {
-        margin-bottom: 6px;
-    }
-
-    .hotel-stars-large {
-        margin-bottom: 10px;
-    }
-
-    .col-6 {
-
-        margin-bottom: 16px;
-    }
-
-    .bg-primary {
-        background-color: #00788a !important;
-    }
-
-    .badge {
-
-        color: #fff;
-    }
-
-    .btn-primary {
-        color: #fff;
-        background-color: #00788a;
-        border-color: #00788a;
-    }
-
-    .btn-primary:hover {
-        color: #fff;
-        background-color: #00788a;
-        border-color: #00788a;
-    }
-
-    .btn-primary:active {
-        color: #fff;
-        background-color: #00788a;
-        border-color: #00788a;
-    }
-
-    .btn-primary:focus {
-        color: #fff;
-        background-color: #00788a;
-        border-color: #00788a;
-    }
-
-    .btn-primary:disabled {
-        color: #fff;
-        background-color: #00788a;
-        border-color: #00788a;
-    }
-
-    .btn-primary:disabled:hover {
-        color: #fff;
-        background-color: #00788a;
-        border-color: #00788a;
-    }
-
-    .btn-primary:disabled:active {
-        color: #fff;
-        background-color: #00788a;
-        border-color: #00788a;
-    }
-
-    .btn-primary:disabled:focus {
-        color: #fff;
-        background-color: #00788a;
-        border-color: #00788a;
-    }
-
-    .text-primary {
-        color: #00788a !important;
-    }
-
-    h4.heading-hotl {
-        color: #000 !important;
-        font-size: 18px;
-        font-weight: 800;
-        margin-bottom: 10px;
-    }
-
-    h6.parag-hotl {
-        margin-bottom: 5px !important;
-    }
-
-    button.comb-hotl {
+    .amenity-card span{
         font-size: 14px;
     }
+}
 
-    .room-filter-bar {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        overflow: hidden;
-    }
 
-    .room-filter-inner {
-        padding: 20px;
-    }
-
-    .room-filter-bar .form-select {
-        border-radius: 10px;
-        border: 1px solid #cbd5e1;
-        padding: 10px 15px;
-        font-size: 14px;
-        background-color: #fff;
-    }
-
-    .room-filter-bar label {
-        color: #64748b;
-        font-size: 12px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
-        display: block;
-    }
-
-    #no-rooms-filter-msg {
-        background: #fff;
-        border: 2px dashed #e2e8f0;
-        border-radius: 20px;
-        padding: 60px 20px;
-        text-align: center;
-        margin-top: 20px;
-    }
-
-    #no-rooms-filter-msg i {
-        font-size: 16px;
-        color: #cbd5e1;
-        margin-bottom: 20px;
-    }
-
-    #no-rooms-filter-msg h5 {
-        font-weight: 700;
-        color: #1e293b;
-    }
 </style>
 <div class="booking-step-content" data-step="1">
     <!-- Hotel Header -->
@@ -246,7 +147,7 @@
             </div>
             <div class="col-lg-4">
                 <h5 class="fw-bold mb-3">Hotel Amenities</h5>
-                <div class="row g-2">
+                <!-- <div class="row g-2">
                     <div class="col-6"><span class="amenity-badge w-100 p-2"><i class="fa-solid fa-wifi me-2"></i> Free
                             WiFi</span></div>
                     <div class="col-6"><span class="amenity-badge w-100 p-2"><i class="fa-solid fa-p me-2"></i>
@@ -255,6 +156,35 @@
                             Front Desk</span></div>
                     <div class="col-6"><span class="amenity-badge w-100 p-2"><i class="fa-solid fa-snowflake me-2"></i>
                             AC</span></div>
+                </div> -->
+                <div class="row g-3 amenities-wrapper">
+                    <div class="col-6 col-md-4">
+                        <div class="amenity-card">
+                            <i class="fa-solid fa-wifi"></i>
+                            <span>Free WiFi</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-4">
+                        <div class="amenity-card">
+                            <i class="fa-solid fa-square-parking"></i>
+                            <span>Parking</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-4">
+                        <div class="amenity-card">
+                            <i class="fa-solid fa-clock"></i>
+                            <span>24h Front Desk</span>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-4">
+                        <div class="amenity-card">
+                            <i class="fa-solid fa-snowflake"></i>
+                            <span>Air Conditioning</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
