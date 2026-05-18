@@ -54,9 +54,9 @@ button.comb-hotl{font-size:14px;}
 .amenities-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
 /* Item */
 .amenity-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:#f9fafb;border:1px solid #f0f0f0;transition:all 0.3s ease;}
-.amenity-item:hover{transform:translateY(-2px);border-color:#2563eb;background:#fff;box-shadow:0 8px 18px rgba(0,0,0,0.05);}
+.amenity-item:hover{transform:translateY(-2px);border-color:#00788a;background:#fff;box-shadow:0 8px 18px rgba(0,0,0,0.05);}
 /* Icon */
-.amenity-icon{width:46px;height:46px;min-width:46px;border-radius:12px;background:rgba(37,99,235,0.1);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.amenity-icon{width:46px;height:46px;min-width:46px;border-radius:12px;background:rgba(37,99,235,0.1);color:#00788a;display:flex;align-items:center;justify-content:center;font-size:18px;}
 .amenity-item span{font-size:15px;font-weight:600;color:#1f2937;line-height:1.4;}
 /* Tablet */
 @media (max-width:991px){.about-hotel-box,.amenities-box{padding:22px;}
