@@ -170,57 +170,11 @@
             width: 100%;
         }
 
-        /* Flow Loader Overlay */
-        .flow-loader-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(4px);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        .flow-spinner {
-            width: 60px;
-            height: 60px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #00788a;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .loader-text {
-            font-weight: 700;
-            color: #00788a;
-            letter-spacing: 1px;
-        }
     </style>
 @endsection
 
 @section('content')
     <div class="booking-flow-container">
-        <!-- Full Screen Loader -->
-        <div class="flow-loader-overlay" id="flow-loader">
-            <div class="flow-spinner"></div>
-            <div class="loader-text">PROCESSING...</div>
-        </div>
         <div class="container">
             <!-- Stepper -->
             <div class="stepper">
@@ -390,14 +344,18 @@
                     $('#stepper-progress').css('width', `${progress}%`);
                 }
 
-                showLoading() {
-                    $('#flow-loader').css('display', 'flex');
+                showLoading(text = 'Processing') {
+                    if (typeof window.showLoader === 'function') {
+                        window.showLoader(text);
+                    }
                     $('#actual-content').addClass('opacity-50');
                     $('#flow-skeleton').removeClass('d-none');
                 }
 
                 hideLoading() {
-                    $('#flow-loader').hide();
+                    if (typeof window.hideLoader === 'function') {
+                        window.hideLoader();
+                    }
                     $('#actual-content').removeClass('opacity-50');
                     $('#flow-skeleton').addClass('d-none');
                 }
@@ -496,7 +454,7 @@
                     $(document).on('click', '.checkout-ajax-btn', function() {
                         const roomData = {
                             name: $(this).data('room-name'),
-                            price: $(this).data('room-price')
+                            price: $(this).data('room-converted-price') || $(this).data('room-price')
                         };
                         self.state.selectedRoom = roomData;
                         self.updateSummaryFromState();

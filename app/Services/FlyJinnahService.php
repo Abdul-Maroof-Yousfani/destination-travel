@@ -391,7 +391,7 @@ class FlyJinnahService
             session([
                 'JSESSIONID' => null,
                 'TransactionIdentifier' => null,
-                'IdsExpireTimeFj' => null,
+                // 'IdsExpireTimeFj' => null,
             ]);
             $response = $this->sendRequest('GetBundles', $xmlBody);
 
@@ -420,7 +420,7 @@ class FlyJinnahService
             session([
                 'JSESSIONID' => $jsessionId,
                 'TransactionIdentifier' => $arrayResponse['Body']['OTA_AirPriceRS']['@attributes']['TransactionIdentifier'] ?? null,
-                'IdsExpireTimeFj' => now()->addMinutes(10),
+                // 'IdsExpireTimeFj' => now()->addMinutes(10),
             ]);
             return([
                 'originDestinationOptions' => $arrayResponse['Body']['OTA_AirPriceRS']['PricedItineraries']['PricedItinerary']['AirItinerary']['OriginDestinationOptions']['OriginDestinationOption'] ?? 'Not found',

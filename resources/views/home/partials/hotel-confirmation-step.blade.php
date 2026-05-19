@@ -133,7 +133,7 @@ label.form-label.small.fw-bold {
         <div class="info-grid row g-3 text-start mb-5">
             <div class="col-sm-6">
                 <div class="info-item p-3 rounded-3 bg-light">
-                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 10px;">Booking Reference</div>
+                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 10px;">Order ID</div>
                     <div class="fw-bold">{{ $booking->reference }}</div>
                 </div>
             </div>

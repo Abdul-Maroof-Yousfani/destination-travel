@@ -16,6 +16,8 @@
         </div>
     </section>
 
+    @include('home.partials.recent-hotel-searches')
+
     <section class="help-line wow fadeInRight">
         <div class="container">
         <div class="row">

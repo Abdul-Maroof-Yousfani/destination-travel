@@ -61,6 +61,21 @@
         .dropdown-item{padding:5px 10px;cursor:pointer;}
         .dropdown-item:hover{background:#f0f0f0;}
         .dropdown-item.selected{font-weight:bold;background:#e0e0ff;}
+        .filter-sidebar { margin-top: 20px; }
+        .filter-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #f0f2f5; }
+        .filter-title { background: #f8fafc; padding: 15px 20px; font-size: 16px; font-weight: 700; color: #1a1a1a; margin: 0; border-bottom: 1px solid #f0f2f5; font-family: 'Poppins', sans-serif; }
+        .filter-body { padding: 20px; }
+        .search-box { position: relative; }
+        .search-box input { border-radius: 12px; padding: 10px 15px 10px 40px; border: 1px solid #e2e8f0; font-size: 14px; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #00788a; font-size: 16px; }
+        .custom-checkbox .form-check-input:checked { background-color: #00788a; border-color: #00788a; }
+        .stars-label i { font-size: 13px; margin-right: 1px; }
+        .filter-sidebar .support-box { border-left: none; border-top: 5px solid #0f7d9e; margin-top: 0; box-shadow: none; padding: 20px; border-radius: 0; }
+        .filter-sidebar .support-box h4 { font-size: 18px; line-height: 1.3; }
+        .filter-sidebar .support-item { font-size: 14px; margin-bottom: 10px; }
+        .filter-sidebar .btn-share { margin-top: 0 !important; border-radius: 0 0 16px 16px; width: 100%; }
+        .filter-sidebar .filter-card:last-of-type { margin-bottom: 0 !important; border-bottom: none; border-radius: 16px 16px 0 0; }
+        .filter-sidebar .support-container { background: #fff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #f0f2f5; }
     </style>
 @endsection
 @section('content')
@@ -276,16 +291,63 @@
                                 <i class="fa-solid fa-hotel me-2" style="color: #00788a;"></i> 
                                 Hotels in {{ $request['destination_name'] ?? 'your destination' }}
                             </h3>
-                            @if(isset($data['hotels']['hotel']) && $data['hotels']['hotel'] instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                                <span class="badge" style="background: #00788a; padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: 14px;">
-                                    {{ $data['hotels']['hotel']->total() }} Hotels Found
+                            @if(isset($data['hotels']['hotel']) && is_array($data['hotels']['hotel']))
+                                <span class="badge" id="hotel-count-badge" style="background: #00788a; padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: 14px;">
+                                    {{ count($data['hotels']['hotel']) }} Hotels Found
                                 </span>
                             @endif
                         </div>
                     </div>
                     @endif
                 </div>
-                <div class="col-md-12 col-lg-9">
+                @if(isset($data['hotels']))
+                <div class="col-md-12 col-lg-3">
+                    <div class="filter-sidebar">
+                        <div class="filter-card mb-4">
+                            <h4 class="filter-title">Search Hotel</h4>
+                            <div class="filter-body">
+                                <div class="search-box">
+                                    <input type="text" id="hotel-name-filter" class="form-control" placeholder="Search by hotel name...">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-card mb-4">
+                            <h4 class="filter-title">Hotel Rating</h4>
+                            <div class="filter-body">
+                                <div class="rating-filters">
+                                    @for($i = 5; $i >= 0; $i--)
+                                    <div class="form-check custom-checkbox mb-2">
+                                        <input class="form-check-input rating-checkbox" type="checkbox" value="{{ $i }}" id="rating-{{ $i }}">
+                                        <label class="form-check-label d-flex justify-content-between align-items-center w-100" for="rating-{{ $i }}">
+                                            <span class="stars-label">
+                                                @if($i > 0)
+                                                    @for($j = 1; $j <= 5; $j++)
+                                                        <i class="fa-{{ $j <= $i ? 'solid' : 'regular' }} fa-star" style="color: #ffc107;"></i>
+                                                    @endfor
+                                                @else
+                                                    @for($j = 1; $j <= 5; $j++)
+                                                        <i class="fa-regular fa-star" style="color: #cbd5e1;"></i>
+                                                    @endfor
+                                                @endif
+                                            </span>
+                                            <span class="text-muted small">({{ $i > 0 ? $i . ' Stars' : 'No Rating' }})</span>
+                                        </label>
+                                    </div>
+                                    @endfor
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="support-container">
+                            <x-customer-support :withoutColumn="true" />
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                <div class="col-md-12 {{ isset($data['hotels']) ? 'col-lg-9' : 'col-lg-9' }}">
                     <!-- CONTENT SECTIONS -->
                     @if($request->has('routeType'))
                     <div class="tab-content mt-0 active" id="suggested">
@@ -295,23 +357,17 @@
                         @else
                             <x-flights :flightData="$data" :paxCount="$paxCount" />
                         @endif
-                        {{-- <x-flights :flightData="$data" :paxCount="$paxCount" /> --}}
                     </div>
-                    {{-- <div class="tab-content mt-0" id="cheapest">
-                        <h3>Cheapest Flights</h3>
-                         <x-flights :flightData="$data" :paxCount="$paxCount" />
-                    </div>
-                    <div class="tab-content mt-0" id="fastest">
-                        <h3>Fastest Flights</h3>
-                         <x-flights :flightData="$data" :paxCount="$paxCount" />
-                    </div> --}}
                     @elseif(isset($data['hotels']))
                     <div class="tab-content mt-0 active">
                         <x-hotels :hotelsData="$data" :request="$request" />
                     </div>
                     @endif
                 </div>
+
+                @if(!isset($data['hotels']))
                 <x-customer-support/>
+                @endif
             </div>
         </div>
     </section>

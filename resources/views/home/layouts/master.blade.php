@@ -31,6 +31,8 @@
 </head>
 
 <body>
+  {{-- <x-loader :showOnLoad="request()->routeIs(['hotels.search', 'hotels.booking', 'flights', 'hotels.payment'])" /> --}}
+  <x-loader :showOnLoad="true" />
   @include('home/layouts/navbar')
   @if (session('message'))
     <script>
@@ -55,6 +57,55 @@
   @include('home/layouts/footer')
   @include('home/partials/scripts')
   @yield('script')
+
+  {{-- WhatsApp Floating Button --}}
+  <a href="https://wa.me/{{config('variables.contact.whatsapp')}}" target="_blank" id="whatsapp-float" title="Chat with us on WhatsApp" aria-label="Chat on WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+  </a>
+
+  <style>
+    #whatsapp-float {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 99999;
+      width: 58px;
+      height: 58px;
+      background: #25d366;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      box-shadow: 0 6px 24px rgba(37, 211, 102, 0.45);
+      text-decoration: none;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    #whatsapp-float:hover {
+      transform: scale(1.12);
+      box-shadow: 0 10px 32px rgba(37, 211, 102, 0.6);
+      color: #fff;
+    }
+
+    /* Pulse ring */
+    #whatsapp-float::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(37, 211, 102, 0.4);
+      animation: wa-pulse 2s ease-out infinite;
+    }
+
+    @keyframes wa-pulse {
+      0%   { transform: scale(1);   opacity: 0.8; }
+      70%  { transform: scale(1.55); opacity: 0; }
+      100% { transform: scale(1.55); opacity: 0; }
+    }
+  </style>
 
 </body>
 

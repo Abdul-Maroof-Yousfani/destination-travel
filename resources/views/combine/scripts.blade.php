@@ -76,6 +76,45 @@
                 }
             });
         });
+
+        // Toggle currency dropdown manually to ensure cross-page compatibility
+        $(document).on('click', '#dropdownToggle6, #dropdownToggle4', function (e) {
+            e.stopPropagation();
+            var $menu = $(this).siblings('.dropdown-menu');
+            $menu.toggleClass('show');
+            $('.dropdown-menu').not($menu).removeClass('show');
+        });
+
+        // Close dropdown when clicking outside
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#dropdown6, #dropdown4').length) {
+                $('#dropdownMenu6, #dropdownMenu4').removeClass('show');
+            }
+        });
+
+        // Currency change logic
+        $('#dropdownMenu6 .dropdown-item').on('click', function (e) {
+            e.preventDefault();
+            let selectedCurrency = $(this).data('currency');
+            if (selectedCurrency) {
+                $.ajax({
+                    url: "{{ route('set-currency') }}",
+                    type: 'POST',
+                    data: {
+                        currency: selectedCurrency,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function () {
+                        // Clear booking state to avoid stale converted pricing
+                        localStorage.removeItem('hotel_booking_state');
+                        location.reload();
+                    },
+                    error: function () {
+                        _alert('Failed to change currency', 'error');
+                    }
+                });
+            }
+        });
     });
     $.ajaxSetup({
         headers: {

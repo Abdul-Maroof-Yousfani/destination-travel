@@ -26,3 +26,8 @@ URL for API: https://g94.isaaviations.com/webservices/services/AAResWebServices
 USER ID: DEST_ONEAPI
 Password: P@ss1234
 Agent Code: AACKHI2717
+
+
+
+For currency converter according to navbar selected country
+{{ convertCurrency($hotel->price_aed) }}

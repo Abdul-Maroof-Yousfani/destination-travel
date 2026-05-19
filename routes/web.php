@@ -26,7 +26,13 @@ Route::get('clear-cache/{key}', function ($key) {
 
     return 'All caches cleared successfully.';
 });
+
+Route::post('/set-currency', function (\Illuminate\Http\Request $request) {
+    session(['currency' => $request->currency]);
+    return response()->json(['success' => true]);
+})->name('set-currency');
 Route::view('/', 'home.home')->name('home');
+Route::get('currency-example', [\App\Http\Controllers\CurrencyExampleController::class, 'index'])->name('currency.example');
 Route::view('login', 'login')->name('login');
 Route::view('register', 'register')->name('register');
 Route::view('terms-and-conditions', 'home.pages.terms-and-conditions')->name('terms-and-conditions');
@@ -37,6 +43,7 @@ Route::get('profile', [HomeController::class, 'profile'])->name('profile')->midd
 Route::post('profile/passenger/{passenger}/update', [HomeController::class, 'updatePassenger'])->name('passenger.update')->middleware('auth:client');
 Route::view('search-booking', 'home.pages.search-booking')->name('search.booking');
 Route::get('view-booking-details', [HomeController::class, 'viewBookingDetails'])->name('view.booking.details');
+Route::get('view-hotel-booking-details', [HomeController::class, 'viewHotelBookingDetails'])->name('view.hotel.booking.details');
 Route::post('search-booking', [HomeController::class, 'searchBooking'])->name('search.booking.submit');
 
 Route::get('get-airport', [HomeController::class, 'airports'])->name('airport');

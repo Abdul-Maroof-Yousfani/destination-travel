@@ -1,4 +1,8 @@
+@props(['withoutColumn' => false])
+
+@if(!$withoutColumn)
 <div class="col-md-12 col-lg-3 br-left">
+@endif
     <div class="support-box">
         <h4>24/7 Customer Support</h4>
         <div class="support-item">
@@ -15,7 +19,9 @@
         </div>
     </div>
     <button onclick="sharePage()" class="btn btn-share  mt-2 "><i class="fa-regular fa-share-from-square"></i> Share</button>
+@if(!$withoutColumn)
 </div>
+@endif
 
 <script>
     function sharePage() {

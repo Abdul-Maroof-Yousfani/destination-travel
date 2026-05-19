@@ -6,17 +6,17 @@
                     <div class="menuWrap2 menuWrap2-top">
                         <ul class="menu2 menu2-top">
                             
-                            <li><a href="tel:92 01234567 0">
+                            <li><a href="tel:{{ config('variables.contact.phone') }}" target="_blank">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-solid fa-phone"></i></div>
                                         <div class="call-content"><span>Call 24/7 </span> <strong>{{ config('variables.contact.phone') }}</strong></div>
                                     </div>
                                 </a>
                             </li>
-                            <li><a href="tel:92 01234567 0">
+                            <li><a href="https://wa.me/{{config('variables.contact.whatsapp')}}" target="_blank">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-brands fa-whatsapp"></i></div>
-                                        <div class="call-content"><span>Whatsapp 24/7</span> <strong>92 01234567 0</strong></div>
+                                        <div class="call-content"><span>Whatsapp 24/7</span> <strong>{{ config('variables.contact.whatsapp') }}</strong></div>
                                     </div>
                                 </a>
                             </li>
@@ -69,10 +69,10 @@
                                     </div>
                                 </a>
                             </li>
-                            <li><a href="tel:{{ config('variables.contact.phone') }}">
+                            <li><a href="https://wa.me/{{config('variables.contact.whatsapp')}}" target="_blank">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-brands fa-whatsapp"></i></div>
-                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>{{ config('variables.contact.phone') }}</strong></div>
+                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>{{ config('variables.contact.whatsapp') }}</strong></div>
                                     </div>
                                 </a>
                             </li>
@@ -99,23 +99,40 @@
                                     </div>
                                 </a>
                             </li>
-                            <li><a href="tel:{{ config('variables.contact.phone') }}">
+                            <li><a href="https://wa.me/{{config('variables.contact.whatsapp')}}" target="_blank">
                                     <div class="main-flex">
                                         <div class="icon-head"><i class="fa-brands fa-whatsapp"></i></div>
-                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>{{ config('variables.contact.phone') }}</strong></div>
+                                        <div class="call-content"><span>Whatsapp 24/7</span> <br> <strong>{{ config('variables.contact.whatsapp') }}</strong></div>
                                     </div>
                                 </a>
                             </li>
-                            {{-- <li>
+                            <li>
                                 <div class="dropdown" id="dropdown6">
                                     <div class="dropdown-toggle" id="dropdownToggle6">
+                                        @php
+                                            $currentCurrency = session('currency', 'PKR');
+                                            $currencyFlags = [
+                                                'PKR' => 'pk',
+                                                'AED' => 'ae',
+                                                'SAR' => 'sa',
+                                                'USD' => 'us',
+                                                // 'GBP' => 'gb',
+                                            ];
+                                            $currentFlag = $currencyFlags[$currentCurrency] ?? 'pk';
+                                        @endphp
                                         <span class="selected-country" id="selectedCountry6">
-                                            <span class="flag-icon flag-icon-pk"></span> PKR
+                                            <span class="flag-icon flag-icon-{{ $currentFlag }}"></span> {{ $currentCurrency }}
                                         </span>
                                     </div>
-                                    <div class="dropdown-menu" id="dropdownMenu6"></div>
+                                    <div class="dropdown-menu" id="dropdownMenu6">
+                                        @foreach($currencyFlags as $currency => $flag)
+                                            <a class="dropdown-item" data-currency="{{ $currency }}">
+                                                <span class="flag-icon flag-icon-{{ $flag }}"></span> {{ $currency }}
+                                            </a>
+                                        @endforeach
+                                    </div>
                                 </div>
-                            </li> --}}
+                            </li>
                             @auth('client')
                                 <li>
                                     <a href="{{ route('profile') }}"><i class="fa-regular fa-user"></i> Profile</a> &nbsp;

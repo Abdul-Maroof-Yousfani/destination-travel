@@ -62,7 +62,7 @@ class FlightController extends Controller
         }
 
         session([
-            'IdsExpireTimeFj'  => null,
+            // 'IdsExpireTimeFj'  => null,
             'IdsExpireTimeEmi' => null,
         ]);
 

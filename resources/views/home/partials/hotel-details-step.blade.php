@@ -209,7 +209,14 @@ button.comb-hotl{font-size:14px;}
                 $allMeals = array_unique($allMeals);
                 $allRates = array_unique($allRates);
             @endphp
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <label class="small fw-bold text-muted mb-1">Search Room</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted" style="font-size: 12px;"></i></span>
+                    <input type="text" class="form-control room-detail-filter border-start-0" id="search-room-input" data-filter="search" placeholder="Room title..." style="font-size: 14px; border-radius: 0 10px 10px 0;">
+                </div>
+            </div>
+            <div class="col-md-3">
                 <label class="small fw-bold text-muted mb-1">Bed Type</label>
                 <select class="form-select room-detail-filter" data-filter="bed-type">
                     <option value="all">All Bed Types</option>
@@ -218,7 +225,7 @@ button.comb-hotl{font-size:14px;}
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="small fw-bold text-muted mb-1">Meal Plan</label>
                 <select class="form-select room-detail-filter" data-filter="meal">
                     <option value="all">All Meal Plans</option>
@@ -227,7 +234,7 @@ button.comb-hotl{font-size:14px;}
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="small fw-bold text-muted mb-1">Rate Type</label>
                 <select class="form-select room-detail-filter" data-filter="rate">
                     <option value="all">All Rate Types</option>
@@ -302,6 +309,7 @@ button.comb-hotl{font-size:14px;}
         @endphp
 
         <div class="room-card mb-4 border shadow-sm rounded-4 overflow-hidden bg-white" 
+             data-name="{{ strtolower($roomNames) }}"
              data-bed-type="{{ $roomBeds }}" 
              data-meal="{{ $roomMeals }}" 
              data-rate="{{ $roomRates }}">
@@ -429,8 +437,7 @@ button.comb-hotl{font-size:14px;}
                                                                 </span>
                                                                 @if ($feePrice)
                                                                     <span
-                                                                        class="fw-semibold text-dark ms-2 text-nowrap">{{ $feeCurr }}
-                                                                        {{ $feePrice }}</span>
+                                                                        class="fw-semibold text-dark ms-2 text-nowrap">{{ convertCurrency((float)$feePrice, $feeCurr) }}</span>
                                                                 @endif
                                                             </li>
                                                         @endforeach
@@ -447,7 +454,7 @@ button.comb-hotl{font-size:14px;}
                     <div class="room-pricing p-4 text-center w-100">
                         <span class="text-muted small d-block mb-1">Total Combination Price</span>
                         <h2 class="fw-bold text-primary mb-1">
-                            <span class="fs-6">{{ $currency }}</span> {{ number_format($totalPrice, 2) }}
+                            {{ convertCurrency($totalPrice, $currency) }}
                         </h2>
                         <div class="text-muted small mb-4">Final price (incl. taxes)</div>
 
@@ -455,7 +462,8 @@ button.comb-hotl{font-size:14px;}
                             data-rate-key="{{ implode(',', $rateKeys) }}"
                             data-group-code="{{ $firstRoom['groupCode'] }}"
                             data-room-name="{{ count($roomGroup) > 1 ? count($roomGroup) . ' Rooms Bundle' : $firstRoom['roomName'] }}"
-                            data-room-price="{{ $totalPrice }}">
+                            data-room-price="{{ $totalPrice }}"
+                            data-room-converted-price="{{ convertCurrency($totalPrice, $currency) }}">
                             Select Combination
                         </button>
                     </div>
@@ -510,22 +518,25 @@ button.comb-hotl{font-size:14px;}
         $('#room-filters-container').stop().slideToggle(400);
     });
 
-    $(document).on('change', '.room-detail-filter', function() {
+    $(document).on('change input', '.room-detail-filter', function() {
         var bed = $('[data-filter="bed-type"]').val();
         var meal = $('[data-filter="meal"]').val();
         var rate = $('[data-filter="rate"]').val();
+        var search = $('[data-filter="search"]').val().toLowerCase();
 
         $('.room-card').each(function() {
             var $card = $(this);
+            var cardName = $card.attr('data-name');
             var cardBeds = $card.attr('data-bed-type').split(',');
             var cardMeals = $card.attr('data-meal').split(',');
             var cardRates = $card.attr('data-rate').split(',');
 
+            var matchSearch = (search === '' || cardName.indexOf(search) !== -1);
             var matchBed = (bed === 'all' || cardBeds.includes(bed));
             var matchMeal = (meal === 'all' || cardMeals.includes(meal));
             var matchRate = (rate === 'all' || cardRates.includes(rate));
 
-            if (matchBed && matchMeal && matchRate) {
+            if (matchSearch && matchBed && matchMeal && matchRate) {
                 $card.show(300);
             } else {
                 $card.hide(300);
@@ -543,6 +554,7 @@ button.comb-hotl{font-size:14px;}
     });
 
     window.resetRoomFilters = function() {
+        $('[data-filter="search"]').val('');
         $('.room-detail-filter').val('all').trigger('change');
     };
 </script>

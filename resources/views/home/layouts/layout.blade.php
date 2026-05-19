@@ -25,6 +25,7 @@
 </head>
 
 <body>
+  <x-loader :showOnLoad="true" />
 
   <!-- Layout Content -->
   @yield('content')

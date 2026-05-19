@@ -1482,9 +1482,74 @@
                 }
             });
 
+            if (typeof window.showLoader === 'function') {
+                window.showLoader('Searching for Hotels');
+            }
             $('body').append(form);
             form.submit();
         });
+        
+        window.reRunHotelSearch = function(searchData) {
+            if (!searchData) return;
+
+            // 1. Set Destination
+            if (searchData.destination_code) {
+                const text = searchData.destination_name || searchData.destination_code;
+                const option = new Option(text, searchData.destination_code, true, true);
+                $('#hotel_destination').empty().append(option).trigger('change');
+            }
+
+            // 2. Set Dates (converting ISO back to Flatpickr format)
+            if (searchData.check_in) {
+                const checkInDate = searchData.check_in.split('T')[0];
+                const d = new Date(checkInDate);
+                const formatted = d.getDate() + " " + ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getMonth()] + " " + d.getFullYear();
+                $('#checkIn').val(formatted);
+                // Update flatpickr instance if possible, or just let the form submit use the raw value
+            }
+            if (searchData.check_out) {
+                const checkOutDate = searchData.check_out.split('T')[0];
+                const d = new Date(checkOutDate);
+                const formatted = d.getDate() + " " + ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getMonth()] + " " + d.getFullYear();
+                $('#checkOut').val(formatted);
+            }
+
+            // 3. Set Hidden Fields
+            $('#hotel_country_code').val(searchData.country_code);
+            $('#hotel_nationality').val(searchData.nationality || searchData.country_code);
+
+            // 4. Submit form immediately using the same logic as searchHotelsBtn
+            const form = $('<form action="{{ route("hotels.search") }}" method="GET"></form>');
+            form.append(`<input type="hidden" name="destination_code" value="${searchData.destination_code}">`);
+            form.append(`<input type="hidden" name="destination_name" value="${searchData.destination_name}">`);
+            form.append(`<input type="hidden" name="country_code" value="${searchData.country_code}">`);
+            form.append(`<input type="hidden" name="nationality" value="${searchData.nationality || searchData.country_code}">`);
+            form.append(`<input type="hidden" name="check_in" value="${searchData.check_in}">`);
+            form.append(`<input type="hidden" name="check_out" value="${searchData.check_out}">`);
+            
+            // Handle rooms
+            if (searchData.rooms && searchData.rooms.Room) {
+                searchData.rooms.Room.forEach((room, idx) => {
+                    form.append(`<input type="hidden" name="rooms[Room][${idx}][RoomIdentifier]" value="${room.RoomIdentifier}">`);
+                    form.append(`<input type="hidden" name="rooms[Room][${idx}][Adult]" value="${room.Adult}">`);
+                    if (room.Children && room.Children.Count > 0) {
+                        form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][Count]" value="${room.Children.Count}">`);
+                        if (room.Children.ChildAge) {
+                            Object.values(room.Children.ChildAge).forEach((ageObj, cIdx) => {
+                                form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][ChildAge][${cIdx}][Identifier]" value="${cIdx + 1}">`);
+                                form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][ChildAge][${cIdx}][Text]" value="${ageObj.Text}">`);
+                            });
+                        }
+                    }
+                });
+            }
+
+            if (typeof window.showLoader === 'function') {
+                window.showLoader('Re-loading Your Search');
+            }
+            $('body').append(form);
+            form.submit();
+        };
 
         // Initialize from URL after all handlers and pickers are set up
         initializeHotelsFromURL();

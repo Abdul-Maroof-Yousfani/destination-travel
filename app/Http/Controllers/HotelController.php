@@ -55,8 +55,7 @@ class HotelController extends Controller
     }
     public function search(Request $request)
     {
-        // dd($request->all());
-        $request->validate([
+        $validated = $request->validate([
             'destination_code' => 'required|string',
             'destination_name' => 'nullable|string',
             'country_code' => 'required|string',
@@ -66,32 +65,23 @@ class HotelController extends Controller
             'rooms' => 'required|array',
         ]);
 
+        $this->storeRecentSearch($validated);
+
         $results = $this->tassProService->searchHotels($request->all());
 
         if (!$results) {
             return back()->with('error', 'Unable to fetch hotels at this time.');
         }
 
-        // Manual Pagination logic
         $hotelsArray = $results['hotels']['hotel'] ?? [];
         if (!is_array($hotelsArray)) {
             $hotelsArray = [$hotelsArray];
         }
 
         $hotelsCollection = collect($hotelsArray);
-        $perPage = 10;
-        $currentPage = Paginator::resolveCurrentPage('page');
+        $results['hotels']['hotel'] = $hotelsCollection->values()->toArray();
 
-        $pagedHotels = new LengthAwarePaginator(
-            $hotelsCollection->forPage($currentPage, $perPage)->values(), // Add values() to reset keys
-            $hotelsCollection->count(),
-            $perPage,
-            $currentPage,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        $results['hotels']['hotel'] = $pagedHotels;
-
+        session(['IdsExpireTimeEmi' => null]);
         return view('home.flights', [
             'request'     => $request,
             'data'        => $results,
@@ -231,7 +221,7 @@ class HotelController extends Controller
                     'name' => $request->first_name . ' ' . $request->last_name,
                     'email' => $request->email,
                     'phone' => $request->phone,
-                    'password' => Hash::make(Str::random(10)), // Placeholder
+                    'password' => Hash::make(Str::random(10)),
                     'is_active' => true
                 ]);
             }
@@ -390,5 +380,34 @@ class HotelController extends Controller
         $is_cash = session("hotel_booking_{$id}_is_cash", false);
 
         return view('home.partials.hotel-confirmation-step', compact('booking', 'is_cash'));
+    }
+
+    private function storeRecentSearch(array $searchData)
+    {
+        try {
+            $recentSearches = session()->get('recent_hotel_searches', []);
+            
+            // Create a unique key for this search configuration
+            // We ignore dates for uniqueness if we want to just track "Places", 
+            // but usually, "Recent Searches" implies exact configurations.
+            // Let's use destination + dates + room count.
+            $searchKey = $searchData['destination_code'] . '|' . $searchData['check_in'] . '|' . $searchData['check_out'];
+            
+            // Remove existing if it matches the key (to move it to top)
+            $recentSearches = array_filter($recentSearches, function($search) use ($searchKey) {
+                $key = $search['destination_code'] . '|' . $search['check_in'] . '|' . $search['check_out'];
+                return $key !== $searchKey;
+            });
+
+            // Add to the beginning
+            array_unshift($recentSearches, $searchData);
+
+            // Limit to 10
+            $recentSearches = array_slice($recentSearches, 0, 10);
+
+            session()->put('recent_hotel_searches', $recentSearches);
+        } catch (\Exception $e) {
+            Log::error("Error storing recent hotel search: " . $e->getMessage());
+        }
     }
 }

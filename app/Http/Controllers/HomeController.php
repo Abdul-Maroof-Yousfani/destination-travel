@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Client;
 use App\Models\Airport;
 use App\Models\Booking;
+use App\Models\HotelBooking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -86,6 +87,7 @@ class HomeController extends Controller
             'email'    => 'required|email',
         ]);
 
+        // --- 1. Search Flight Booking ---
         $booking = Booking::where('airline_id', $validated['order_id'])
             ->whereHas('client', function ($q) use ($validated) {
                 $q->where('email', $validated['email']);
@@ -100,12 +102,35 @@ class HomeController extends Controller
                 ->first();
         }
 
-        if (!$booking) return redirect()->back()->withInput()->with(['status' => 'error', 'message' => 'Booking not found.']);
+        if ($booking) {
+            $cacheKey = 'verified_booking_' . session()->getId();
+            Cache::put($cacheKey, $booking->id, now()->addMinutes(5));
+            return redirect()->route('view.booking.details');
+        }
 
-        $cacheKey = 'verified_booking_' . session()->getId();
-        Cache::put($cacheKey, $booking->id, now()->addMinutes(5));
+        // --- 2. Fallback: Search Hotel Booking by reference or id + email ---
+        $hotelBooking = HotelBooking::where('reference', $validated['order_id'])
+            ->whereHas('client', function ($q) use ($validated) {
+                $q->where('email', $validated['email']);
+            })
+            ->first();
 
-        return redirect()->route('view.booking.details');
+        // Also try matching bare numeric ID (e.g. user types "42" instead of "TASSPRO-42")
+        if (!$hotelBooking && is_numeric($validated['order_id'])) {
+            $hotelBooking = HotelBooking::where('id', $validated['order_id'])
+                ->whereHas('client', function ($q) use ($validated) {
+                    $q->where('email', $validated['email']);
+                })
+                ->first();
+        }
+
+        if ($hotelBooking) {
+            $cacheKey = 'verified_hotel_booking_' . session()->getId();
+            Cache::put($cacheKey, $hotelBooking->id, now()->addMinutes(5));
+            return redirect()->route('view.hotel.booking.details');
+        }
+
+        return redirect()->back()->withInput()->with(['status' => 'error', 'message' => 'Booking not found. Please check your Order ID and email.']);
     }
     public function viewBookingDetails(Request $request)
     {
@@ -130,6 +155,35 @@ class HomeController extends Controller
         if (!$booking) return redirect()->route('search.booking')->with(['status' => 'error', 'message' => 'Booking not found.']);
 
         return view('home.pages.view-booking-details', compact('booking'));
+    }
+
+    public function viewHotelBookingDetails(Request $request)
+    {
+        // 1. Logged-in client viewing their own hotel booking by reference
+        if (auth('client')->check() && $request->has('reference')) {
+            $hotelBooking = HotelBooking::where('reference', $request->reference)
+                ->where('client_id', auth('client')->id())
+                ->with('client', 'rooms.passengers')
+                ->first();
+
+            if ($hotelBooking) {
+                return view('home.pages.view-hotel-booking-details', compact('hotelBooking'));
+            }
+        }
+
+        // 2. Guest/search flow via verified cache
+        $cacheKey = 'verified_hotel_booking_' . session()->getId();
+        $hotelBookingId = Cache::get($cacheKey);
+        if (!$hotelBookingId) {
+            return redirect()->route('search.booking')->with(['status' => 'error', 'message' => 'Please verify your booking first.']);
+        }
+
+        $hotelBooking = HotelBooking::with('client', 'rooms.passengers')->find($hotelBookingId);
+        if (!$hotelBooking) {
+            return redirect()->route('search.booking')->with(['status' => 'error', 'message' => 'Hotel booking not found.']);
+        }
+
+        return view('home.pages.view-hotel-booking-details', compact('hotelBooking'));
     }
 
     public function updatePassenger(\App\Models\Passenger $passenger, Request $request)

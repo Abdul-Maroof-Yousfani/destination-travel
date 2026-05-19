@@ -238,6 +238,30 @@
         letter-spacing: 0.5px;
         backdrop-filter: blur(4px);
     }
+
+    /* --- Hotel Card Visibility & Animation ---
+     * All cards start hidden (display:none) so PHP-rendered HTML
+     * never flashes before JS runs. JS adds .hotel-visible to reveal them.
+     */
+    .hotel-item {
+        display: none;
+    }
+
+    .hotel-item.hotel-visible {
+        display: flex;
+        animation: hotelFadeSlideIn 0.35s ease both;
+    }
+
+    @keyframes hotelFadeSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(14px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
 
 <div class="hotel-results-container">
@@ -272,7 +296,10 @@
                     ];
                 }
             @endphp
-            <div class="hotel-card wow fadeInUp" data-wow-delay="{{ $loop->index * 0.05 }}s">
+            <div class="hotel-card hotel-item wow fadeInUp" 
+                 data-name="{{ strtolower($name) }}" 
+                 data-rating="{{ floor($rating) }}"
+                 data-wow-delay="{{ $loop->index * 0.05 }}s">
                 <div class="hotel-image-wrapper">
                     <img src="{{ $image }}" alt="{{ $name }}" class="hotel-image" onerror="this.src='https://placehold.co/600x400?text=Hotel+Image'">
                     @if($rating > 0)
@@ -289,7 +316,7 @@
                         </div>
                         <a href="https://www.google.com/maps?q={{ $lat }},{{ $lng }}" target="_blank" class="hotel-location">
                             <i class="fa-solid fa-location-dot"></i>
-                            <span>{{ $address }}{{ $address && $city ? ', ' : '' }}{{ $city }}</span>
+                            <span>{{ $address ?? $city }}</span>
                         </a>
                     </div>
                     
@@ -297,7 +324,7 @@
                         <div class="hotel-price-box">
                             <span class="hotel-price-label">Price per night</span>
                             <div class="hotel-price-value">
-                                <span class="hotel-currency">{{ $currency }}</span> {{ is_numeric($price) ? number_format($price, 2) : $price }}
+                                {{ is_numeric($price) ? convertCurrency($price, $currency) : $price }}
                             </div>
                         </div>
                         @php
@@ -319,12 +346,10 @@
             </div>
         @endforeach
 
-        {{-- Pagination Links --}}
-        @if($hotels instanceof \Illuminate\Pagination\LengthAwarePaginator)
-            <div class="hotels-pagination">
-                {!! $hotels->links() !!}
-            </div>
-        @endif
+        {{-- Client-side Pagination --}}
+        <div class="hotels-pagination" id="hotels-js-pagination">
+            <!-- Pagination will be generated here by JS -->
+        </div>
         
     @else
         <div class="no-hotel-results">
@@ -336,17 +361,135 @@
 </div>
 
 <script>
-    $(document).on('click', '.hotel-booking-btn', function(e) {
-        e.preventDefault();
-        let hotelId = $(this).data('hotel-id');
-        let sessionId = $(this).data('session-id');
-        let hotelName = $(this).data('hotel-name');
-        let hotelAddress = $(this).data('hotel-address');
-        let hotelCity = $(this).data('hotel-city');
-        let hotelImage = $(this).data('hotel-image');
-        let hotelRating = $(this).data('hotel-rating');
-        let url = $(this).data('url');
-        localStorage.clear();
-        window.location.href = url;
+    $(document).ready(function() {
+        const itemsPerPage = 10;
+        let $allHotelItems = $('.hotel-item');
+        let $filteredItems = $allHotelItems;
+        let totalItems = $filteredItems.length;
+        let totalPages = Math.ceil(totalItems / itemsPerPage);
+        let currentPage = 1;
+
+        function applyFilters() {
+            const searchTerm = $('#hotel-name-filter').val().toLowerCase();
+            const selectedRatings = $('.rating-checkbox:checked').map(function() {
+                return parseInt($(this).val());
+            }).get();
+
+            $filteredItems = $allHotelItems.filter(function() {
+                const name = $(this).data('name');
+                const rating = parseInt($(this).data('rating'));
+                
+                const matchesName = name.includes(searchTerm);
+                const matchesRating = selectedRatings.length === 0 || selectedRatings.includes(rating);
+                
+                return matchesName && matchesRating;
+            });
+
+            totalItems = $filteredItems.length;
+            totalPages = Math.ceil(totalItems / itemsPerPage);
+            
+            // Update UI count
+            $('#hotel-count-badge').text(totalItems + ' Hotels Found');
+            
+            showPage(1);
+        }
+
+        function showPage(page) {
+            currentPage = page;
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+
+            const $toShow = $filteredItems.slice(start, end);
+
+            // Step 1: Hide ALL items — jQuery .hide() sets inline style="display:none"
+            $allHotelItems.hide().removeClass('hotel-visible');
+
+            // Step 2: For the cards we WANT to show, we must clear the inline display
+            // style that .hide() just set — otherwise .hotel-visible { display:flex }
+            // gets blocked by the inline style and cards remain invisible.
+            $toShow.each(function(i) {
+                const el = this;
+                el.style.animationDelay = (i * 50) + 'ms';
+                el.style.display = '';          // clear inline "display:none"
+                el.classList.add('hotel-visible'); // CSS now applies display:flex + animation
+            });
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            if (totalPages <= 1) {
+                $('#hotels-js-pagination').empty();
+                return;
+            }
+
+            let paginationHtml = '<ul class="pagination">';
+            
+            // Previous Button
+            paginationHtml += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}"><i class="fa-solid fa-chevron-left"></i></a>
+                </li>
+            `;
+
+            // Page Numbers
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            }
+
+            // Next Button
+            paginationHtml += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}"><i class="fa-solid fa-chevron-right"></i></a>
+                </li>
+            `;
+
+            paginationHtml += '</ul>';
+            $('#hotels-js-pagination').html(paginationHtml);
+        }
+
+        // Event Listeners for filters
+        $('#hotel-name-filter').on('keyup', function() {
+            applyFilters();
+        });
+
+        $('.rating-checkbox').on('change', function() {
+            applyFilters();
+        });
+
+        $(document).on('click', '#hotels-js-pagination .page-link', function(e) {
+            e.preventDefault();
+            const page = parseInt($(this).data('page'));
+            if (page >= 1 && page <= totalPages && page !== currentPage) {
+                showPage(page);
+                window.scrollTo({ top: $('.hotel-results-container').offset().top - 100, behavior: 'smooth' });
+            }
+        });
+
+        // Initialize
+        if (totalItems > 0) {
+            showPage(1);
+        }
+
+        // Booking Button Handler
+        $(document).on('click', '.hotel-booking-btn', function(e) {
+            e.preventDefault();
+            let url = $(this).data('url');
+            if (typeof window.showLoader === 'function') {
+                window.showLoader('Loading Hotel Details');
+            }
+            localStorage.clear();
+            window.location.href = url;
+        });
     });
 </script>

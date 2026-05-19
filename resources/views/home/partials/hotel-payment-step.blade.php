@@ -313,17 +313,16 @@ label.form-label.small.fw-bold {
                 <h5 class="fw-bold mb-4">Price Details</h5>
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Net Amount</span>
-                    <span class="fw-bold">{{ $booking->currency }} {{ number_format($booking->total_net, 2) }}</span>
+                    <span class="fw-bold">{{ convertCurrency($booking->total_net, $booking->currency) }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-4">
                     <span class="text-muted">Taxes & Fees</span>
-                    <span class="fw-bold">{{ $booking->currency }} {{ number_format($booking->total_tax, 2) }}</span>
+                    <span class="fw-bold">{{ convertCurrency($booking->total_tax, $booking->currency) }}</span>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between mb-4 align-items-center">
                     <span class="h6 fw-bold mb-0 text-dark">Total Price</span>
-                    <span class="h5 fw-bold mb-0 text-primary">{{ $booking->currency }}
-                        {{ number_format($booking->total_net, 2) }}</span>
+                    <span class="h5 fw-bold mb-0 text-primary">{{ convertCurrency($booking->total_net, $booking->currency) }}</span>
                 </div>
 
                 <form id="hotel-confirm-ajax-form" data-booking-id="{{ $booking->id }}">
