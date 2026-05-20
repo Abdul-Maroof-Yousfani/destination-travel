@@ -2,11 +2,42 @@
 
 <div id="global-loader" style="{{ $showOnLoad ? 'display: block;' : 'display: none;' }}">
     <div class="loader-overlay">
-        <div class="loader-content">
-            <div class="spinner-container">
-                <div class="main-spinner"></div>
-                <div class="pulse-ring"></div>
+        
+        <div class="cube-container">
+            <div class="cube-x">
+                <div class="cube-y">
+                    <!-- Front (Image 1) -->
+                    <div class="cube-face cube-front">
+                        <img src="{{ asset('assets/images/loader/animation1.jpg') }}" alt="Loading 1" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80'">
+                    </div>
+                    <!-- Right (Image 2) -->
+                    <div class="cube-face cube-right">
+                        <img src="{{ asset('assets/images/loader/animation2.jpg') }}" alt="Loading 2" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1527838832700-5059252407fa?w=800&q=80'">
+                    </div>
+                    <!-- Back (Image 3) -->
+                    <div class="cube-face cube-back">
+                        <img src="{{ asset('assets/images/loader/animation3.jpg') }}" alt="Loading 3" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1508009603885-247a50543635?w=800&q=80'">
+                    </div>
+                    <!-- Left (Image 4) -->
+                    <div class="cube-face cube-left">
+                        <img src="{{ asset('assets/images/loader/animation4.jpg') }}" alt="Loading 4" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=800&q=80'">
+                    </div>
+                    <!-- Top (Collage) -->
+                    <div class="cube-face cube-top">
+                        <div class="collage-grid">
+                            <img src="{{ asset('assets/images/loader/animation1.jpg') }}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=80'">
+                            <img src="{{ asset('assets/images/loader/animation2.jpg') }}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1527838832700-5059252407fa?w=400&q=80'">
+                            <img src="{{ asset('assets/images/loader/animation3.jpg') }}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1508009603885-247a50543635?w=400&q=80'">
+                            <img src="{{ asset('assets/images/loader/animation4.jpg') }}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=80'">
+                        </div>
+                    </div>
+                    <!-- Bottom -->
+                    <div class="cube-face cube-bottom"></div>
+                </div>
             </div>
+        </div>
+
+        <div class="loader-text-container">
             <div class="loader-text">
                 <span class="loading-word">{{ $showOnLoad ? 'Loading' : 'Searching' }}</span>
                 <div class="loading-dots">
@@ -14,10 +45,23 @@
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
 <style>
+    :root {
+        --cube-size: 240px;
+        --half-size: 120px;
+    }
+    
+    @media (max-width: 768px) {
+        :root {
+            --cube-size: 180px;
+            --half-size: 90px;
+        }
+    }
+
     #global-loader {
         position: fixed;
         top: 0;
@@ -30,53 +74,110 @@
     .loader-overlay {
         width: 100%;
         height: 100%;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.634);
+        backdrop-filter: blur(10px);
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-direction: column;
     }
 
-    .loader-content {
-        text-align: center;
-    }
-
-    .spinner-container {
+    /* 3D CUBE CONTAINER */
+    .cube-container {
+        width: var(--cube-size);
+        height: var(--cube-size);
+        perspective: 1200px;
         position: relative;
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 20px;
     }
 
-    .main-spinner {
+    .cube-x {
         width: 100%;
         height: 100%;
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #00788a;
-        border-radius: 50%;
-        animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        position: relative;
+        transform-style: preserve-3d;
+        transform: translateZ(calc(var(--half-size) * -1)) rotateX(0deg);
     }
 
-    .pulse-ring {
+    .cube-y {
+        width: 100%;
+        height: 100%;
         position: absolute;
-        top: -10px;
-        left: -10px;
-        right: -10px;
-        bottom: -10px;
-        border: 2px solid rgba(0, 120, 138, 0.2);
-        border-radius: 50%;
-        animation: pulse 1.5s ease-out infinite;
+        transform-style: preserve-3d;
+    }
+
+    .cube-face {
+        position: absolute;
+        width: var(--cube-size);
+        height: var(--cube-size);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: inset 0 0 15px rgba(0,0,0,0.1), 0 10px 25px rgba(0,0,0,0.15);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        background: #fff;
+    }
+
+    .cube-face img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .cube-front  { transform: rotateY(0deg) translateZ(var(--half-size)); }
+    .cube-right  { transform: rotateY(90deg) translateZ(var(--half-size)); }
+    .cube-back   { transform: rotateY(180deg) translateZ(var(--half-size)); }
+    .cube-left   { transform: rotateY(-90deg) translateZ(var(--half-size)); }
+    .cube-top    { transform: rotateX(90deg) translateZ(var(--half-size)); }
+    .cube-bottom { transform: rotateX(-90deg) translateZ(var(--half-size)); background: #eee; }
+
+    /* COLLAGE */
+    .collage-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 2px;
+        width: 100%;
+        height: 100%;
+        background: #fff;
+    }
+
+    /* CUBE ANIMATIONS */
+    .cube-container.animate .cube-y { animation: spinCubeY 12s infinite ease-in-out; }
+    .cube-container.animate .cube-x { animation: spinCubeX 12s infinite ease-in-out; }
+
+    @keyframes spinCubeY {
+        0%, 15% { transform: rotateY(0deg); }
+        22%, 37% { transform: rotateY(-90deg); }
+        44%, 59% { transform: rotateY(-180deg); }
+        66%, 75% { transform: rotateY(-270deg); }
+        85%, 100% { transform: rotateY(-360deg); }
+    }
+
+    @keyframes spinCubeX {
+        0%, 75% { transform: translateZ(calc(var(--half-size) * -1)) rotateX(0deg); }
+        85%, 95% { transform: translateZ(calc(var(--half-size) * -1)) rotateX(-90deg); }
+        100% { transform: translateZ(calc(var(--half-size) * -1)) rotateX(0deg); }
+    }
+
+    /* Loader Text */
+    .loader-text-container {
+        margin-top: 40px;
+        text-align: center;
+        z-index: 10;
     }
 
     .loader-text {
         font-family: 'Poppins', sans-serif;
         font-weight: 600;
-        color: #1a1a1a;
-        font-size: 18px;
-        display: flex;
+        color: #0d7a8c;
+        font-size: 20px;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 2px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
     }
 
     .loading-dots span {
@@ -86,27 +187,37 @@
     .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
     .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    @keyframes pulse {
-        0% { transform: scale(0.8); opacity: 0; }
-        50% { opacity: 0.5; }
-        100% { transform: scale(1.2); opacity: 0; }
-    }
-
     @keyframes dots {
         0%, 80%, 100% { opacity: 0; }
         40% { opacity: 1; }
     }
+
+    @media (max-width: 768px) {
+        .loader-text {
+            font-size: 16px;
+        }
+    }
 </style>
 
 <script>
+    function resetFlipAnimation() {
+        $('.cube-container').removeClass('animate');
+        
+        // Force reflow to restart animations cleanly
+        if(document.querySelector('.cube-container')) {
+            void document.querySelector('.cube-container').offsetWidth;
+        }
+    }
+
+    function startFlipAnimation() {
+        resetFlipAnimation();
+        $('.cube-container').addClass('animate');
+    }
+
     $(document).ready(function() {
-        if ($('#global-loader').is(':visible')) {
+        if ($('#global-loader').is(':visible') && $('#global-loader').css('display') !== 'none') {
             $('body').css('overflow', 'hidden');
+            startFlipAnimation();
         }
     });
 
@@ -117,8 +228,6 @@
     });
 
     // Fix: When user presses Back, browser restores from bfcache.
-    // The 'load' event does NOT re-fire in bfcache — so we must listen
-    // to 'pageshow' with persisted=true to hide any lingering loader.
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {
             window.hideLoader();
@@ -127,12 +236,16 @@
 
     window.showLoader = function(text = 'Loading') {
         $('#global-loader .loading-word').text(text);
-        $('#global-loader').fadeIn(300);
+        $('#global-loader').fadeIn(300, function() {
+            startFlipAnimation();
+        });
         $('body').css('overflow', 'hidden');
     }
 
     window.hideLoader = function() {
-        $('#global-loader').fadeOut(300);
+        $('#global-loader').fadeOut(400, function() {
+            resetFlipAnimation();
+        });
         $('body').css('overflow', '');
     }
 
@@ -142,19 +255,11 @@
         const target = $(this).attr('target');
         const isDownload = $(this).attr('download') !== undefined;
         
-        // Skip if:
-        // - No href or empty
-        // - Hash link
-        // - Javascript link
-        // - target="_blank"
-        // - mailto/tel
-        // - download link
         if (!href || href === '#' || href.startsWith('#') || href.startsWith('javascript') || 
             target === '_blank' || href.startsWith('mailto') || href.startsWith('tel') || isDownload) {
             return;
         }
 
-        // Only show if it's a left click and no modifier keys
         if (e.which === 1 && !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
             window.showLoader('Loading');
         }

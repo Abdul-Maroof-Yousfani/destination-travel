@@ -106,7 +106,11 @@
       100% { transform: scale(1.55); opacity: 0; }
     }
   </style>
-
+{{-- <script>
+  setTimeout(() => {
+    window.showLoader('Searching');
+  }, 1000);
+</script> --}}
 </body>
 
 </html>
