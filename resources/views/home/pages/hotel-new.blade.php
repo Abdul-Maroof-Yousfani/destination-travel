@@ -11,8 +11,12 @@
 html{scroll-behavior:smooth;}
 body{font-family:'Poppins',sans-serif;color:#222;overflow-x:hidden;}
 
+/* ── CONTAINER ── */
+.container{max-width:1320px;margin:0 auto;padding:0 20px;}
+
 /* ── NAV ── */
-nav{display:flex;align-items:center;justify-content:space-between;padding:0 56px;height:62px;background:#fff;position:sticky;top:0;z-index:300;box-shadow:0 2px 14px rgba(0,0,0,.09);}
+nav{background:#fff;position:sticky;top:0;z-index:300;box-shadow:0 2px 14px rgba(0,0,0,.09);}
+nav .container{display:flex;align-items:center;justify-content:space-between;height:62px;}
 .logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
 .logo-icon{width:34px;height:34px;background:linear-gradient(135deg,#0d7c6b,#25b99e);border-radius:8px;display:flex;align-items:center;justify-content:center;}
 .logo-icon svg{width:18px;height:18px;fill:#fff;}
@@ -32,30 +36,24 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 56px
 .mob-menu a{text-decoration:none;color:#444;font-size:13.5px;padding:9px 4px;border-bottom:1px solid #f5f5f5;font-weight:500;}
 .mob-menu a.active{color:#0d7c6b;font-weight:700;}
 
+/* ── SEARCH LABEL ── */
+.search-label{background:#f0f0f0;padding:7px 20px;}
+.search-label span{font-size:13px;font-weight:600;color:#555;}
+
 /* ── HERO ── */
-.hero{position:relative;padding:72px 56px 56px;min-height:500px;display:flex;align-items:center;overflow:hidden;transition:all .4s;}
+.hero{position:relative;padding:72px 0 56px;min-height:500px;display:flex;align-items:center;overflow:hidden;}
 .hero-img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1600&q=85') center/cover no-repeat;}
 .hero-img::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(4,46,38,.95) 0%,rgba(7,80,66,.88) 40%,rgba(12,110,92,.72) 70%,rgba(20,140,116,.50) 100%);}
+.hero .container{position:relative;z-index:2;width:100%;}
 
-/* HOME mode — content centered */
-.hero-inner{position:relative;z-index:2;width:100%;display:flex;align-items:flex-start;gap:32px;}
-.hero-left{flex:1;min-width:0;transition:all .4s;}
+/* ── HERO LAYOUT (permanent search/2-col) ── */
+.hero-inner{width:100%;display:flex;flex-direction:row;align-items:flex-start;justify-content:flex-start;gap:32px;text-align:center;}
+.hero-left{flex:1;min-width:0;}
 .hero h1{font-size:44px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:10px;}
 .hero p{color:rgba(255,255,255,.76);font-size:14.5px;line-height:1.65;margin-bottom:32px;}
 
-/* HOME MODE: centered layout */
-body.mode-home .hero-inner{justify-content:center;align-items:center;flex-direction:column;text-align:center;}
-body.mode-home .hero h1{font-size:46px;}
-body.mode-home .hero p{max-width:520px;}
-body.mode-home .sbox{max-width:620px;width:100%;}
-body.mode-home .ls-panel{display:none;}
-
-/* SEARCH MODE: 2-col layout */
-body.mode-search .hero-inner{flex-direction:row;justify-content:flex-start;text-align:left;}
-body.mode-search .ls-panel{display:flex;flex-direction:column;}
-
 /* ── LATEST SEARCHES PANEL ── */
-.ls-panel{position:relative;z-index:2;flex-shrink:0;width: auto;background:rgba(13,24,38,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;border:1.5px solid rgba(255,255,255,.12);padding:20px 16px;align-self:flex-start;display:none;}
+.ls-panel{flex-shrink:0;width:auto;background:rgba(13,24,38,.85);text-align: left; backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;border:1.5px solid rgba(255,255,255,.12);padding:20px 16px;align-self:flex-start;display:flex;flex-direction:column;}
 .ls-title{color:#fff;font-size:13.5px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:8px;}
 .ls-title i{color:#25b99e;font-size:13px;}
 .ls-list{display:flex;flex-direction:column;gap:7px;max-height:420px;overflow-y:auto;}
@@ -65,16 +63,9 @@ body.mode-search .ls-panel{display:flex;flex-direction:column;}
 .ls-item:hover{background:rgba(37,185,158,.18);border-color:rgba(37,185,158,.3);}
 .ls-item p{font-size:10.5px;color:rgba(255,255,255,.80);line-height:1.55;font-weight:400;}
 
-/* PAGE TOGGLE TABS */
-.page-tabs{position:absolute;top:18px;right:56px;z-index:10;display:flex;gap:0;background:rgba(0,0,0,.3);border-radius:8px;padding:3px;backdrop-filter:blur(10px);}
-.page-tab{border:none;background:transparent;color:rgba(255,255,255,.65);font-size:12px;font-weight:600;padding:6px 18px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;transition:.2s;}
-.page-tab.active{background:#fff;color:#0d7c6b;}
-.page-tab:hover:not(.active){color:#fff;}
-
 /* ── SEARCH BOX ── */
-.sbox{background:#fff;border-radius:14px;padding:22px 24px 20px;max-width:680px;box-shadow:0 14px 55px rgba(0,0,0,.25);}
+.sbox{background:#fff;border-radius:14px;padding:22px 24px 20px;max-width:100%;box-shadow:0 14px 55px rgba(0,0,0,.25);}
 .sbox-row1{display:grid;grid-template-columns:1.7fr 1fr 1fr;gap:14px;margin-bottom:14px;}
-.sbox-row2{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px;}
 .sf{display:flex;flex-direction:column;gap:4px;}
 .sf label{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.7px;}
 .si{display:flex;align-items:center;gap:8px;border:1.5px solid #e8e8e8;border-radius:8px;padding:8px 12px;transition:border-color .2s;}
@@ -88,7 +79,8 @@ body.mode-search .ls-panel{display:flex;flex-direction:column;}
 .btn-search:hover{background:#0b6055;}
 
 /* ── STATS ── */
-.stats{display:flex;background:#f8f9fa;border-bottom:1px solid #ececec;}
+.stats{background:#f8f9fa;border-bottom:1px solid #ececec;}
+.stats .container{display:flex;}
 .stat{flex:1;display:flex;flex-direction:column;align-items:center;padding:30px 16px;border-right:1px solid #ececec;}
 .stat:last-child{border-right:none;}
 .stat-ic{width:52px;height:52px;border-radius:50%;background:#e0f5f0;display:flex;align-items:center;justify-content:center;margin-bottom:10px;color:#0d7c6b;font-size:21px;}
@@ -96,7 +88,7 @@ body.mode-search .ls-panel{display:flex;flex-direction:column;}
 .stat-l{font-size:11.5px;color:#888;margin-top:4px;text-align:center;font-weight:500;}
 
 /* ── DESTINATIONS ── */
-.dest-wrap{padding:56px 56px 50px;background:#fff;}
+.dest-wrap{padding:56px 0 50px;background:#fff;}
 .sec-title{text-align:center;font-size:28px;font-weight:800;color:#111;margin-bottom:7px;}
 .sec-sub{text-align:center;font-size:13px;color:#aaa;margin-bottom:34px;}
 .dest-border{border:2px dashed #c0e8e4;border-radius:18px;padding:28px 22px;}
@@ -110,7 +102,7 @@ body.mode-search .ls-panel{display:flex;flex-direction:column;}
 .dc-name{font-size:18px;font-weight:700;letter-spacing:-.2px;text-shadow:0 2px 6px rgba(0,0,0,.5);}
 
 /* ── WHY CHOOSE ── */
-.why{padding:60px 56px;background:linear-gradient(135deg,#e8f7f3 0%,#d0eeea 40%,#c5e9e3 100%);}
+.why{padding:60px 0;background:linear-gradient(135deg,#e8f7f3 0%,#d0eeea 40%,#c5e9e3 100%);}
 .why-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;margin-top:36px;}
 .wc{background:#fff;border-radius:13px;padding:26px 14px 20px;text-align:center;box-shadow:0 4px 18px rgba(13,124,107,.10);transition:transform .2s,box-shadow .2s;}
 .wc:hover{transform:translateY(-5px);box-shadow:0 10px 30px rgba(13,124,107,.16);}
@@ -119,7 +111,7 @@ body.mode-search .ls-panel{display:flex;flex-direction:column;}
 .wc p{font-size:11px;color:#888;line-height:1.65;}
 
 /* ── TESTIMONIALS ── */
-.testi{padding:60px 56px;background:#fff;}
+.testi{padding:60px 0;background:#fff;}
 .testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:36px;}
 .tc{background:#fff;border-radius:13px;padding:24px 20px;border:1px solid #eaecef;box-shadow:0 3px 14px rgba(0,0,0,.05);}
 .tc-head{display:flex;align-items:center;gap:11px;margin-bottom:12px;}
@@ -131,7 +123,7 @@ body.mode-search .ls-panel{display:flex;flex-direction:column;}
 .tc-text{font-size:12.5px;color:#555;line-height:1.78;}
 
 /* ── FOOTER ── */
-footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
+footer{background:#0c1824;color:#8da0b3;padding:52px 0 22px;}
 .ft-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:34px;margin-bottom:44px;}
 .ft-brand{font-size:19px;font-weight:800;color:#fff;margin-bottom:13px;display:flex;align-items:center;gap:8px;}
 .ft-brand-ic{width:28px;height:28px;background:linear-gradient(135deg,#0d7c6b,#25b99e);border-radius:6px;display:flex;align-items:center;justify-content:center;}
@@ -159,39 +151,33 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
 
 /* ══ RESPONSIVE ══ */
 @media(max-width:1080px){
-  nav,.hero,.dest-wrap,.why,.testi,footer{padding-left:32px;padding-right:32px;}
   .why-grid{grid-template-columns:repeat(3,1fr);}
   .ft-grid{grid-template-columns:1.6fr 1fr 1fr;}
   .ft-grid .fc:nth-child(4),.ft-grid .fc:nth-child(5){display:none;}
   .ls-panel{width:260px;}
-  .page-tabs{right:32px;}
 }
 @media(max-width:900px){
-  body.mode-search .hero-inner{flex-direction:column;}
+  .hero-inner{flex-direction:column;}
   .ls-panel{width:100%;max-width:520px;}
   .ls-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-  .page-tabs{top:14px;right:18px;}
 }
 @media(max-width:768px){
-  nav{padding:0 18px;}
   .nav-links,.nav-phone{display:none;}
   .hamburger{display:block;}
   .mob-menu.open{display:flex;}
-  .hero{padding:36px 18px 32px;min-height:auto;}
+  .hero{padding:36px 0 32px;min-height:auto;}
   .hero h1{font-size:26px;}
   .hero p{font-size:13.5px;}
   .sbox-row1{grid-template-columns:1fr;}
   .guests-row{grid-template-columns:1fr;}
   .sbox{padding:18px 16px 16px;}
   .ls-list{grid-template-columns:1fr;}
-  .stats{flex-wrap:wrap;}
+  .stats .container{flex-wrap:wrap;}
   .stat{flex:1 1 48%;border-right:none;border-bottom:1px solid #ececec;padding:20px 12px;}
-  .dest-wrap,.why,.testi{padding:36px 18px;}
   .dest-grid{grid-template-columns:1fr 1fr;}
   .sec-title{font-size:22px;}
   .why-grid{grid-template-columns:repeat(2,1fr);}
   .testi-grid{grid-template-columns:1fr;}
-  footer{padding:36px 18px 18px;}
   .ft-grid{grid-template-columns:1fr;gap:22px;}
   .ft-grid .fc:nth-child(4),.ft-grid .fc:nth-child(5){display:block;}
   .ft-bottom{flex-direction:column;gap:14px;}
@@ -202,33 +188,35 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
   .dest-grid{grid-template-columns:1fr;}
   .why-grid{grid-template-columns:1fr;}
   .nav-right .btn-login{display:none;}
-  .sbox-row1,.sbox-row2{grid-template-columns:1fr;}
+  .sbox-row1{grid-template-columns:1fr;}
 }
 </style>
 </head>
-<body class="mode-home">
+<body>
 
 <!-- NAV -->
 <nav>
-  <a class="logo" href="#">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+  <div class="container">
+    <a class="logo" href="#">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      </div>
+      <span class="logo-text">e<em>destinations</em></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#">Flights</a></li>
+      <li><a href="#" class="active">Hotel</a></li>
+      <li><a href="#">Rental</a></li>
+      <li><a href="#">Visa</a></li>
+      <li><a href="#">Cruises</a></li>
+      <li><a href="#">My Bookings</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="nav-phone"><i class="fa-solid fa-phone"></i>+1 (425) 576-4567</div>
+      <button class="btn-login">Login</button>
+      <button class="btn-signup">Sign Up</button>
+      <button class="hamburger" onclick="document.getElementById('mm').classList.toggle('open')"><i class="fa-solid fa-bars"></i></button>
     </div>
-    <span class="logo-text">e<em>destinations</em></span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="#">Flights</a></li>
-    <li><a href="#" class="active">Hotel</a></li>
-    <li><a href="#">Rental</a></li>
-    <li><a href="#">Visa</a></li>
-    <li><a href="#">Cruises</a></li>
-    <li><a href="#">My Bookings</a></li>
-  </ul>
-  <div class="nav-right">
-    <div class="nav-phone"><i class="fa-solid fa-phone"></i>+1 (425) 576-4567</div>
-    <button class="btn-login">Login</button>
-    <button class="btn-signup">Sign Up</button>
-    <button class="hamburger" onclick="document.getElementById('mm').classList.toggle('open')"><i class="fa-solid fa-bars"></i></button>
   </div>
 </nav>
 <div class="mob-menu" id="mm">
@@ -240,174 +228,170 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
 <!-- HERO -->
 <section class="hero">
   <div class="hero-img"></div>
+  <div class="container">
+    <div class="hero-inner">
 
-  <!-- PAGE TOGGLE TABS -->
-  <div class="page-tabs">
-    <button class="page-tab" id="tabSearch" onclick="setMode('search')">Search</button>
-    <button class="page-tab active" id="tabHome" onclick="setMode('home')">Home</button>
-  </div>
-
-  <div class="hero-inner">
-
-    <!-- LEFT: heading + search -->
-    <div class="hero-left">
-      <h1>Discover Luxury Stays<br/>Around the World</h1>
-      <p>Experience premium hospitality with exclusive deals on hotels,<br/>flights, and travel packages</p>
-      <div class="sbox">
-        <div class="sbox-row1">
-          <div class="sf">
-            <label>Destination</label>
-            <div class="si si-sel">
-              <i class="fa-solid fa-location-dot"></i>
-              <select>
-                <option value="">Dubai</option>
-                <option>Istanbul, Turkey</option>
-                <option>Bangkok, Thailand</option>
-                <option>Kuala Lumpur, Malaysia</option>
-                <option>Karachi, Pakistan</option>
-                <option>Makkah, Saudi Arabia</option>
-                <option>London, UK</option>
-                <option>Paris, France</option>
-              </select>
+      <!-- LEFT: heading + search -->
+      <div class="hero-left">
+        <h1>Discover Luxury Stays<br/>Around the World</h1>
+        <p>Experience premium hospitality with exclusive deals on hotels,<br/>flights, and travel packages</p>
+        <div class="sbox">
+          <div class="sbox-row1">
+            <div class="sf">
+              <label>Destination</label>
+              <div class="si si-sel">
+                <i class="fa-solid fa-location-dot"></i>
+                <select>
+                  <option value="">Dubai</option>
+                  <option>Istanbul, Turkey</option>
+                  <option>Bangkok, Thailand</option>
+                  <option>Kuala Lumpur, Malaysia</option>
+                  <option>Karachi, Pakistan</option>
+                  <option>Makkah, Saudi Arabia</option>
+                  <option>London, UK</option>
+                  <option>Paris, France</option>
+                </select>
+              </div>
+            </div>
+            <div class="sf">
+              <label>Check-in</label>
+              <div class="si">
+                <i class="fa-regular fa-calendar"></i>
+                <input type="date" placeholder="mm/dd/yyyy"/>
+              </div>
+            </div>
+            <div class="sf">
+              <label>Check-out</label>
+              <div class="si">
+                <i class="fa-regular fa-calendar"></i>
+                <input type="date" placeholder="mm/dd/yyyy"/>
+              </div>
             </div>
           </div>
-          <div class="sf">
-            <label>Check-in</label>
-            <div class="si">
-              <i class="fa-regular fa-calendar"></i>
-              <input type="date" placeholder="mm/dd/yyyy"/>
+          <div class="guests-row" style="margin-bottom:18px;">
+            <div class="sf">
+              <label>Guests &amp; Rooms</label>
+              <div class="si si-sel">
+                <i class="fa-solid fa-user-group"></i>
+                <select>
+                  <option>1 Guest, 1 Room</option>
+                  <option selected>2 Guests, 1 Room</option>
+                  <option>3 Guests, 1 Room</option>
+                  <option>4 Guests, 2 Rooms</option>
+                  <option>5+ Guests, 2+ Rooms</option>
+                </select>
+              </div>
+            </div>
+            <div class="sf">
+              <label>Room Type</label>
+              <div class="si si-sel">
+                <i class="fa-solid fa-bed"></i>
+                <select>
+                  <option>Any Type</option>
+                  <option>Standard</option>
+                  <option selected>Deluxe</option>
+                  <option>Suite</option>
+                  <option>Presidential</option>
+                </select>
+              </div>
             </div>
           </div>
-          <div class="sf">
-            <label>Check-out</label>
-            <div class="si">
-              <i class="fa-regular fa-calendar"></i>
-              <input type="date" placeholder="mm/dd/yyyy"/>
-            </div>
-          </div>
+          <button class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Search Hotels</button>
         </div>
-        <div class="guests-row" style="margin-bottom:18px;">
-          <div class="sf">
-            <label>Guests &amp; Rooms</label>
-            <div class="si si-sel">
-              <i class="fa-solid fa-user-group"></i>
-              <select>
-                <option>1 Guest, 1 Room</option>
-                <option selected>2 Guests, 1 Room</option>
-                <option>3 Guests, 1 Room</option>
-                <option>4 Guests, 2 Rooms</option>
-                <option>5+ Guests, 2+ Rooms</option>
-              </select>
-            </div>
-          </div>
-          <div class="sf">
-            <label>Room Type</label>
-            <div class="si si-sel">
-              <i class="fa-solid fa-bed"></i>
-              <select>
-                <option>Any Type</option>
-                <option>Standard</option>
-                <option selected>Deluxe</option>
-                <option>Suite</option>
-                <option>Presidential</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <button class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Search Hotels</button>
       </div>
-    </div>
 
-    <!-- RIGHT: Latest searches panel -->
-    <div class="ls-panel">
-      <div class="ls-title"><i class="fa-solid fa-clock-rotate-left" style="margin-right:7px;color:#25b99e;font-size:13px;"></i>Latest 10 searches</div>
-      <div class="ls-list" id="lsList"></div>
-    </div>
+      <!-- RIGHT: Latest searches panel -->
+      <div class="ls-panel">
+        <div class="ls-title"><i class="fa-solid fa-clock-rotate-left"></i>Latest 10 searches</div>
+        <div class="ls-list" id="lsList"></div>
+      </div>
 
+    </div>
   </div>
 </section>
 
 <!-- STATS -->
 <div class="stats">
-  <div class="stat"><div class="stat-ic"><i class="fa-solid fa-users"></i></div><div class="stat-n">50K+</div><div class="stat-l">Happy Travelers</div></div>
-  <div class="stat"><div class="stat-ic"><i class="fa-solid fa-hotel"></i></div><div class="stat-n">5,000+</div><div class="stat-l">Partner Hotels</div></div>
-  <div class="stat"><div class="stat-ic"><i class="fa-solid fa-award"></i></div><div class="stat-n">100%</div><div class="stat-l">Best Price Guarantee</div></div>
-  <div class="stat"><div class="stat-ic"><i class="fa-solid fa-headset"></i></div><div class="stat-n">24/7</div><div class="stat-l">Customer Support</div></div>
+  <div class="container">
+    <div class="stat"><div class="stat-ic"><i class="fa-solid fa-users"></i></div><div class="stat-n">50K+</div><div class="stat-l">Happy Travelers</div></div>
+    <div class="stat"><div class="stat-ic"><i class="fa-solid fa-hotel"></i></div><div class="stat-n">5,000+</div><div class="stat-l">Partner Hotels</div></div>
+    <div class="stat"><div class="stat-ic"><i class="fa-solid fa-award"></i></div><div class="stat-n">100%</div><div class="stat-l">Best Price Guarantee</div></div>
+    <div class="stat"><div class="stat-ic"><i class="fa-solid fa-headset"></i></div><div class="stat-n">24/7</div><div class="stat-l">Customer Support</div></div>
+  </div>
 </div>
 
 <!-- DESTINATIONS -->
 <div class="dest-wrap">
-  <h2 class="sec-title">Explore Popular Destinations</h2>
-  <p class="sec-sub">Discover the world's most sought-after luxury destinations</p>
-  <div class="dest-border">
-    <div class="dest-grid" id="dGrid"></div>
+  <div class="container">
+    <h2 class="sec-title">Explore Popular Destinations</h2>
+    <p class="sec-sub">Discover the world's most sought-after luxury destinations</p>
+    <div class="dest-border">
+      <div class="dest-grid" id="dGrid"></div>
+    </div>
   </div>
 </div>
 
 <!-- WHY CHOOSE -->
 <section class="why">
-  <h2 class="sec-title">Why Choose Us</h2>
-  <p class="sec-sub">Experience the difference with our premium travel services</p>
-  <div class="why-grid">
-    <div class="wc"><div class="wc-ic"><i class="fa-solid fa-bolt"></i></div><h4>Easy Booking</h4><p>Simple and fast booking with secure confirmation at every step of your journey.</p></div>
-    <div class="wc"><div class="wc-ic"><i class="fa-solid fa-shield-halved"></i></div><h4>Secure Payments</h4><p>All payments secured with end-to-end encryption and multiple secure protections.</p></div>
-    <div class="wc"><div class="wc-ic"><i class="fa-solid fa-globe"></i></div><h4>Global Hotels</h4><p>Access to 5,000+ premium partner hotels across 200+ destinations worldwide.</p></div>
-    <div class="wc"><div class="wc-ic"><i class="fa-solid fa-circle-check"></i></div><h4>Instant Confirmation</h4><p>Real-time booking confirmation in multiple languages across the globe.</p></div>
-    <div class="wc"><div class="wc-ic"><i class="fa-solid fa-headset"></i></div><h4>24/7 Support</h4><p>Dedicated round-the-clock support in multiple languages anytime you need.</p></div>
+  <div class="container">
+    <h2 class="sec-title">Why Choose Us</h2>
+    <p class="sec-sub">Experience the difference with our premium travel services</p>
+    <div class="why-grid">
+      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-bolt"></i></div><h4>Easy Booking</h4><p>Simple and fast booking with secure confirmation at every step of your journey.</p></div>
+      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-shield-halved"></i></div><h4>Secure Payments</h4><p>All payments secured with end-to-end encryption and multiple secure protections.</p></div>
+      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-globe"></i></div><h4>Global Hotels</h4><p>Access to 5,000+ premium partner hotels across 200+ destinations worldwide.</p></div>
+      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-circle-check"></i></div><h4>Instant Confirmation</h4><p>Real-time booking confirmation in multiple languages across the globe.</p></div>
+      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-headset"></i></div><h4>24/7 Support</h4><p>Dedicated round-the-clock support in multiple languages anytime you need.</p></div>
+    </div>
   </div>
 </section>
 
 <!-- TESTIMONIALS -->
 <section class="testi">
-  <h2 class="sec-title">What Our Travelers Say</h2>
-  <p class="sec-sub">Real experiences from our satisfied customers</p>
-  <div class="testi-grid" id="tGrid"></div>
+  <div class="container">
+    <h2 class="sec-title">What Our Travelers Say</h2>
+    <p class="sec-sub">Real experiences from our satisfied customers</p>
+    <div class="testi-grid" id="tGrid"></div>
+  </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <div class="ft-grid">
-    <div>
-      <div class="ft-brand">
-        <div class="ft-brand-ic"><i class="fa-solid fa-globe"></i></div>
-        e<em>destinations</em>
+  <div class="container">
+    <div class="ft-grid">
+      <div>
+        <div class="ft-brand">
+          <div class="ft-brand-ic"><i class="fa-solid fa-globe"></i></div>
+          e<em>destinations</em>
+        </div>
+        <p class="ft-desc">Your trusted partner for luxury travel experiences worldwide. Discover, book, and explore the world in premium style with exclusive deals.</p>
+        <div class="ft-con"><i class="fa-solid fa-location-dot"></i>527 Tower Street, New York, NY 10201</div>
+        <div class="ft-con"><i class="fa-solid fa-phone"></i>+1 (425) 576-4567</div>
+        <div class="ft-con"><i class="fa-solid fa-envelope"></i>info@edestinations.com</div>
       </div>
-      <p class="ft-desc">Your trusted partner for luxury travel experiences worldwide. Discover, book, and explore the world in premium style with exclusive deals.</p>
-      <div class="ft-con"><i class="fa-solid fa-location-dot"></i>527 Tower Street, New York, NY 10201</div>
-      <div class="ft-con"><i class="fa-solid fa-phone"></i>+1 (425) 576-4567</div>
-      <div class="ft-con"><i class="fa-solid fa-envelope"></i>info@edestinations.com</div>
+      <div class="fc"><h5>Company</h5><ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li><li><a href="#">News</a></li><li><a href="#">Blog</a></li><li><a href="#">Partnerships</a></li></ul></div>
+      <div class="fc"><h5>Support</h5><ul><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Terms of Service</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Refund Policy</a></li></ul></div>
+      <div class="fc"><h5>Quick Links</h5><ul><li><a href="#">Hotels</a></li><li><a href="#">Flights</a></li><li><a href="#">Packages</a></li><li><a href="#">Visa Services</a></li><li><a href="#">Cruises</a></li></ul></div>
+      <div class="fc"><h5>Destinations</h5><ul><li><a href="#">Dubai</a></li><li><a href="#">Bangkok</a></li><li><a href="#">Istanbul</a></li><li><a href="#">Makkah</a></li><li><a href="#">Switzerland</a></li></ul></div>
     </div>
-    <div class="fc"><h5>Company</h5><ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li><li><a href="#">News</a></li><li><a href="#">Blog</a></li><li><a href="#">Partnerships</a></li></ul></div>
-    <div class="fc"><h5>Support</h5><ul><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Terms of Service</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Refund Policy</a></li></ul></div>
-    <div class="fc"><h5>Quick Links</h5><ul><li><a href="#">Hotels</a></li><li><a href="#">Flights</a></li><li><a href="#">Packages</a></li><li><a href="#">Visa Services</a></li><li><a href="#">Cruises</a></li></ul></div>
-    <div class="fc"><h5>Destinations</h5><ul><li><a href="#">Dubai</a></li><li><a href="#">Bangkok</a></li><li><a href="#">Istanbul</a></li><li><a href="#">Makkah</a></li><li><a href="#">Switzerland</a></li></ul></div>
-  </div>
-  <div class="nl-box">
-    <h4>Subscribe to Our Newsletter</h4>
-    <p>Get exclusive deals and travel inspiration delivered straight to your inbox</p>
-    <div class="nl-form"><input type="email" placeholder="Enter your email now..."/><button>Subscribe</button></div>
-  </div>
-  <div class="ft-bottom">
-    <div class="socials">
-      <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-      <a href="#"><i class="fa-brands fa-instagram"></i></a>
-      <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-      <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+    <div class="nl-box">
+      <h4>Subscribe to Our Newsletter</h4>
+      <p>Get exclusive deals and travel inspiration delivered straight to your inbox</p>
+      <div class="nl-form"><input type="email" placeholder="Enter your email now..."/><button>Subscribe</button></div>
     </div>
-    <p class="copy">© 2024 Edestinations. All rights reserved.</p>
+    <div class="ft-bottom">
+      <div class="socials">
+        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+      </div>
+      <p class="copy">© 2024 Edestinations. All rights reserved.</p>
+    </div>
   </div>
 </footer>
 
 <script>
-// Page mode toggle: home (centered) vs search (panel visible)
-function setMode(mode){
-  var body=document.body;
-  body.classList.remove('mode-home','mode-search');
-  body.classList.add('mode-'+mode);
-  document.getElementById('tabHome').classList.toggle('active', mode==='home');
-  document.getElementById('tabSearch').classList.toggle('active', mode==='search');
-}
-
 // Latest 10 searches panel
 var searches=[
   'Exploring Tokyo, Japan from 20 May 2026 to 25 May 2026 (5 Nights) with 1 passenger',
@@ -433,19 +417,16 @@ searches.forEach(function(s){
   lsList.appendChild(item);
 });
 
-// Destination cards — using Unsplash Source (no API key needed, redirects to real photos)
-var dests = [
-  {name:'Dubai',     country:'UAE',          url:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80'},
-  {name:'Istanbul',  country:'Turkey',       url:'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=600&q=80'},
-  {name:'Bangkok',   country:'Thailand',     url:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80'},
-  {name:'Kuala Lumpur',country:'Malaysia',   url:'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=600&q=80'},
-  {name:'Karachi',   country:'Pakistan',     url:'https://images.unsplash.com/photo-1567861911437-538298e4232c?w=600&q=80'},
-  {name:'Makkah',    country:'Saudi Arabia', url:'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=600&q=80'}
+// Destination cards
+var dests=[
+  {name:'Dubai',       country:'UAE',          url:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80'},
+  {name:'Istanbul',    country:'Turkey',       url:'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=600&q=80'},
+  {name:'Bangkok',     country:'Thailand',     url:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80'},
+  {name:'Kuala Lumpur',country:'Malaysia',     url:'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=600&q=80'},
+  {name:'Karachi',     country:'Pakistan',     url:'https://images.unsplash.com/photo-1567861911437-538298e4232c?w=600&q=80'},
+  {name:'Makkah',      country:'Saudi Arabia', url:'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=600&q=80'}
 ];
-
-// Fallback picsum seeds if unsplash fails
 var fallbacks=['https://picsum.photos/seed/city1/600/420','https://picsum.photos/seed/city2/600/420','https://picsum.photos/seed/city3/600/420','https://picsum.photos/seed/city4/600/420','https://picsum.photos/seed/city5/600/420','https://picsum.photos/seed/city6/600/420'];
-
 var dg=document.getElementById('dGrid');
 dests.forEach(function(d,i){
   var c=document.createElement('div');
@@ -463,7 +444,6 @@ var testis=[
   {name:'Emma Thompson',role:'Adventure Explorer',color:'7b1fa2',
    text:'"Totally loved this platform! Everything was seamless from booking to check-out. The prices were unbeatable and the team helped at every step of our trip."'}
 ];
-
 var tg=document.getElementById('tGrid');
 testis.forEach(function(t){
   var c=document.createElement('div');
