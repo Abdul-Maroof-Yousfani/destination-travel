@@ -37,6 +37,7 @@ Route::view('login', 'login')->name('login');
 Route::view('register', 'register')->name('register');
 Route::view('terms-and-conditions', 'home.pages.terms-and-conditions')->name('terms-and-conditions');
 Route::view('about-us', 'home.pages.about-us')->name('about-us');
+Route::view('hotel-new', 'home.pages.hotel-new')->name('hotel-new');
 Route::view('contact-us', 'home.pages.contact-us')->name('contact-us');
 Route::view('company', 'home.pages.company')->name('company');
 Route::get('profile', [HomeController::class, 'profile'])->name('profile')->middleware('auth:client');
