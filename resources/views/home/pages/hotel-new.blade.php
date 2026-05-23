@@ -33,24 +33,46 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 56px
 .mob-menu a.active{color:#0d7c6b;font-weight:700;}
 
 /* ── HERO ── */
-.hero{position:relative;padding:72px 56px 56px;min-height:500px;display:flex;align-items:center;overflow:hidden;}
+.hero{position:relative;padding:72px 56px 56px;min-height:500px;display:flex;align-items:center;overflow:hidden;transition:all .4s;}
 .hero-img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1600&q=85') center/cover no-repeat;}
 .hero-img::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(4,46,38,.95) 0%,rgba(7,80,66,.88) 40%,rgba(12,110,92,.72) 70%,rgba(20,140,116,.50) 100%);}
-.hero-inner{position:relative;z-index:2;width:100%;display:flex;align-items:center;gap:32px;}
-.hero-left{flex:1;min-width:0;}
+
+/* HOME mode — content centered */
+.hero-inner{position:relative;z-index:2;width:100%;display:flex;align-items:flex-start;gap:32px;}
+.hero-left{flex:1;min-width:0;transition:all .4s;}
 .hero h1{font-size:44px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:10px;}
 .hero p{color:rgba(255,255,255,.76);font-size:14.5px;line-height:1.65;margin-bottom:32px;}
 
+/* HOME MODE: centered layout */
+body.mode-home .hero-inner{justify-content:center;align-items:center;flex-direction:column;text-align:center;}
+body.mode-home .hero h1{font-size:46px;}
+body.mode-home .hero p{max-width:520px;}
+body.mode-home .sbox{max-width:620px;width:100%;}
+body.mode-home .ls-panel{display:none;}
+
+/* SEARCH MODE: 2-col layout */
+body.mode-search .hero-inner{flex-direction:row;justify-content:flex-start;text-align:left;}
+body.mode-search .ls-panel{display:flex;flex-direction:column;}
+
 /* ── LATEST SEARCHES PANEL ── */
-.ls-panel{position:relative;z-index:2;flex-shrink:0;background:rgba(15,30,45,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;border:1px solid rgba(255,255,255,.10);padding:20px 18px;align-self:flex-start;}
-.ls-title{color:#fff;font-size:14px;font-weight:700;margin-bottom:14px;letter-spacing:.1px;}
-.ls-list{display:flex;flex-direction:column;gap:8px;}
-.ls-item{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);border-radius:8px;padding:9px 12px;cursor:pointer;transition:background .2s;}
-.ls-item:hover{background:rgba(255,255,255,.13);}
-.ls-item p{font-size:11px;color:rgba(255,255,255,.82);line-height:1.55;font-weight:400;}
+.ls-panel{position:relative;z-index:2;flex-shrink:0;width:310px;background:rgba(13,24,38,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;border:1.5px solid rgba(255,255,255,.12);padding:20px 16px;align-self:flex-start;display:none;}
+.ls-title{color:#fff;font-size:13.5px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:8px;}
+.ls-title i{color:#25b99e;font-size:13px;}
+.ls-list{display:flex;flex-direction:column;gap:7px;max-height:420px;overflow-y:auto;}
+.ls-list::-webkit-scrollbar{width:3px;}
+.ls-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:10px;}
+.ls-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:9px 11px;cursor:pointer;transition:background .2s;}
+.ls-item:hover{background:rgba(37,185,158,.18);border-color:rgba(37,185,158,.3);}
+.ls-item p{font-size:10.5px;color:rgba(255,255,255,.80);line-height:1.55;font-weight:400;}
+
+/* PAGE TOGGLE TABS */
+.page-tabs{position:absolute;top:18px;right:56px;z-index:10;display:flex;gap:0;background:rgba(0,0,0,.3);border-radius:8px;padding:3px;backdrop-filter:blur(10px);}
+.page-tab{border:none;background:transparent;color:rgba(255,255,255,.65);font-size:12px;font-weight:600;padding:6px 18px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;transition:.2s;}
+.page-tab.active{background:#fff;color:#0d7c6b;}
+.page-tab:hover:not(.active){color:#fff;}
 
 /* ── SEARCH BOX ── */
-.sbox{background:#fff;border-radius:14px;padding:22px 24px 20px;box-shadow:0 14px 55px rgba(0,0,0,.25);}
+.sbox{background:#fff;border-radius:14px;padding:22px 24px 20px;max-width:680px;box-shadow:0 14px 55px rgba(0,0,0,.25);}
 .sbox-row1{display:grid;grid-template-columns:1.7fr 1fr 1fr;gap:14px;margin-bottom:14px;}
 .sbox-row2{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px;}
 .sf{display:flex;flex-direction:column;gap:4px;}
@@ -142,11 +164,13 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
   .ft-grid{grid-template-columns:1.6fr 1fr 1fr;}
   .ft-grid .fc:nth-child(4),.ft-grid .fc:nth-child(5){display:none;}
   .ls-panel{width:260px;}
+  .page-tabs{right:32px;}
 }
 @media(max-width:900px){
-  .hero-inner{flex-direction:column;}
+  body.mode-search .hero-inner{flex-direction:column;}
   .ls-panel{width:100%;max-width:520px;}
   .ls-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .page-tabs{top:14px;right:18px;}
 }
 @media(max-width:768px){
   nav{padding:0 18px;}
@@ -182,7 +206,7 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
 }
 </style>
 </head>
-<body>
+<body class="mode-home">
 
 <!-- NAV -->
 <nav>
@@ -216,6 +240,13 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
 <!-- HERO -->
 <section class="hero">
   <div class="hero-img"></div>
+
+  <!-- PAGE TOGGLE TABS -->
+  <div class="page-tabs">
+    <button class="page-tab" id="tabSearch" onclick="setMode('search')">Search</button>
+    <button class="page-tab active" id="tabHome" onclick="setMode('home')">Home</button>
+  </div>
+
   <div class="hero-inner">
 
     <!-- LEFT: heading + search -->
@@ -368,6 +399,15 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
 </footer>
 
 <script>
+// Page mode toggle: home (centered) vs search (panel visible)
+function setMode(mode){
+  var body=document.body;
+  body.classList.remove('mode-home','mode-search');
+  body.classList.add('mode-'+mode);
+  document.getElementById('tabHome').classList.toggle('active', mode==='home');
+  document.getElementById('tabSearch').classList.toggle('active', mode==='search');
+}
+
 // Latest 10 searches panel
 var searches=[
   'Exploring Tokyo, Japan from 20 May 2026 to 25 May 2026 (5 Nights) with 1 passenger',
@@ -376,6 +416,10 @@ var searches=[
   'Family vacation in Paris, France from 10 Jul 2026 to 17 Jul 2026 (7 Nights) with 4 passengers',
   'Weekend getaway to Sydney, Australia from 5 Aug 2026 to 7 Aug 2026 (2 Nights) with 2 passengers',
   'Conference in Berlin, Germany from 15 Sep 2026 to 18 Sep 2026 (3 Nights) with 1 passenger',
+  'Honeymoon in Maldives from 3 Oct 2026 to 10 Oct 2026 (7 Nights) with 2 passengers',
+  'City break in Istanbul, Turkey from 22 Nov 2026 to 25 Nov 2026 (3 Nights) with 2 passengers',
+  'Holiday in Bangkok, Thailand from 20 Dec 2026 to 28 Dec 2026 (8 Nights) with 3 passengers',
+  'New Year in London, UK from 30 Dec 2026 to 2 Jan 2027 (3 Nights) with 2 passengers'
 ];
 var lsList=document.getElementById('lsList');
 searches.forEach(function(s){
