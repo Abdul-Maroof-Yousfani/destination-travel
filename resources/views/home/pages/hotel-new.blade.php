@@ -55,7 +55,7 @@ body.mode-search .hero-inner{flex-direction:row;justify-content:flex-start;text-
 body.mode-search .ls-panel{display:flex;flex-direction:column;}
 
 /* ── LATEST SEARCHES PANEL ── */
-.ls-panel{position:relative;z-index:2;flex-shrink:0;width:310px;background:rgba(13,24,38,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;border:1.5px solid rgba(255,255,255,.12);padding:20px 16px;align-self:flex-start;display:none;}
+.ls-panel{position:relative;z-index:2;flex-shrink:0;width: auto;background:rgba(13,24,38,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;border:1.5px solid rgba(255,255,255,.12);padding:20px 16px;align-self:flex-start;display:none;}
 .ls-title{color:#fff;font-size:13.5px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:8px;}
 .ls-title i{color:#25b99e;font-size:13px;}
 .ls-list{display:flex;flex-direction:column;gap:7px;max-height:420px;overflow-y:auto;}
