@@ -36,9 +36,18 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 56px
 .hero{position:relative;padding:72px 56px 56px;min-height:500px;display:flex;align-items:center;overflow:hidden;}
 .hero-img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1600&q=85') center/cover no-repeat;}
 .hero-img::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(4,46,38,.95) 0%,rgba(7,80,66,.88) 40%,rgba(12,110,92,.72) 70%,rgba(20,140,116,.50) 100%);}
-.hero-inner{position:relative;z-index:2;max-width:680px;width:100%;}
+.hero-inner{position:relative;z-index:2;width:100%;display:flex;align-items:flex-start;gap:32px;}
+.hero-left{flex:1;min-width:0;}
 .hero h1{font-size:44px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:10px;}
 .hero p{color:rgba(255,255,255,.76);font-size:14.5px;line-height:1.65;margin-bottom:32px;}
+
+/* ── LATEST SEARCHES PANEL ── */
+.ls-panel{position:relative;z-index:2;flex-shrink:0;width:300px;background:rgba(15,30,45,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;border:1px solid rgba(255,255,255,.10);padding:20px 18px;align-self:flex-start;}
+.ls-title{color:#fff;font-size:14px;font-weight:700;margin-bottom:14px;letter-spacing:.1px;}
+.ls-list{display:flex;flex-direction:column;gap:8px;}
+.ls-item{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);border-radius:8px;padding:9px 12px;cursor:pointer;transition:background .2s;}
+.ls-item:hover{background:rgba(255,255,255,.13);}
+.ls-item p{font-size:11px;color:rgba(255,255,255,.82);line-height:1.55;font-weight:400;}
 
 /* ── SEARCH BOX ── */
 .sbox{background:#fff;border-radius:14px;padding:22px 24px 20px;max-width:680px;box-shadow:0 14px 55px rgba(0,0,0,.25);}
@@ -132,18 +141,25 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
   .why-grid{grid-template-columns:repeat(3,1fr);}
   .ft-grid{grid-template-columns:1.6fr 1fr 1fr;}
   .ft-grid .fc:nth-child(4),.ft-grid .fc:nth-child(5){display:none;}
+  .ls-panel{width:260px;}
+}
+@media(max-width:900px){
+  .hero-inner{flex-direction:column;}
+  .ls-panel{width:100%;max-width:520px;}
+  .ls-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 }
 @media(max-width:768px){
   nav{padding:0 18px;}
   .nav-links,.nav-phone{display:none;}
   .hamburger{display:block;}
   .mob-menu.open{display:flex;}
-  .hero{padding:40px 18px 36px;min-height:auto;}
+  .hero{padding:36px 18px 32px;min-height:auto;}
   .hero h1{font-size:26px;}
   .hero p{font-size:13.5px;}
   .sbox-row1{grid-template-columns:1fr;}
   .guests-row{grid-template-columns:1fr;}
   .sbox{padding:18px 16px 16px;}
+  .ls-list{grid-template-columns:1fr;}
   .stats{flex-wrap:wrap;}
   .stat{flex:1 1 48%;border-right:none;border-bottom:1px solid #ececec;padding:20px 12px;}
   .dest-wrap,.why,.testi{padding:36px 18px;}
@@ -201,71 +217,82 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
 <section class="hero">
   <div class="hero-img"></div>
   <div class="hero-inner">
-    <h1>Discover Luxury Stays<br/>Around the World</h1>
-    <p>Experience premium hospitality with exclusive deals on<br/>hotels, flights, and travel packages</p>
-    <div class="sbox">
-      <div class="sbox-row1">
-        <div class="sf">
-          <label>Destination</label>
-          <div class="si si-sel">
-            <i class="fa-solid fa-location-dot"></i>
-            <select>
-              <option value="">Dubai</option>
-              <option>Istanbul, Turkey</option>
-              <option>Bangkok, Thailand</option>
-              <option>Kuala Lumpur, Malaysia</option>
-              <option>Karachi, Pakistan</option>
-              <option>Makkah, Saudi Arabia</option>
-              <option>London, UK</option>
-              <option>Paris, France</option>
-            </select>
+
+    <!-- LEFT: heading + search -->
+    <div class="hero-left">
+      <h1>Discover Luxury Stays<br/>Around the World</h1>
+      <p>Experience premium hospitality with exclusive deals on hotels,<br/>flights, and travel packages</p>
+      <div class="sbox">
+        <div class="sbox-row1">
+          <div class="sf">
+            <label>Destination</label>
+            <div class="si si-sel">
+              <i class="fa-solid fa-location-dot"></i>
+              <select>
+                <option value="">Dubai</option>
+                <option>Istanbul, Turkey</option>
+                <option>Bangkok, Thailand</option>
+                <option>Kuala Lumpur, Malaysia</option>
+                <option>Karachi, Pakistan</option>
+                <option>Makkah, Saudi Arabia</option>
+                <option>London, UK</option>
+                <option>Paris, France</option>
+              </select>
+            </div>
+          </div>
+          <div class="sf">
+            <label>Check-in</label>
+            <div class="si">
+              <i class="fa-regular fa-calendar"></i>
+              <input type="date" placeholder="mm/dd/yyyy"/>
+            </div>
+          </div>
+          <div class="sf">
+            <label>Check-out</label>
+            <div class="si">
+              <i class="fa-regular fa-calendar"></i>
+              <input type="date" placeholder="mm/dd/yyyy"/>
+            </div>
           </div>
         </div>
-        <div class="sf">
-          <label>Check In</label>
-          <div class="si">
-            <i class="fa-regular fa-calendar"></i>
-            <input type="date" placeholder="MM/DD/YY"/>
+        <div class="guests-row" style="margin-bottom:18px;">
+          <div class="sf">
+            <label>Guests &amp; Rooms</label>
+            <div class="si si-sel">
+              <i class="fa-solid fa-user-group"></i>
+              <select>
+                <option>1 Guest, 1 Room</option>
+                <option selected>2 Guests, 1 Room</option>
+                <option>3 Guests, 1 Room</option>
+                <option>4 Guests, 2 Rooms</option>
+                <option>5+ Guests, 2+ Rooms</option>
+              </select>
+            </div>
+          </div>
+          <div class="sf">
+            <label>Room Type</label>
+            <div class="si si-sel">
+              <i class="fa-solid fa-bed"></i>
+              <select>
+                <option>Any Type</option>
+                <option>Standard</option>
+                <option selected>Deluxe</option>
+                <option>Suite</option>
+                <option>Presidential</option>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="sf">
-          <label>Check Out</label>
-          <div class="si">
-            <i class="fa-regular fa-calendar"></i>
-            <input type="date" placeholder="MM/DD/YY"/>
-          </div>
-        </div>
+        <button class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Search Hotels</button>
       </div>
-      <div class="guests-row" style="margin-bottom:18px;">
-        <div class="sf">
-          <label>Guests &amp; Rooms</label>
-          <div class="si si-sel">
-            <i class="fa-solid fa-user-group"></i>
-            <select>
-              <option>1 Guest / 1 Room</option>
-              <option selected>2 Guests / 1 Room</option>
-              <option>3 Guests / 1 Room</option>
-              <option>4 Guests / 2 Rooms</option>
-              <option>5+ Guests / 2+ Rooms</option>
-            </select>
-          </div>
-        </div>
-        <div class="sf">
-          <label>Room Type</label>
-          <div class="si si-sel">
-            <i class="fa-solid fa-bed"></i>
-            <select>
-              <option>Any Type</option>
-              <option>Standard</option>
-              <option selected>Deluxe</option>
-              <option>Suite</option>
-              <option>Presidential</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <button class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Search Hotels</button>
     </div>
+
+    <!-- RIGHT: Latest searches panel -->
+    <div class="ls-panel">
+      <div class="ls-title"><i class="fa-solid fa-clock-rotate-left" style="margin-right:7px;color:#25b99e;font-size:13px;"></i>Latest 10 searches</div>
+      <div class="ls-list" id="lsList"></div>
+    </div>
+
   </div>
 </section>
 
@@ -341,6 +368,31 @@ footer{background:#0c1824;color:#8da0b3;padding:52px 56px 22px;}
 </footer>
 
 <script>
+// Latest 10 searches panel
+var searches=[
+  'Exploring Tokyo, Japan from 20 May 2026 to 25 May 2026 (5 Nights) with 1 passenger',
+  'Going to Dubai, United Arab Emirates from 17 Apr 2026 to 18 Apr 2026 (1 Night) with 2 passengers',
+  'Business trip to New York, USA from 1 Jun 2026 to 4 Jun 2026 (3 Nights) with 3 passengers',
+  'Family vacation in Paris, France from 10 Jul 2026 to 17 Jul 2026 (7 Nights) with 4 passengers',
+  'Weekend getaway to Sydney, Australia from 5 Aug 2026 to 7 Aug 2026 (2 Nights) with 2 passengers',
+  'Conference in Berlin, Germany from 15 Sep 2026 to 18 Sep 2026 (3 Nights) with 1 passenger',
+  'Honeymoon in Maldives from 3 Oct 2026 to 10 Oct 2026 (7 Nights) with 2 passengers',
+  'City break in Istanbul, Turkey from 22 Nov 2026 to 25 Nov 2026 (3 Nights) with 2 passengers',
+  'Holiday in Bangkok, Thailand from 20 Dec 2026 to 28 Dec 2026 (8 Nights) with 3 passengers',
+  'New Year in London, UK from 30 Dec 2026 to 2 Jan 2027 (3 Nights) with 2 passengers'
+];
+var lsList=document.getElementById('lsList');
+searches.forEach(function(s){
+  var item=document.createElement('div');
+  item.className='ls-item';
+  item.innerHTML='<p>'+s+'</p>';
+  item.onclick=function(){
+    var dest=s.split(' from ')[0].replace('Exploring ','').replace('Going to ','').replace('Business trip to ','').replace('Family vacation in ','').replace('Weekend getaway to ','').replace('Conference in ','').replace('Honeymoon in ','').replace('City break in ','').replace('Holiday in ','').replace('New Year in ','');
+    document.querySelector('.si select').value=dest.split(',')[0];
+  };
+  lsList.appendChild(item);
+});
+
 // Destination cards — using Unsplash Source (no API key needed, redirects to real photos)
 var dests = [
   {name:'Dubai',     country:'UAE',          url:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80'},
