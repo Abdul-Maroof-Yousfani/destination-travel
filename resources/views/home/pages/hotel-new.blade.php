@@ -36,13 +36,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 56px
 .hero{position:relative;padding:72px 56px 56px;min-height:500px;display:flex;align-items:center;overflow:hidden;}
 .hero-img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1600&q=85') center/cover no-repeat;}
 .hero-img::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(4,46,38,.95) 0%,rgba(7,80,66,.88) 40%,rgba(12,110,92,.72) 70%,rgba(20,140,116,.50) 100%);}
-.hero-inner{position:relative;z-index:2;width:100%;display:flex;align-items:flex-start;gap:32px;}
+.hero-inner{position:relative;z-index:2;width:100%;display:flex;align-items:center;gap:32px;}
 .hero-left{flex:1;min-width:0;}
 .hero h1{font-size:44px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:10px;}
 .hero p{color:rgba(255,255,255,.76);font-size:14.5px;line-height:1.65;margin-bottom:32px;}
 
 /* ── LATEST SEARCHES PANEL ── */
-.ls-panel{position:relative;z-index:2;flex-shrink:0;width:300px;background:rgba(15,30,45,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;border:1px solid rgba(255,255,255,.10);padding:20px 18px;align-self:flex-start;}
+.ls-panel{position:relative;z-index:2;flex-shrink:0;background:rgba(15,30,45,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:14px;border:1px solid rgba(255,255,255,.10);padding:20px 18px;align-self:flex-start;}
 .ls-title{color:#fff;font-size:14px;font-weight:700;margin-bottom:14px;letter-spacing:.1px;}
 .ls-list{display:flex;flex-direction:column;gap:8px;}
 .ls-item{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);border-radius:8px;padding:9px 12px;cursor:pointer;transition:background .2s;}
@@ -50,7 +50,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 56px
 .ls-item p{font-size:11px;color:rgba(255,255,255,.82);line-height:1.55;font-weight:400;}
 
 /* ── SEARCH BOX ── */
-.sbox{background:#fff;border-radius:14px;padding:22px 24px 20px;max-width:680px;box-shadow:0 14px 55px rgba(0,0,0,.25);}
+.sbox{background:#fff;border-radius:14px;padding:22px 24px 20px;box-shadow:0 14px 55px rgba(0,0,0,.25);}
 .sbox-row1{display:grid;grid-template-columns:1.7fr 1fr 1fr;gap:14px;margin-bottom:14px;}
 .sbox-row2{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:18px;}
 .sf{display:flex;flex-direction:column;gap:4px;}
@@ -376,10 +376,6 @@ var searches=[
   'Family vacation in Paris, France from 10 Jul 2026 to 17 Jul 2026 (7 Nights) with 4 passengers',
   'Weekend getaway to Sydney, Australia from 5 Aug 2026 to 7 Aug 2026 (2 Nights) with 2 passengers',
   'Conference in Berlin, Germany from 15 Sep 2026 to 18 Sep 2026 (3 Nights) with 1 passenger',
-  'Honeymoon in Maldives from 3 Oct 2026 to 10 Oct 2026 (7 Nights) with 2 passengers',
-  'City break in Istanbul, Turkey from 22 Nov 2026 to 25 Nov 2026 (3 Nights) with 2 passengers',
-  'Holiday in Bangkok, Thailand from 20 Dec 2026 to 28 Dec 2026 (8 Nights) with 3 passengers',
-  'New Year in London, UK from 30 Dec 2026 to 2 Jan 2027 (3 Nights) with 2 passengers'
 ];
 var lsList=document.getElementById('lsList');
 searches.forEach(function(s){
