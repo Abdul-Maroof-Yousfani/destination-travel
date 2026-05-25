@@ -537,20 +537,12 @@
             });
 
             // 3. Occupancy details dropdown menu logic
-              // $('#hotelOccupancyToggle').on('click', function(e) {
-              // e.preventDefault();
-              //e.stopPropagation();
-              //$('#hotelOccupancyMenu').toggleClass('show');
-              //});
-            document.getElementById('hotelOccupancyToggle').addEventListener('click', function() {
-                const menu = document.getElementById('hotelOccupancyMenu');
-                const rect = this.getBoundingClientRect();
-                
-                menu.style.top = (rect.bottom + window.scrollY) + 'px';
-                menu.style.left = rect.left + 'px';
-                menu.style.width = '280px';
-                menu.classList.toggle('show');
-            });
+              $('#hotelOccupancyToggle').on('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              $('#hotelOccupancyMenu').toggleClass('show');
+              });
+    
 
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('.dropdown').length) {
