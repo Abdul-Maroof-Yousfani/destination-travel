@@ -1,456 +1,819 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Edestinations – Discover Luxury Stays Around the World</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{font-family:'Poppins',sans-serif;color:#222;overflow-x:hidden;}
-
-/* ── CONTAINER ── */
-.container{max-width:1320px;margin:0 auto;padding:0 20px;}
-
-/* ── NAV ── */
-nav{background:#fff;position:sticky;top:0;z-index:300;box-shadow:0 2px 14px rgba(0,0,0,.09);}
-nav .container{display:flex;align-items:center;justify-content:space-between;height:62px;}
-.logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
-.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,#0d7c6b,#25b99e);border-radius:8px;display:flex;align-items:center;justify-content:center;}
-.logo-icon svg{width:18px;height:18px;fill:#fff;}
-.logo-text{font-size:17px;font-weight:800;color:#111;letter-spacing:-.3px;}
-.logo-text em{color:#0d7c6b;font-style:normal;}
-.nav-links{display:flex;align-items:center;gap:2px;list-style:none;}
-.nav-links a{text-decoration:none;color:#555;font-size:13px;font-weight:500;padding:6px 13px;border-radius:20px;white-space:nowrap;}
-.nav-links a.active{background:#0d7c6b;color:#fff;}
-.nav-links a:hover:not(.active){color:#0d7c6b;}
-.nav-right{display:flex;align-items:center;gap:10px;}
-.nav-phone{font-size:12.5px;font-weight:600;color:#222;display:flex;align-items:center;gap:5px;white-space:nowrap;}
-.nav-phone i{color:#0d7c6b;font-size:12px;}
-.btn-login{border:1.5px solid #0d7c6b;color:#0d7c6b;background:transparent;padding:6px 18px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;}
-.btn-signup{background:#0d7c6b;color:#fff;border:none;padding:7px 18px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;}
-.hamburger{display:none;background:none;border:none;font-size:21px;color:#333;cursor:pointer;}
-.mob-menu{display:none;flex-direction:column;background:#fff;padding:14px 20px;gap:2px;border-top:1px solid #eee;position:sticky;top:62px;z-index:299;}
-.mob-menu a{text-decoration:none;color:#444;font-size:13.5px;padding:9px 4px;border-bottom:1px solid #f5f5f5;font-weight:500;}
-.mob-menu a.active{color:#0d7c6b;font-weight:700;}
-
-/* ── SEARCH LABEL ── */
-.search-label{background:#f0f0f0;padding:7px 20px;}
-.search-label span{font-size:13px;font-weight:600;color:#555;}
-
-/* ── HERO ── */
-.hero{position:relative;padding:72px 0 56px;min-height:500px;display:flex;align-items:center;overflow:hidden;}
-.hero-img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1600&q=85') center/cover no-repeat;}
-.hero-img::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(4,46,38,.95) 0%,rgba(7,80,66,.88) 40%,rgba(12,110,92,.72) 70%,rgba(20,140,116,.50) 100%);}
-.hero .container{position:relative;z-index:2;width:100%;}
-
-/* ── HERO LAYOUT (permanent search/2-col) ── */
-.hero-inner{width:100%;display:flex;flex-direction:row;align-items:flex-start;justify-content:flex-start;gap:32px;text-align:center;}
-.hero-left{flex:1;min-width:0;}
-.hero h1{font-size:44px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:10px;}
-.hero p{color:rgba(255,255,255,.76);font-size:14.5px;line-height:1.65;margin-bottom:32px;}
-
-/* ── LATEST SEARCHES PANEL ── */
-.ls-panel{flex-shrink:0;width:auto;background:rgba(13,24,38,.85);text-align: left; backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:14px;border:1.5px solid rgba(255,255,255,.12);padding:20px 16px;align-self:flex-start;display:flex;flex-direction:column;}
-.ls-title{color:#fff;font-size:13.5px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:8px;}
-.ls-title i{color:#25b99e;font-size:13px;}
-.ls-list{display:flex;flex-direction:column;gap:7px;max-height:420px;overflow-y:auto;}
-.ls-list::-webkit-scrollbar{width:3px;}
-.ls-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:10px;}
-.ls-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:9px 11px;cursor:pointer;transition:background .2s;}
-.ls-item:hover{background:rgba(37,185,158,.18);border-color:rgba(37,185,158,.3);}
-.ls-item p{font-size:10.5px;color:rgba(255,255,255,.80);line-height:1.55;font-weight:400;}
-
-/* ── SEARCH BOX ── */
-.sbox{background:#fff;border-radius:14px;padding:22px 24px 20px;max-width:100%;box-shadow:0 14px 55px rgba(0,0,0,.25);}
-.sbox-row1{display:grid;grid-template-columns:1.7fr 1fr 1fr;gap:14px;margin-bottom:14px;}
-.sf{display:flex;flex-direction:column;gap:4px;}
-.sf label{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.7px;}
-.si{display:flex;align-items:center;gap:8px;border:1.5px solid #e8e8e8;border-radius:8px;padding:8px 12px;transition:border-color .2s;}
-.si:focus-within{border-color:#0d7c6b;}
-.si i{color:#0d7c6b;font-size:14px;flex-shrink:0;}
-.si input,.si select{border:none;outline:none;font-size:13px;font-family:'Poppins',sans-serif;width:100%;background:transparent;color:#333;appearance:none;-webkit-appearance:none;}
-.si-sel{position:relative;}
-.si-sel::after{content:'\f107';font-family:'Font Awesome 6 Free';font-weight:900;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#bbb;font-size:12px;pointer-events:none;}
-.guests-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.btn-search{width:100%;background:#0d7c6b;color:#fff;border:none;border-radius:9px;padding:13px;font-size:14.5px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;}
-.btn-search:hover{background:#0b6055;}
-
-/* ── STATS ── */
-.stats{background:#f8f9fa;border-bottom:1px solid #ececec;}
-.stats .container{display:flex;}
-.stat{flex:1;display:flex;flex-direction:column;align-items:center;padding:30px 16px;border-right:1px solid #ececec;}
-.stat:last-child{border-right:none;}
-.stat-ic{width:52px;height:52px;border-radius:50%;background:#e0f5f0;display:flex;align-items:center;justify-content:center;margin-bottom:10px;color:#0d7c6b;font-size:21px;}
-.stat-n{font-size:23px;font-weight:800;color:#111;line-height:1;}
-.stat-l{font-size:11.5px;color:#888;margin-top:4px;text-align:center;font-weight:500;}
-
-/* ── DESTINATIONS ── */
-.dest-wrap{padding:56px 0 50px;background:#fff;}
-.sec-title{text-align:center;font-size:28px;font-weight:800;color:#111;margin-bottom:7px;}
-.sec-sub{text-align:center;font-size:13px;color:#aaa;margin-bottom:34px;}
-.dest-border{border:2px dashed #c0e8e4;border-radius:18px;padding:28px 22px;}
-.dest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;}
-.dc{position:relative;border-radius:12px;overflow:hidden;cursor:pointer;height:195px;background:#ddd;}
-.dc img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease;}
-.dc:hover img{transform:scale(1.08);}
-.dc-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 55%);}
-.dc-info{position:absolute;bottom:13px;left:13px;color:#fff;}
-.dc-tag{font-size:9.5px;background:rgba(255,255,255,.18);backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,.28);padding:2px 9px;border-radius:20px;margin-bottom:4px;display:inline-flex;align-items:center;gap:3px;letter-spacing:.2px;}
-.dc-name{font-size:18px;font-weight:700;letter-spacing:-.2px;text-shadow:0 2px 6px rgba(0,0,0,.5);}
-
-/* ── WHY CHOOSE ── */
-.why{padding:60px 0;background:linear-gradient(135deg,#e8f7f3 0%,#d0eeea 40%,#c5e9e3 100%);}
-.why-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;margin-top:36px;}
-.wc{background:#fff;border-radius:13px;padding:26px 14px 20px;text-align:center;box-shadow:0 4px 18px rgba(13,124,107,.10);transition:transform .2s,box-shadow .2s;}
-.wc:hover{transform:translateY(-5px);box-shadow:0 10px 30px rgba(13,124,107,.16);}
-.wc-ic{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#0d7c6b,#25b99e);display:flex;align-items:center;justify-content:center;margin:0 auto 13px;font-size:20px;color:#fff;}
-.wc h4{font-size:12.5px;font-weight:700;color:#1a1a1a;margin-bottom:6px;}
-.wc p{font-size:11px;color:#888;line-height:1.65;}
-
-/* ── TESTIMONIALS ── */
-.testi{padding:60px 0;background:#fff;}
-.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:36px;}
-.tc{background:#fff;border-radius:13px;padding:24px 20px;border:1px solid #eaecef;box-shadow:0 3px 14px rgba(0,0,0,.05);}
-.tc-head{display:flex;align-items:center;gap:11px;margin-bottom:12px;}
-.tc-av{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #cce9e4;flex-shrink:0;}
-.tc-name{font-size:13.5px;font-weight:700;color:#111;}
-.tc-role{font-size:11px;color:#aaa;}
-.tc-qi{margin-left:auto;color:#0d7c6b;font-size:20px;opacity:.4;}
-.tc-stars{color:#f5a623;font-size:13px;letter-spacing:1px;margin-bottom:10px;}
-.tc-text{font-size:12.5px;color:#555;line-height:1.78;}
-
-/* ── FOOTER ── */
-footer{background:#0c1824;color:#8da0b3;padding:52px 0 22px;}
-.ft-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:34px;margin-bottom:44px;}
-.ft-brand{font-size:19px;font-weight:800;color:#fff;margin-bottom:13px;display:flex;align-items:center;gap:8px;}
-.ft-brand-ic{width:28px;height:28px;background:linear-gradient(135deg,#0d7c6b,#25b99e);border-radius:6px;display:flex;align-items:center;justify-content:center;}
-.ft-brand-ic i{color:#fff;font-size:13px;}
-.ft-brand em{color:#0d7c6b;font-style:normal;}
-.ft-desc{font-size:12px;line-height:1.85;color:#6a8099;margin-bottom:16px;}
-.ft-con{display:flex;align-items:flex-start;gap:8px;font-size:12px;margin-bottom:9px;color:#6a8099;}
-.ft-con i{color:#0d7c6b;margin-top:2px;flex-shrink:0;width:14px;}
-.fc h5{color:#fff;font-size:12.5px;font-weight:700;margin-bottom:14px;letter-spacing:.2px;}
-.fc ul{list-style:none;}
-.fc ul li{margin-bottom:9px;}
-.fc ul li a{color:#6a8099;text-decoration:none;font-size:12px;transition:.2s;}
-.fc ul li a:hover{color:#0d7c6b;}
-.nl-box{background:#162230;border-radius:12px;padding:28px 32px;text-align:center;margin-bottom:32px;}
-.nl-box h4{color:#fff;font-size:15px;font-weight:700;margin-bottom:5px;}
-.nl-box p{font-size:12px;color:#6a8099;margin-bottom:16px;}
-.nl-form{display:flex;max-width:400px;margin:0 auto;}
-.nl-form input{flex:1;padding:10px 15px;border:none;border-radius:7px 0 0 7px;font-size:12.5px;outline:none;font-family:'Poppins',sans-serif;background:#fff;}
-.nl-form button{background:#0d7c6b;color:#fff;border:none;padding:10px 20px;border-radius:0 7px 7px 0;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;}
-.ft-bottom{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #1c2e40;padding-top:20px;}
-.socials{display:flex;gap:9px;}
-.socials a{width:32px;height:32px;border-radius:50%;background:#18293b;display:flex;align-items:center;justify-content:center;color:#6a8099;font-size:12.5px;text-decoration:none;transition:.2s;}
-.socials a:hover{background:#0d7c6b;color:#fff;}
-.copy{font-size:11.5px;color:#3e5468;}
-
-/* ══ RESPONSIVE ══ */
-@media(max-width:1080px){
-  .why-grid{grid-template-columns:repeat(3,1fr);}
-  .ft-grid{grid-template-columns:1.6fr 1fr 1fr;}
-  .ft-grid .fc:nth-child(4),.ft-grid .fc:nth-child(5){display:none;}
-  .ls-panel{width:260px;}
-}
-@media(max-width:900px){
-  .hero-inner{flex-direction:column;}
-  .ls-panel{width:100%;max-width:520px;}
-  .ls-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-}
-@media(max-width:768px){
-  .nav-links,.nav-phone{display:none;}
-  .hamburger{display:block;}
-  .mob-menu.open{display:flex;}
-  .hero{padding:36px 0 32px;min-height:auto;}
-  .hero h1{font-size:26px;}
-  .hero p{font-size:13.5px;}
-  .sbox-row1{grid-template-columns:1fr;}
-  .guests-row{grid-template-columns:1fr;}
-  .sbox{padding:18px 16px 16px;}
-  .ls-list{grid-template-columns:1fr;}
-  .stats .container{flex-wrap:wrap;}
-  .stat{flex:1 1 48%;border-right:none;border-bottom:1px solid #ececec;padding:20px 12px;}
-  .dest-grid{grid-template-columns:1fr 1fr;}
-  .sec-title{font-size:22px;}
-  .why-grid{grid-template-columns:repeat(2,1fr);}
-  .testi-grid{grid-template-columns:1fr;}
-  .ft-grid{grid-template-columns:1fr;gap:22px;}
-  .ft-grid .fc:nth-child(4),.ft-grid .fc:nth-child(5){display:block;}
-  .ft-bottom{flex-direction:column;gap:14px;}
-  .nl-box{padding:20px 14px;}
-}
-@media(max-width:480px){
-  .hero h1{font-size:22px;}
-  .dest-grid{grid-template-columns:1fr;}
-  .why-grid{grid-template-columns:1fr;}
-  .nav-right .btn-login{display:none;}
-  .sbox-row1{grid-template-columns:1fr;}
-}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edestinations – Discover Luxury Stays Around the World</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="{{ url('assets/css/hotel-page.css') }}">
+    
+    <!-- jQuery, Select2, Flatpickr, and SweetAlert2 CDNs -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
+
 <body>
 
-<!-- NAV -->
-<nav>
-  <div class="container">
-    <a class="logo" href="#">
-      <div class="logo-icon">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-      </div>
-      <span class="logo-text">e<em>destinations</em></span>
-    </a>
-    <ul class="nav-links">
-      <li><a href="#">Flights</a></li>
-      <li><a href="#" class="active">Hotel</a></li>
-      <li><a href="#">Rental</a></li>
-      <li><a href="#">Visa</a></li>
-      <li><a href="#">Cruises</a></li>
-      <li><a href="#">My Bookings</a></li>
-    </ul>
-    <div class="nav-right">
-      <div class="nav-phone"><i class="fa-solid fa-phone"></i>+1 (425) 576-4567</div>
-      <button class="btn-login">Login</button>
-      <button class="btn-signup">Sign Up</button>
-      <button class="hamburger" onclick="document.getElementById('mm').classList.toggle('open')"><i class="fa-solid fa-bars"></i></button>
-    </div>
-  </div>
-</nav>
-<div class="mob-menu" id="mm">
-  <a href="#">Flights</a><a href="#" class="active">Hotel</a><a href="#">Rental</a>
-  <a href="#">Visa</a><a href="#">Cruises</a><a href="#">My Bookings</a>
-  <a href="#">Login</a><a href="#" style="color:#0d7c6b;font-weight:700;">Sign Up</a>
-</div>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-img"></div>
-  <div class="container">
-    <div class="hero-inner">
-
-      <!-- LEFT: heading + search -->
-      <div class="hero-left">
-        <h1>Discover Luxury Stays<br/>Around the World</h1>
-        <p>Experience premium hospitality with exclusive deals on hotels,<br/>flights, and travel packages</p>
-        <div class="sbox">
-          <div class="sbox-row1">
-            <div class="sf">
-              <label>Destination</label>
-              <div class="si si-sel">
-                <i class="fa-solid fa-location-dot"></i>
-                <select>
-                  <option value="">Dubai</option>
-                  <option>Istanbul, Turkey</option>
-                  <option>Bangkok, Thailand</option>
-                  <option>Kuala Lumpur, Malaysia</option>
-                  <option>Karachi, Pakistan</option>
-                  <option>Makkah, Saudi Arabia</option>
-                  <option>London, UK</option>
-                  <option>Paris, France</option>
-                </select>
-              </div>
+    <!-- NAV -->
+    <nav>
+        <div class="container">
+            <a class="logo" href="#">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                    </svg>
+                </div>
+                <span class="logo-text">e<em>destinations</em></span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#">Flights</a></li>
+                <li><a href="#" class="active">Hotel</a></li>
+                <li><a href="#">Rental</a></li>
+                <li><a href="#">Visa</a></li>
+                <li><a href="#">Cruises</a></li>
+                <li><a href="#">My Bookings</a></li>
+            </ul>
+            <div class="nav-right">
+                <div class="nav-phone"><i class="fa-solid fa-phone"></i>+1 (425) 576-4567</div>
+                <button class="btn-login">Login</button>
+                <button class="btn-signup">Sign Up</button>
+                <button class="hamburger" onclick="document.getElementById('mm').classList.toggle('open')"><i
+                        class="fa-solid fa-bars"></i></button>
             </div>
-            <div class="sf">
-              <label>Check-in</label>
-              <div class="si">
-                <i class="fa-regular fa-calendar"></i>
-                <input type="date" placeholder="mm/dd/yyyy"/>
-              </div>
-            </div>
-            <div class="sf">
-              <label>Check-out</label>
-              <div class="si">
-                <i class="fa-regular fa-calendar"></i>
-                <input type="date" placeholder="mm/dd/yyyy"/>
-              </div>
-            </div>
-          </div>
-          <div class="guests-row" style="margin-bottom:18px;">
-            <div class="sf">
-              <label>Guests &amp; Rooms</label>
-              <div class="si si-sel">
-                <i class="fa-solid fa-user-group"></i>
-                <select>
-                  <option>1 Guest, 1 Room</option>
-                  <option selected>2 Guests, 1 Room</option>
-                  <option>3 Guests, 1 Room</option>
-                  <option>4 Guests, 2 Rooms</option>
-                  <option>5+ Guests, 2+ Rooms</option>
-                </select>
-              </div>
-            </div>
-            <div class="sf">
-              <label>Room Type</label>
-              <div class="si si-sel">
-                <i class="fa-solid fa-bed"></i>
-                <select>
-                  <option>Any Type</option>
-                  <option>Standard</option>
-                  <option selected>Deluxe</option>
-                  <option>Suite</option>
-                  <option>Presidential</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <button class="btn-search"><i class="fa-solid fa-magnifying-glass"></i> Search Hotels</button>
         </div>
-      </div>
-
-      <!-- RIGHT: Latest searches panel -->
-      <div class="ls-panel">
-        <div class="ls-title"><i class="fa-solid fa-clock-rotate-left"></i>Latest 10 searches</div>
-        <div class="ls-list" id="lsList"></div>
-      </div>
-
+    </nav>
+    <div class="mob-menu" id="mm">
+        <a href="#">Flights</a><a href="#" class="active">Hotel</a><a href="#">Rental</a>
+        <a href="#">Visa</a><a href="#">Cruises</a><a href="#">My Bookings</a>
+        <a href="#">Login</a><a href="#" style="color:#0d7c6b;font-weight:700;">Sign Up</a>
     </div>
-  </div>
-</section>
 
-<!-- STATS -->
-<div class="stats">
-  <div class="container">
-    <div class="stat"><div class="stat-ic"><i class="fa-solid fa-users"></i></div><div class="stat-n">50K+</div><div class="stat-l">Happy Travelers</div></div>
-    <div class="stat"><div class="stat-ic"><i class="fa-solid fa-hotel"></i></div><div class="stat-n">5,000+</div><div class="stat-l">Partner Hotels</div></div>
-    <div class="stat"><div class="stat-ic"><i class="fa-solid fa-award"></i></div><div class="stat-n">100%</div><div class="stat-l">Best Price Guarantee</div></div>
-    <div class="stat"><div class="stat-ic"><i class="fa-solid fa-headset"></i></div><div class="stat-n">24/7</div><div class="stat-l">Customer Support</div></div>
-  </div>
-</div>
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-img"></div>
+        <div class="container">
+            <div class="hero-inner">
 
-<!-- DESTINATIONS -->
-<div class="dest-wrap">
-  <div class="container">
-    <h2 class="sec-title">Explore Popular Destinations</h2>
-    <p class="sec-sub">Discover the world's most sought-after luxury destinations</p>
-    <div class="dest-border">
-      <div class="dest-grid" id="dGrid"></div>
-    </div>
-  </div>
-</div>
+                <!-- LEFT: heading + search -->
+                <div class="hero-left">
+                    <h1>Discover Luxury Stays<br />Around the World</h1>
+                    <p>Experience premium hospitality with exclusive deals on hotels,<br />flights, and travel packages
+                    </p>
+                    <div class="sbox">
+                        <div class="sbox-row1">
+                            <div class="sf">
+                                <label>Destination</label>
+                                <div class="si select2-icon-wrapper" style="position: relative;">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <select id="hotel_destination" class="form-control" data-placeholder="Going To (City or Hotel)" style="width: 100%;"></select>
+                                </div>
+                                <input type="hidden" id="hotel_country_code">
+                                <input type="hidden" id="hotel_nationality">
+                            </div>
+                        </div>
+                        <div class="guests-row" style="margin-bottom:18px;">
+                            <div class="sf">
+                                <label>Check-in</label>
+                                <div class="si calendar-container">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <input id="checkIn" name="checkIn" type="text" placeholder="Check In" autocomplete="off" />
+                                </div>
+                            </div>
+                            <div class="sf">
+                                <label>Check-out</label>
+                                <div class="si calendar-container">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    <input id="checkOut" name="checkOut" type="text" placeholder="Check Out" autocomplete="off" />
+                                </div>
+                            </div>
+                            <div class="sf">
+                                <label>Guests &amp; Rooms</label>
+                                <div class="si dropdowns" style="border: none; padding: 0;">
+                                    <div class="dropdown w-100" style="position: relative;">
+                                        <div class="si dropdown-toggle" id="hotelOccupancyToggle" style="cursor: pointer;">
+                                            <i class="fa-solid fa-user-group"></i>
+                                            <span class="hotelOccupancyDetails" style="font-size: 13px; font-weight: 500; color: #333;">1 Room, 1 Adult</span>
+                                        </div>
+                                        <div class="dropdown-menu" id="hotelOccupancyMenu" style="min-width: 280px; position: absolute; top: 100%; left: 0; background: #fff; border: 1.5px solid #e8e8e8; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); padding: 16px; z-index: 1050; display: none; margin-top: 6px;">
+                                            <div id="hotelRoomsContainer">
+                                                <!-- Room 1 -->
+                                                <div class="room-block mb-3" data-room="1">
+                                                    <h6 class="fw-bold" style="font-size: 13px; font-weight: 700; color: #111; margin-bottom: 10px;">Room 1</h6>
+                                                    <div class="dropdown-item quantity d-flex justify-content-between align-items-center" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                                        <span style="font-size: 13px; font-weight: 500; color: #555;">Adults</span>
+                                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                                            <button type="button" class="hotelDecrement" data-type="adult" style="width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #475569; transition: all 0.2s;">-</button>
+                                                            <span class="count adult-count" style="font-size: 13px; font-weight: 600; min-width: 20px; text-align: center; color: #0f172a;">1</span>
+                                                            <button type="button" class="hotelIncrement" data-type="adult" style="width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #475569; transition: all 0.2s;">+</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="dropdown-item quantity d-flex justify-content-between align-items-center" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                                        <span style="font-size: 13px; font-weight: 500; color: #555;">Children</span>
+                                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                                            <button type="button" class="hotelDecrement" data-type="child" style="width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #475569; transition: all 0.2s;">-</button>
+                                                            <span class="count child-count" style="font-size: 13px; font-weight: 600; min-width: 20px; text-align: center; color: #0f172a;">0</span>
+                                                            <button type="button" class="hotelIncrement" data-type="child" style="width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #475569; transition: all 0.2s;">+</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="child-ages-container mt-2"></div>
+                                                    <p class="room-error-message text-danger mt-1" style="font-size: 11px; display: none; color: #ef4444;"></p>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" id="addHotelRoomBtn" style="color: #0d7c6b; border: 1.5px solid #0d7c6b; background: transparent; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 12.5px; font-weight: 600; width: 100%; display: block; text-align: center; transition: all 0.2s;">+ Add Room</button>
+                                            <p id="hotel-error-message" class="error-limit" style="color: #ef4444; font-size: 11px; margin-top: 5px;"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-search" id="searchHotelsBtn"><i class="fa-solid fa-magnifying-glass"></i> Search Hotels</button>
+                    </div>
+                </div>
 
-<!-- WHY CHOOSE -->
-<section class="why">
-  <div class="container">
-    <h2 class="sec-title">Why Choose Us</h2>
-    <p class="sec-sub">Experience the difference with our premium travel services</p>
-    <div class="why-grid">
-      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-bolt"></i></div><h4>Easy Booking</h4><p>Simple and fast booking with secure confirmation at every step of your journey.</p></div>
-      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-shield-halved"></i></div><h4>Secure Payments</h4><p>All payments secured with end-to-end encryption and multiple secure protections.</p></div>
-      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-globe"></i></div><h4>Global Hotels</h4><p>Access to 5,000+ premium partner hotels across 200+ destinations worldwide.</p></div>
-      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-circle-check"></i></div><h4>Instant Confirmation</h4><p>Real-time booking confirmation in multiple languages across the globe.</p></div>
-      <div class="wc"><div class="wc-ic"><i class="fa-solid fa-headset"></i></div><h4>24/7 Support</h4><p>Dedicated round-the-clock support in multiple languages anytime you need.</p></div>
-    </div>
-  </div>
-</section>
+                <!-- RIGHT: Latest searches panel -->
+                @php
+                    $recentSearches = session('recent_hotel_searches', []);
+                    // $recentSearches = [];                        
+                @endphp
+                @if(count($recentSearches) > 0)
+                <div class="ls-panel">
+                    <div class="ls-title"><i class="fa-solid fa-clock-rotate-left"></i>Latest searches</div>
+                    <div class="ls-list" id="lsList">
+                            @foreach(array_slice($recentSearches, 0, 10) as $search)
+                                @php
+                                    $checkIn = \Carbon\Carbon::parse($search['check_in']);
+                                    $checkOut = \Carbon\Carbon::parse($search['check_out']);
+                                    $nights = $checkIn->diffInDays($checkOut);
+                                    $roomCount = count($search['rooms']['Room'] ?? []);
+                                    $totalAdults = 0;
+                                    $totalChildren = 0;
+                                    foreach($search['rooms']['Room'] ?? [] as $room) {
+                                        $totalAdults += ($room['Adult'] ?? 0);
+                                        $totalChildren += ($room['Children']['Count'] ?? 0);
+                                    }
+                                @endphp
+                                <div class="ls-item" onclick="reRunHotelSearch({{ json_encode($search) }})">
+                                    <p style="font-size: 10.5px; color: rgba(255,255,255,0.85); line-height: 1.55; font-weight: 400; margin: 0; font-family: 'Poppins', sans-serif;">
+                                        Going to <strong style="color: #fff; font-weight: 600;">{{ $search['destination_name'] ?? 'Unknown Destination' }}</strong> from <strong style="color: #fff; font-weight: 600;">{{ $checkIn->format('d M Y') }}</strong> to <strong style="color: #fff; font-weight: 600;">{{ $checkOut->format('d M Y') }}</strong> ({{ $nights }} {{ Str::plural('Night', $nights) }}) with <strong style="color: #fff; font-weight: 600;">{{ $totalAdults + $totalChildren }}</strong> {{ Str::plural('passenger', $totalAdults + $totalChildren) }}
+                                    </p>
+                                </div>
+                            @endforeach
+                    </div>
+                </div>
+                @endif
 
-<!-- TESTIMONIALS -->
-<section class="testi">
-  <div class="container">
-    <h2 class="sec-title">What Our Travelers Say</h2>
-    <p class="sec-sub">Real experiences from our satisfied customers</p>
-    <div class="testi-grid" id="tGrid"></div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="container">
-    <div class="ft-grid">
-      <div>
-        <div class="ft-brand">
-          <div class="ft-brand-ic"><i class="fa-solid fa-globe"></i></div>
-          e<em>destinations</em>
+            </div>
         </div>
-        <p class="ft-desc">Your trusted partner for luxury travel experiences worldwide. Discover, book, and explore the world in premium style with exclusive deals.</p>
-        <div class="ft-con"><i class="fa-solid fa-location-dot"></i>527 Tower Street, New York, NY 10201</div>
-        <div class="ft-con"><i class="fa-solid fa-phone"></i>+1 (425) 576-4567</div>
-        <div class="ft-con"><i class="fa-solid fa-envelope"></i>info@edestinations.com</div>
-      </div>
-      <div class="fc"><h5>Company</h5><ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li><li><a href="#">News</a></li><li><a href="#">Blog</a></li><li><a href="#">Partnerships</a></li></ul></div>
-      <div class="fc"><h5>Support</h5><ul><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Terms of Service</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Refund Policy</a></li></ul></div>
-      <div class="fc"><h5>Quick Links</h5><ul><li><a href="#">Hotels</a></li><li><a href="#">Flights</a></li><li><a href="#">Packages</a></li><li><a href="#">Visa Services</a></li><li><a href="#">Cruises</a></li></ul></div>
-      <div class="fc"><h5>Destinations</h5><ul><li><a href="#">Dubai</a></li><li><a href="#">Bangkok</a></li><li><a href="#">Istanbul</a></li><li><a href="#">Makkah</a></li><li><a href="#">Switzerland</a></li></ul></div>
-    </div>
-    <div class="nl-box">
-      <h4>Subscribe to Our Newsletter</h4>
-      <p>Get exclusive deals and travel inspiration delivered straight to your inbox</p>
-      <div class="nl-form"><input type="email" placeholder="Enter your email now..."/><button>Subscribe</button></div>
-    </div>
-    <div class="ft-bottom">
-      <div class="socials">
-        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-        <a href="#"><i class="fa-brands fa-instagram"></i></a>
-        <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-        <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
-      </div>
-      <p class="copy">© 2024 Edestinations. All rights reserved.</p>
-    </div>
-  </div>
-</footer>
+    </section>
 
-<script>
-// Latest 10 searches panel
-var searches=[
-  'Exploring Tokyo, Japan from 20 May 2026 to 25 May 2026 (5 Nights) with 1 passenger',
-  'Going to Dubai, United Arab Emirates from 17 Apr 2026 to 18 Apr 2026 (1 Night) with 2 passengers',
-  'Business trip to New York, USA from 1 Jun 2026 to 4 Jun 2026 (3 Nights) with 3 passengers',
-  'Family vacation in Paris, France from 10 Jul 2026 to 17 Jul 2026 (7 Nights) with 4 passengers',
-  'Weekend getaway to Sydney, Australia from 5 Aug 2026 to 7 Aug 2026 (2 Nights) with 2 passengers',
-  'Conference in Berlin, Germany from 15 Sep 2026 to 18 Sep 2026 (3 Nights) with 1 passenger',
-  'Honeymoon in Maldives from 3 Oct 2026 to 10 Oct 2026 (7 Nights) with 2 passengers',
-  'City break in Istanbul, Turkey from 22 Nov 2026 to 25 Nov 2026 (3 Nights) with 2 passengers',
-  'Holiday in Bangkok, Thailand from 20 Dec 2026 to 28 Dec 2026 (8 Nights) with 3 passengers',
-  'New Year in London, UK from 30 Dec 2026 to 2 Jan 2027 (3 Nights) with 2 passengers'
-];
-var lsList=document.getElementById('lsList');
-searches.forEach(function(s){
-  var item=document.createElement('div');
-  item.className='ls-item';
-  item.innerHTML='<p>'+s+'</p>';
-  item.onclick=function(){
-    var dest=s.split(' from ')[0].replace('Exploring ','').replace('Going to ','').replace('Business trip to ','').replace('Family vacation in ','').replace('Weekend getaway to ','').replace('Conference in ','').replace('Honeymoon in ','').replace('City break in ','').replace('Holiday in ','').replace('New Year in ','');
-    document.querySelector('.si select').value=dest.split(',')[0];
-  };
-  lsList.appendChild(item);
-});
+    <!-- STATS -->
+    <div class="stats">
+        <div class="container">
+            <div class="stat">
+                <div class="stat-ic"><i class="fa-solid fa-users"></i></div>
+                <div class="stat-n">50K+</div>
+                <div class="stat-l">Happy Travelers</div>
+            </div>
+            <div class="stat">
+                <div class="stat-ic"><i class="fa-solid fa-hotel"></i></div>
+                <div class="stat-n">5,000+</div>
+                <div class="stat-l">Partner Hotels</div>
+            </div>
+            <div class="stat">
+                <div class="stat-ic"><i class="fa-solid fa-award"></i></div>
+                <div class="stat-n">100%</div>
+                <div class="stat-l">Best Price Guarantee</div>
+            </div>
+            <div class="stat">
+                <div class="stat-ic"><i class="fa-solid fa-headset"></i></div>
+                <div class="stat-n">24/7</div>
+                <div class="stat-l">Customer Support</div>
+            </div>
+        </div>
+    </div>
 
-// Destination cards
-var dests=[
-  {name:'Dubai',       country:'UAE',          url:'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80'},
-  {name:'Istanbul',    country:'Turkey',       url:'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=600&q=80'},
-  {name:'Bangkok',     country:'Thailand',     url:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80'},
-  {name:'Kuala Lumpur',country:'Malaysia',     url:'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=600&q=80'},
-  {name:'Karachi',     country:'Pakistan',     url:'https://images.unsplash.com/photo-1567861911437-538298e4232c?w=600&q=80'},
-  {name:'Makkah',      country:'Saudi Arabia', url:'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=600&q=80'}
-];
-var fallbacks=['https://picsum.photos/seed/city1/600/420','https://picsum.photos/seed/city2/600/420','https://picsum.photos/seed/city3/600/420','https://picsum.photos/seed/city4/600/420','https://picsum.photos/seed/city5/600/420','https://picsum.photos/seed/city6/600/420'];
-var dg=document.getElementById('dGrid');
-dests.forEach(function(d,i){
-  var c=document.createElement('div');
-  c.className='dc';
-  c.innerHTML='<img src="'+d.url+'" alt="'+d.name+'" loading="lazy" onerror="this.src=\''+fallbacks[i]+'\'"/><div class="dc-overlay"></div><div class="dc-info"><div class="dc-tag"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> '+d.country+'</div><div class="dc-name">'+d.name+'</div></div>';
-  dg.appendChild(c);
-});
+    <!-- DESTINATIONS -->
+    <div class="dest-wrap">
+        <div class="container">
+            <h2 class="sec-title">Explore Popular Destinations</h2>
+            <p class="sec-sub">Discover the world's most sought-after luxury destinations</p>
+            <div class="dest-border">
+                <div class="dest-grid" id="dGrid"></div>
+            </div>
+        </div>
+    </div>
 
-// Testimonials
-var testis=[
-  {name:'Sarah Johnson',role:'Frequent Traveler',color:'0d7c6b',
-   text:'"The most amazing travel booking experience I\'ve ever had! The hotels were exactly as described and the customer service was exceptional. Will definitely use again!"'},
-  {name:'Ahmed Al-Rashid',role:'Business Traveler',color:'1565c0',
-   text:'"Absolutely outstanding service! The booking process is so easy and the customer support responds very quickly. I strongly recommend this for luxury travel!"'},
-  {name:'Emma Thompson',role:'Adventure Explorer',color:'7b1fa2',
-   text:'"Totally loved this platform! Everything was seamless from booking to check-out. The prices were unbeatable and the team helped at every step of our trip."'}
-];
-var tg=document.getElementById('tGrid');
-testis.forEach(function(t){
-  var c=document.createElement('div');
-  c.className='tc';
-  c.innerHTML='<div class="tc-head"><img class="tc-av" src="https://ui-avatars.com/api/?name='+encodeURIComponent(t.name)+'&background='+t.color+'&color=fff&size=88&bold=true" alt="'+t.name+'"/><div><div class="tc-name">'+t.name+'</div><div class="tc-role">'+t.role+'</div></div><i class="fa-solid fa-quote-right tc-qi"></i></div><div class="tc-stars">★★★★★</div><p class="tc-text">'+t.text+'</p>';
-  tg.appendChild(c);
-});
-</script>
+    <!-- WHY CHOOSE -->
+    <section class="why">
+        <div class="container">
+            <h2 class="sec-title">Why Choose Us</h2>
+            <p class="sec-sub">Experience the difference with our premium travel services</p>
+            <div class="why-grid">
+                <div class="wc">
+                    <div class="wc-ic"><i class="fa-solid fa-bolt"></i></div>
+                    <h4>Easy Booking</h4>
+                    <p>Simple and fast booking with secure confirmation at every step of your journey.</p>
+                </div>
+                <div class="wc">
+                    <div class="wc-ic"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h4>Secure Payments</h4>
+                    <p>All payments secured with end-to-end encryption and multiple secure protections.</p>
+                </div>
+                <div class="wc">
+                    <div class="wc-ic"><i class="fa-solid fa-globe"></i></div>
+                    <h4>Global Hotels</h4>
+                    <p>Access to 5,000+ premium partner hotels across 200+ destinations worldwide.</p>
+                </div>
+                <div class="wc">
+                    <div class="wc-ic"><i class="fa-solid fa-circle-check"></i></div>
+                    <h4>Instant Confirmation</h4>
+                    <p>Real-time booking confirmation in multiple languages across the globe.</p>
+                </div>
+                <div class="wc">
+                    <div class="wc-ic"><i class="fa-solid fa-headset"></i></div>
+                    <h4>24/7 Support</h4>
+                    <p>Dedicated round-the-clock support in multiple languages anytime you need.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="testi">
+        <div class="container">
+            <h2 class="sec-title">What Our Travelers Say</h2>
+            <p class="sec-sub">Real experiences from our satisfied customers</p>
+            <div class="testi-grid" id="tGrid"></div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="ft-grid">
+                <div>
+                    <div class="ft-brand">
+                        <div class="ft-brand-ic"><i class="fa-solid fa-globe"></i></div>
+                        e<em>destinations</em>
+                    </div>
+                    <p class="ft-desc">Your trusted partner for luxury travel experiences worldwide. Discover, book,
+                        and explore the world in premium style with exclusive deals.</p>
+                    <div class="ft-con"><i class="fa-solid fa-location-dot"></i>527 Tower Street, New York, NY 10201
+                    </div>
+                    <div class="ft-con"><i class="fa-solid fa-phone"></i>+1 (425) 576-4567</div>
+                    <div class="ft-con"><i class="fa-solid fa-envelope"></i>info@edestinations.com</div>
+                </div>
+                <div class="fc">
+                    <h5>Company</h5>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">News</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Partnerships</a></li>
+                    </ul>
+                </div>
+                <div class="fc">
+                    <h5>Support</h5>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Refund Policy</a></li>
+                    </ul>
+                </div>
+                <div class="fc">
+                    <h5>Quick Links</h5>
+                    <ul>
+                        <li><a href="#">Hotels</a></li>
+                        <li><a href="#">Flights</a></li>
+                        <li><a href="#">Packages</a></li>
+                        <li><a href="#">Visa Services</a></li>
+                        <li><a href="#">Cruises</a></li>
+                    </ul>
+                </div>
+                <div class="fc">
+                    <h5>Destinations</h5>
+                    <ul>
+                        <li><a href="#">Dubai</a></li>
+                        <li><a href="#">Bangkok</a></li>
+                        <li><a href="#">Istanbul</a></li>
+                        <li><a href="#">Makkah</a></li>
+                        <li><a href="#">Switzerland</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="nl-box">
+                <h4>Subscribe to Our Newsletter</h4>
+                <p>Get exclusive deals and travel inspiration delivered straight to your inbox</p>
+                <div class="nl-form"><input type="email"
+                        placeholder="Enter your email now..." /><button>Subscribe</button></div>
+            </div>
+            <div class="ft-bottom">
+                <div class="socials">
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+                <p class="copy">© 2024 Edestinations. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Re-run hotel search dynamically using session search data
+        window.reRunHotelSearch = function(searchData) {
+            if (!searchData) return;
+
+            // 1. Set Destination
+            if (searchData.destination_code) {
+                const text = searchData.destination_name || searchData.destination_code;
+                const option = new Option(text, searchData.destination_code, true, true);
+                $('#hotel_destination').empty().append(option).trigger('change');
+            }
+
+            // 2. Set Dates (converting ISO back to Flatpickr format)
+            if (searchData.check_in) {
+                const checkInDate = searchData.check_in.split('T')[0];
+                const d = new Date(checkInDate);
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const formatted = d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
+                $('#checkIn').val(formatted);
+                
+                // Update flatpickr internal date
+                const inPicker = document.getElementById('checkIn')._flatpickr;
+                if (inPicker) inPicker.setDate(d, false);
+            }
+            if (searchData.check_out) {
+                const checkOutDate = searchData.check_out.split('T')[0];
+                const d = new Date(checkOutDate);
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const formatted = d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
+                $('#checkOut').val(formatted);
+                
+                // Update flatpickr internal date
+                const outPicker = document.getElementById('checkOut')._flatpickr;
+                if (outPicker) outPicker.setDate(d, false);
+            }
+
+            // 3. Set Hidden Fields
+            $('#hotel_country_code').val(searchData.country_code);
+            $('#hotel_nationality').val(searchData.nationality || searchData.country_code);
+
+            // 4. Submit form immediately using form builder
+            const form = $('<form action="{{ route("hotels.search") }}" method="GET"></form>');
+            form.append(`<input type="hidden" name="destination_code" value="${searchData.destination_code}">`);
+            form.append(`<input type="hidden" name="destination_name" value="${searchData.destination_name}">`);
+            form.append(`<input type="hidden" name="country_code" value="${searchData.country_code}">`);
+            form.append(`<input type="hidden" name="nationality" value="${searchData.nationality || searchData.country_code}">`);
+            form.append(`<input type="hidden" name="check_in" value="${searchData.check_in}">`);
+            form.append(`<input type="hidden" name="check_out" value="${searchData.check_out}">`);
+            
+            // Handle rooms
+            if (searchData.rooms && searchData.rooms.Room) {
+                searchData.rooms.Room.forEach((room, idx) => {
+                    form.append(`<input type="hidden" name="rooms[Room][${idx}][RoomIdentifier]" value="${room.RoomIdentifier || (idx + 1)}">`);
+                    form.append(`<input type="hidden" name="rooms[Room][${idx}][Adult]" value="${room.Adult}">`);
+                    if (room.Children && room.Children.Count > 0) {
+                        form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][Count]" value="${room.Children.Count}">`);
+                        if (room.Children.ChildAge) {
+                            Object.values(room.Children.ChildAge).forEach((ageObj, cIdx) => {
+                                form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][ChildAge][${cIdx}][Identifier]" value="${cIdx + 1}">`);
+                                form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][ChildAge][${cIdx}][Text]" value="${ageObj.Text}">`);
+                            });
+                        }
+                    }
+                });
+            }
+
+            if (typeof window.showLoader === 'function') {
+                window.showLoader('Re-loading Your Search');
+            }
+            $('body').append(form);
+            form.submit();
+        };
+
+        // Destination cards
+        var dests = [{
+                name: 'Dubai',
+                country: 'UAE',
+                url: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80'
+            },
+            {
+                name: 'Istanbul',
+                country: 'Turkey',
+                url: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=600&q=80'
+            },
+            {
+                name: 'Bangkok',
+                country: 'Thailand',
+                url: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&q=80'
+            },
+            {
+                name: 'Kuala Lumpur',
+                country: 'Malaysia',
+                url: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=600&q=80'
+            },
+            {
+                name: 'Karachi',
+                country: 'Pakistan',
+                url: 'https://images.unsplash.com/photo-1567861911437-538298e4232c?w=600&q=80'
+            },
+            {
+                name: 'Makkah',
+                country: 'Saudi Arabia',
+                url: 'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=600&q=80'
+            }
+        ];
+        var fallbacks = ['https://picsum.photos/seed/city1/600/420', 'https://picsum.photos/seed/city2/600/420',
+            'https://picsum.photos/seed/city3/600/420', 'https://picsum.photos/seed/city4/600/420',
+            'https://picsum.photos/seed/city5/600/420', 'https://picsum.photos/seed/city6/600/420'
+        ];
+        var dg = document.getElementById('dGrid');
+        dests.forEach(function(d, i) {
+            var c = document.createElement('div');
+            c.className = 'dc';
+            c.innerHTML = '<img src="' + d.url + '" alt="' + d.name + '" loading="lazy" onerror="this.src=\'' +
+                fallbacks[i] +
+                '\'"/><div class="dc-overlay"></div><div class="dc-info"><div class="dc-tag"><i class="fa-solid fa-location-dot" style="font-size:8px;"></i> ' +
+                d.country + '</div><div class="dc-name">' + d.name + '</div></div>';
+            c.onclick = function() {
+                if (typeof window.selectDestinationByName === 'function') {
+                    window.selectDestinationByName(d.name);
+                    $('html, body').animate({
+                        scrollTop: $('.hero').offset().top - 80
+                    }, 500);
+                    setTimeout(() => {
+                        var inPicker = document.getElementById('checkIn')._flatpickr;
+                        if (inPicker) inPicker.open();
+                    }, 600);
+                }
+            };
+            dg.appendChild(c);
+        });
+
+        // Testimonials
+        var testis = [{
+                name: 'Sarah Johnson',
+                role: 'Frequent Traveler',
+                color: '0d7c6b',
+                text: '"The most amazing travel booking experience I\'ve ever had! The hotels were exactly as described and the customer service was exceptional. Will definitely use again!"'
+            },
+            {
+                name: 'Ahmed Al-Rashid',
+                role: 'Business Traveler',
+                color: '1565c0',
+                text: '"Absolutely outstanding service! The booking process is so easy and the customer support responds very quickly. I strongly recommend this for luxury travel!"'
+            },
+            {
+                name: 'Emma Thompson',
+                role: 'Adventure Explorer',
+                color: '7b1fa2',
+                text: '"Totally loved this platform! Everything was seamless from booking to check-out. The prices were unbeatable and the team helped at every step of our trip."'
+            }
+        ];
+        var tg = document.getElementById('tGrid');
+        testis.forEach(function(t) {
+            var c = document.createElement('div');
+            c.className = 'tc';
+            c.innerHTML = '<div class="tc-head"><img class="tc-av" src="https://ui-avatars.com/api/?name=' +
+                encodeURIComponent(t.name) + '&background=' + t.color + '&color=fff&size=88&bold=true" alt="' + t
+                .name + '"/><div><div class="tc-name">' + t.name + '</div><div class="tc-role">' + t.role +
+                '</div></div><i class="fa-solid fa-quote-right tc-qi"></i></div><div class="tc-stars">★★★★★</div><p class="tc-text">' +
+                t.text + '</p>';
+            tg.appendChild(c);
+        });
+
+        /* ===================================================
+           DYNAMIC HOTEL SEARCH CORE JQUERY LOGIC
+           =================================================== */
+        $(document).ready(function() {
+            // 1. Select2 destination suggestion with AJAX
+            $('#hotel_destination').select2({
+                theme: 'default',
+                placeholder: $('#hotel_destination').data('placeholder'),
+                ajax: {
+                    url: '{{ route("hotels.suggestions") }}',
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({ term: params.term }),
+                    processResults: data => ({ results: data.results }),
+                    cache: true
+                }
+            }).on('select2:select', function (e) {
+                const data = e.params.data;
+                $('#hotel_country_code').val(data.country);
+                $('#hotel_nationality').val(data.nationality || data.country);
+            });
+
+            // 2. Flatpickr date pickers check-in & check-out
+            const checkOutPicker = flatpickr("#checkOut", {
+                dateFormat: "d M Y",
+                minDate: "today"
+            });
+
+            const checkInPicker = flatpickr("#checkIn", {
+                dateFormat: "d M Y",
+                minDate: "today",
+                onChange: function(selectedDates) {
+                    if (selectedDates.length > 0) {
+                        const nextDay = new Date(selectedDates[0]);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkOutPicker.set('minDate', nextDay);
+                        checkOutPicker.open(); // Smooth calendar prompt flow
+                    }
+                }
+            });
+
+            // 3. Occupancy details dropdown menu logic
+            $('#hotelOccupancyToggle').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#hotelOccupancyMenu').toggleClass('show');
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.dropdown').length) {
+                    $('#hotelOccupancyMenu').removeClass('show');
+                }
+            });
+
+            // Multi-Room logic block
+            let hotelRooms = [{ roomNum: 1, adults: 2, children: [] }]; // default 2 adults to match existing layout
+
+            function updateHotelOccupancySummary() {
+                let totalRooms = hotelRooms.length;
+                let totalAdults = hotelRooms.reduce((sum, room) => sum + room.adults, 0);
+                let totalChildren = hotelRooms.reduce((sum, room) => sum + room.children.length, 0);
+                let summary = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalAdults} Guest${(totalAdults + totalChildren) > 1 ? 's' : ''}`;
+                if (totalChildren > 0) {
+                    summary = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalAdults + totalChildren} Guest${(totalAdults + totalChildren) > 1 ? 's' : ''}`;
+                }
+                $('.hotelOccupancyDetails').text(summary);
+            }
+
+            // Sync initial state
+            updateHotelOccupancySummary();
+
+            function syncRoomOccupancyUI(roomBlock, roomIndex) {
+                const room = hotelRooms[roomIndex];
+                if (!room) return;
+                const adultCount = room.adults;
+                const childCount = room.children.length;
+                const errorMsg = roomBlock.find('.room-error-message');
+
+                // Toggle dynamic styling classes
+                roomBlock.find('.hotelIncrement[data-type="adult"]').toggleClass('hotel-btn-disabled', adultCount >= 4);
+                roomBlock.find('.hotelDecrement[data-type="adult"]').toggleClass('hotel-btn-disabled', adultCount <= 1);
+                roomBlock.find('.hotelIncrement[data-type="child"]').toggleClass('hotel-btn-disabled', childCount >= 3);
+                roomBlock.find('.hotelDecrement[data-type="child"]').toggleClass('hotel-btn-disabled', childCount <= 0);
+
+                if (adultCount >= 4) {
+                    errorMsg.text('Maximum 4 adults per room allowed.').show();
+                } else if (childCount >= 3) {
+                    errorMsg.text('Maximum 3 children per room allowed.').show();
+                } else {
+                    errorMsg.hide().text('');
+                }
+            }
+
+            $(document).on('click', '.hotelIncrement, .hotelDecrement', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const roomBlock = $(this).closest('.room-block');
+                const roomIndex = parseInt(roomBlock.attr('data-room')) - 1;
+                const type = $(this).data('type');
+                const isIncrement = $(this).hasClass('hotelIncrement');
+
+                if (type === 'adult') {
+                    if (isIncrement && hotelRooms[roomIndex].adults < 4) hotelRooms[roomIndex].adults++;
+                    if (!isIncrement && hotelRooms[roomIndex].adults > 1) hotelRooms[roomIndex].adults--;
+                    roomBlock.find('.adult-count').text(hotelRooms[roomIndex].adults);
+                } else if (type === 'child') {
+                    if (isIncrement && hotelRooms[roomIndex].children.length < 3) {
+                        hotelRooms[roomIndex].children.push(8); // Default child age
+                        renderChildAges(roomBlock, roomIndex);
+                    } else if (!isIncrement && hotelRooms[roomIndex].children.length > 0) {
+                        hotelRooms[roomIndex].children.pop();
+                        renderChildAges(roomBlock, roomIndex);
+                    }
+                    roomBlock.find('.child-count').text(hotelRooms[roomIndex].children.length);
+                }
+                syncRoomOccupancyUI(roomBlock, roomIndex);
+                updateHotelOccupancySummary();
+            });
+
+            function renderChildAges(roomBlock, roomIndex) {
+                const container = roomBlock.find('.child-ages-container');
+                container.empty();
+                hotelRooms[roomIndex].children.forEach((age, childIdx) => {
+                    const ageHtml = `
+                        <div class="mt-2" style="margin-bottom: 8px;">
+                            <label style="font-size: 11px; font-weight: 600; color: #64748b;">Child ${childIdx + 1} Age</label>
+                            <select class="child-age-select" data-room="${roomIndex}" data-child="${childIdx}">
+                                ${Array.from({length: 10}, (_, i) => {
+                                    const val = i + 2;
+                                    return `<option value="${val}" ${val === age ? 'selected' : ''}>${val} years</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                    `;
+                    container.append(ageHtml);
+                });
+            }
+
+            $(document).on('change', '.child-age-select', function(e) {
+                e.stopPropagation();
+                const roomIdx = $(this).data('room');
+                const childIdx = $(this).data('child');
+                hotelRooms[roomIdx].children[childIdx] = parseInt($(this).val());
+            });
+
+            $('#addHotelRoomBtn').click(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (hotelRooms.length < 4) {
+                    const roomNum = hotelRooms.length + 1;
+                    hotelRooms.push({ roomNum, adults: 1, children: [] });
+                    const roomHtml = `
+                        <div class="room-block mb-3 border-top pt-3" data-room="${roomNum}" style="border-top: 1px solid #f1f5f9; padding-top: 12px; margin-top: 12px;">
+                            <div class="d-flex justify-content-between align-items-center" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h6 class="fw-bold" style="font-size: 13px; font-weight: 700; color: #111; margin: 0;">Room ${roomNum}</h6>
+                                <button type="button" class="remove-room-btn">Remove</button>
+                            </div>
+                            <div class="dropdown-item quantity d-flex justify-content-between align-items-center" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 13px; font-weight: 500; color: #555;">Adults</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button type="button" class="hotelDecrement" data-type="adult" style="width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #475569; transition: all 0.2s;">-</button>
+                                    <span class="count adult-count" style="font-size: 13px; font-weight: 600; min-width: 20px; text-align: center; color: #0f172a;">1</span>
+                                    <button type="button" class="hotelIncrement" data-type="adult" style="width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #475569; transition: all 0.2s;">+</button>
+                                </div>
+                            </div>
+                            <div class="dropdown-item quantity d-flex justify-content-between align-items-center" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 13px; font-weight: 500; color: #555;">Children</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button type="button" class="hotelDecrement" data-type="child" style="width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #475569; transition: all 0.2s;">-</button>
+                                    <span class="count child-count" style="font-size: 13px; font-weight: 600; min-width: 20px; text-align: center; color: #0f172a;">0</span>
+                                    <button type="button" class="hotelIncrement" data-type="child" style="width: 28px; height: 28px; border: 1px solid #e2e8f0; background: #f8fafc; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #475569; transition: all 0.2s;">+</button>
+                                </div>
+                            </div>
+                            <div class="child-ages-container mt-2"></div>
+                            <p class="room-error-message text-danger mt-1" style="font-size: 11px; display: none; color: #ef4444;"></p>
+                        </div>
+                    `;
+                    $('#hotelRoomsContainer').append(roomHtml);
+                    syncRoomOccupancyUI($(`.room-block[data-room="${roomNum}"]`), hotelRooms.length - 1);
+                    updateHotelOccupancySummary();
+                }
+                if (hotelRooms.length >= 4) {
+                    $('#addHotelRoomBtn').hide();
+                }
+            });
+
+            $(document).on('click', '.remove-room-btn', function(e) {
+                e.stopPropagation();
+                const roomBlock = $(this).closest('.room-block');
+                const roomNum = roomBlock.data('room');
+                hotelRooms = hotelRooms.filter(r => r.roomNum !== roomNum);
+                roomBlock.remove();
+                
+                // Renumber rooms
+                $('#hotelRoomsContainer .room-block').each(function(idx) {
+                    const newNum = idx + 1;
+                    $(this).attr('data-room', newNum);
+                    $(this).find('h6').text(`Room ${newNum}`);
+                    hotelRooms[idx].roomNum = newNum;
+                });
+                
+                updateHotelOccupancySummary();
+                if (hotelRooms.length < 4) {
+                    $('#addHotelRoomBtn').show();
+                }
+            });
+
+            // Date formatting helper
+            function formatDateToISO(dateStr) {
+                if (!dateStr) return null;
+                const date = new Date(dateStr);
+                if (isNaN(date)) return null;
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // Alerts helper
+            const _alert = (msg, type = 'success') => {
+                const icons = {
+                    success: '#28a745',
+                    error: '#f27474',
+                    warning: '#ffc107',
+                    info: '#17a2b8'
+                };
+                Swal.fire({
+                    position: 'top-end',
+                    icon: type,
+                    title: `<span style="font-size: 15px;">${msg}</span>`,
+                    showConfirmButton: false,
+                    timer: 2500,
+                    toast: true,
+                    background: '#fff',
+                    customClass: { title: 'custom-title', popup: 'custom-toast' },
+                    iconColor: icons[type] || icons.success
+                });
+            }
+
+            // Search submission logic
+            $('#searchHotelsBtn').click(function(e) {
+                e.preventDefault();
+                const dest = $('#hotel_destination').val();
+                const destName = $('#hotel_destination').find("option:selected").text() || $('#hotel_destination').val();
+                const checkInVal = $('#checkIn').val();
+                const checkOutVal = $('#checkOut').val();
+
+                if (!dest) {
+                    _alert('Please select a destination.', "warning");
+                    return;
+                }
+                if (!checkInVal) {
+                    _alert('Please select a check-in date.', "warning");
+                    return;
+                }
+                if (!checkOutVal) {
+                    _alert('Please select a check-out date.', "warning");
+                    return;
+                }
+
+                const checkIn = formatDateToISO(checkInVal);
+                const checkOut = formatDateToISO(checkOutVal);
+
+                const form = $('<form action="{{ route("hotels.search") }}" method="GET"></form>');
+                form.append(`<input type="hidden" name="destination_code" value="${dest}">`);
+                form.append(`<input type="hidden" name="destination_name" value="${destName}">`);
+                form.append(`<input type="hidden" name="country_code" value="${$('#hotel_country_code').val()}">`);
+                form.append(`<input type="hidden" name="nationality" value="${$('#hotel_nationality').val() || $('#hotel_country_code').val()}">`);
+                form.append(`<input type="hidden" name="check_in" value="${checkIn}T00:00:00">`);
+                form.append(`<input type="hidden" name="check_out" value="${checkOut}T00:00:00">`);
+                
+                hotelRooms.forEach((room, idx) => {
+                    form.append(`<input type="hidden" name="rooms[Room][${idx}][RoomIdentifier]" value="${idx + 1}">`);
+                    form.append(`<input type="hidden" name="rooms[Room][${idx}][Adult]" value="${room.adults}">`);
+                    if (room.children.length > 0) {
+                        form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][Count]" value="${room.children.length}">`);
+                        room.children.forEach((age, cIdx) => {
+                            form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][ChildAge][${cIdx}][Identifier]" value="${cIdx + 1}">`);
+                            form.append(`<input type="hidden" name="rooms[Room][${idx}][Children][ChildAge][${cIdx}][Text]" value="${age}">`);
+                        });
+                    }
+                });
+
+                if (typeof window.showLoader === 'function') {
+                    window.showLoader('Searching for Hotels');
+                }
+                $('body').append(form);
+                form.submit();
+            });
+
+            // Programmatic search suggestion trigger
+            window.selectDestinationByName = function(cityName) {
+                $.ajax({
+                    url: '{{ route("hotels.suggestions") }}',
+                    data: { term: cityName },
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.results && data.results.length > 0) {
+                            const match = data.results[0];
+                            const option = new Option(match.text, match.id, true, true);
+                            $('#hotel_destination').empty().append(option).trigger('change');
+                            $('#hotel_country_code').val(match.country);
+                            $('#hotel_nationality').val(match.nationality || match.country);
+                        } else {
+                            const option = new Option(cityName, cityName, true, true);
+                            $('#hotel_destination').empty().append(option).trigger('change');
+                        }
+                    },
+                    error: function() {
+                        const option = new Option(cityName, cityName, true, true);
+                        $('#hotel_destination').empty().append(option).trigger('change');
+                    }
+                });
+            };
+
+            // Sync initial state on Room 1
+            syncRoomOccupancyUI($('.room-block[data-room="1"]'), 0);
+        });
+    </script>
 </body>
+
 </html>
