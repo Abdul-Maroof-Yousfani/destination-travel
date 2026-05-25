@@ -99,7 +99,7 @@
                                 <label>Guests &amp; Rooms</label>
                                 <div class="si dropdowns" style="border: none; padding: 0;">
                                     <div class="dropdown w-100" style="position: relative;">
-                                        <div class="si dropdown-toggle" id="hotelOccupancyToggle" style="cursor: pointer;">
+                                        <div class="si dropdown-toggle" id="hotelOccupancyToggle" style="cursor: pointer; width: 100%; display: flex;">
                                             <i class="fa-solid fa-user-group"></i>
                                             <span class="hotelOccupancyDetails" style="font-size: 13px; font-weight: 500; color: #333;">1 Room, 1 Adult</span>
                                         </div>
@@ -537,10 +537,19 @@
             });
 
             // 3. Occupancy details dropdown menu logic
-            $('#hotelOccupancyToggle').on('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                $('#hotelOccupancyMenu').toggleClass('show');
+              // $('#hotelOccupancyToggle').on('click', function(e) {
+              // e.preventDefault();
+              //e.stopPropagation();
+              //$('#hotelOccupancyMenu').toggleClass('show');
+              //});
+            document.getElementById('hotelOccupancyToggle').addEventListener('click', function() {
+                const menu = document.getElementById('hotelOccupancyMenu');
+                const rect = this.getBoundingClientRect();
+                
+                menu.style.top = (rect.bottom + window.scrollY) + 'px';
+                menu.style.left = rect.left + 'px';
+                menu.style.width = '280px';
+                menu.classList.toggle('show');
             });
 
             $(document).on('click', function(e) {
